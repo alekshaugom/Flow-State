@@ -121,6 +121,7 @@ async function getLatestForecast(sectionId: string) {
 }
 
 export class RiverDetail extends Resource {
+	allowRead() { return true; }
 	async get(target?: any) {
 		const sectionId = target?.id;
 		if (!sectionId) return new Response('sectionId required in URL path', { status: 400 });

@@ -43,6 +43,7 @@ const STATUS_ORDER: Record<string, number> = {
 };
 
 export class Dashboard extends Resource {
+	allowRead() { return true; }
 	async get() {
 		const rivers = await collect(tables.River.search({ conditions: [] }));
 		const sections = await collect(tables.RiverSection.search({ conditions: [] }));
