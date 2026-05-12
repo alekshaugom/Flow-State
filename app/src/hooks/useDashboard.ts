@@ -13,6 +13,6 @@ export function useDashboard() {
 				generatedAt: data.generated_at,
 			};
 		},
-		refetchInterval: 60_000,
+		refetchInterval: 5 * 60_000,
 	});
 }

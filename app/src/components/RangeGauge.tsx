@@ -21,20 +21,22 @@ export function RangeGauge({ currentFlow, thresholds: t }: RangeGaugeProps) {
 
 	return (
 		<div style={{ marginTop: 20 }}>
-			<div style={{
-				position: 'relative', height: 16, borderRadius: 'var(--r-pill)', overflow: 'hidden',
-				background: 'var(--bg-sunken)', border: '1px solid var(--rule)',
-				display: 'flex',
-			}}>
-				{segments.map((s, i) => (
-					<div key={i} style={{
-						flex: (s.to - s.from),
-						background: s.c, opacity: 0.85,
-						borderRight: i < segments.length - 1 ? '1px solid rgba(255,255,255,0.4)' : 'none',
-					}} />
-				))}
+			<div style={{ position: 'relative', height: 16, marginTop: 6, marginBottom: 6 }}>
 				<div style={{
-					position: 'absolute', top: -4, bottom: -4, left: `${currentPct}%`,
+					height: '100%', borderRadius: 'var(--r-pill)', overflow: 'hidden',
+					background: 'var(--bg-sunken)', border: '1px solid var(--rule)',
+					display: 'flex',
+				}}>
+					{segments.map((s, i) => (
+						<div key={i} style={{
+							flex: (s.to - s.from),
+							background: s.c, opacity: 0.85,
+							borderRight: i < segments.length - 1 ? '1px solid rgba(255,255,255,0.4)' : 'none',
+						}} />
+					))}
+				</div>
+				<div style={{
+					position: 'absolute', top: -6, bottom: -6, left: `${currentPct}%`,
 					width: 3, background: 'var(--ink-0)',
 					borderRadius: 2,
 					boxShadow: '0 0 0 2px white, 0 2px 6px rgba(0,0,0,0.2)',

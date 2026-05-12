@@ -1,11 +1,13 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { DesktopShell } from './desktop/DesktopShell';
 import { MobileDashboard } from './mobile/MobileDashboard';
 import { MobileDetail } from './mobile/MobileDetail';
-import { AdminPage } from './admin/AdminPage';
-import { MapPage } from './pages/MapPage';
-import { LoginPage } from './pages/LoginPage';
+
+const MapPage = lazy(() => import('./pages/MapPage').then(m => ({ default: m.MapPage })));
+const AdminPage = lazy(() => import('./admin/AdminPage').then(m => ({ default: m.AdminPage })));
+const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
 
 function ResponsiveHome() {
 	const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -25,9 +27,9 @@ export function App() {
 			<Routes>
 				<Route index element={<ResponsiveHome />} />
 				<Route path="/section/:sectionId" element={<ResponsiveSection />} />
-				<Route path="/login" element={<LoginPage />} />
-				<Route path="/map" element={<MapPage />} />
-				<Route path="/admin" element={<AdminPage />} />
+				<Route path="/login" element={<Suspense><LoginPage /></Suspense>} />
+				<Route path="/map" element={<Suspense><MapPage /></Suspense>} />
+				<Route path="/admin" element={<Suspense><AdminPage /></Suspense>} />
 			</Routes>
 		</BrowserRouter>
 	);
