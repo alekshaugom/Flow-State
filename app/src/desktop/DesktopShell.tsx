@@ -99,6 +99,7 @@ export function DesktopShell() {
 					</div>
 					<nav style={{ display: 'flex', gap: 4 }}>
 						<NavLink active>Rivers</NavLink>
+						<NavLink onClick={() => navigate('/map')}>Map</NavLink>
 						<NavLink onClick={() => navigate('/admin')}>Admin</NavLink>
 					</nav>
 				</div>

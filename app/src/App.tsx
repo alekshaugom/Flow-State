@@ -4,6 +4,7 @@ import { DesktopShell } from './desktop/DesktopShell';
 import { MobileDashboard } from './mobile/MobileDashboard';
 import { MobileDetail } from './mobile/MobileDetail';
 import { AdminPage } from './admin/AdminPage';
+import { MapPage } from './pages/MapPage';
 
 function ResponsiveHome() {
 	const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -23,6 +24,7 @@ export function App() {
 			<Routes>
 				<Route index element={<ResponsiveHome />} />
 				<Route path="/section/:sectionId" element={<ResponsiveSection />} />
+				<Route path="/map" element={<MapPage />} />
 				<Route path="/admin" element={<AdminPage />} />
 			</Routes>
 		</BrowserRouter>

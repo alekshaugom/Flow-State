@@ -103,8 +103,8 @@ export function MobileDashboard() {
 						</h1>
 					</div>
 					<div style={{ display: 'flex', gap: 8 }}>
+						<button style={iconBtn} onClick={() => navigate('/map')}><Icon name="map-pin" size={18} color="white" /></button>
 						<button style={iconBtn}><Icon name="search" size={18} color="white" /></button>
-						<button style={iconBtn}><Icon name="sliders" size={18} color="white" /></button>
 					</div>
 				</div>
 				<div style={{ display: 'flex', gap: 8, marginTop: 18, position: 'relative' }}>
