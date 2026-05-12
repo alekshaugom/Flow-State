@@ -1,0 +1,37 @@
+type River @table @export {
+	id: ID @primaryKey
+	name: String
+	state: String
+	description: String
+	watershed: String
+	sections: [RiverSection] @relationship(to: "riverId")
+	gauges: [Gauge] @relationship(to: "riverId")
+	reservoirs: [Reservoir] @relationship(to: "riverId")
+}
+
+type RiverSection @table @export {
+	id: ID @primaryKey
+	riverId: ID @indexed
+	river: River @relationship(from: "riverId")
+	name: String
+	putIn: String
+	takeOut: String
+	difficultyMin: String
+	difficultyMax: String
+	lengthMiles: Float
+	flowLow: Int
+	flowRunnable: Int
+	flowIdealMin: Int
+	flowIdealMax: Int
+	flowHigh: Int
+	flowExpert: Int
+	flowDangerous: Int
+	primaryGaugeId: String @indexed
+	upstreamGaugeIds: String
+	downstreamGaugeIds: String
+	reservoirIds: String
+	snowpackBasinIds: String
+	notes: String
+	latitude: Float
+	longitude: Float
+}

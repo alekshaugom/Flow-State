@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=./node_modules/harper/config-app.schema.json
+
+# Colorado River Flow Forecasting App
+# Built on Harper — database, API, and web server in one
+
+loadEnv:
+  files: '.env'
+
+rest: true
+
+graphqlSchema:
+  files: 'schemas/*.graphql'
+
+jsResource:
+  files: 'resources/*.ts'
+
+'@harperfast/schema-codegen':
+  package: '@harperfast/schema-codegen'
+  globalTypes: 'schemas/globalTypes.d.ts'
+  schemaTypes: 'schemas/types.ts'
+
+static:
+  files: 'web/*'

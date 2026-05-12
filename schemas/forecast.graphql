@@ -1,0 +1,24 @@
+type ForecastRun @table @export {
+	id: ID @primaryKey
+	sectionId: ID @indexed
+	section: RiverSection @relationship(from: "sectionId")
+	createdAt: String @indexed
+	model: String
+	status: String @indexed
+	inputPackage: String
+	notes: String
+	outputs: [ForecastOutput] @relationship(to: "forecastRunId")
+}
+
+type ForecastOutput @table @export {
+	id: ID @primaryKey
+	forecastRunId: ID @indexed
+	forecastRun: ForecastRun @relationship(from: "forecastRunId")
+	date: String @indexed
+	flowMin: Float
+	flowMax: Float
+	flowExpected: Float
+	confidence: Float
+	assumptions: String
+	safetyNotes: String
+}

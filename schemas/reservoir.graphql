@@ -1,0 +1,28 @@
+type Reservoir @table @export {
+	id: ID @primaryKey
+	name: String
+	riverId: ID @indexed
+	river: River @relationship(from: "riverId")
+	operator: String
+	latitude: Float
+	longitude: Float
+	maxStorageAcreFt: Float
+	normalElevationFt: Float
+	sourceId: String
+	source: String
+	url: String
+	notes: String
+	releases: [DamRelease] @relationship(to: "reservoirId")
+}
+
+type DamRelease @table @export {
+	id: ID @primaryKey
+	reservoirId: ID @indexed
+	reservoir: Reservoir @relationship(from: "reservoirId")
+	timestamp: String @indexed
+	outflowCfs: Float
+	inflowCfs: Float
+	storageAcreFt: Float
+	elevationFt: Float
+	source: String
+}

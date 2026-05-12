@@ -1,0 +1,22 @@
+type DataSource @table @export {
+	id: ID @primaryKey
+	name: String
+	type: String @indexed
+	baseUrl: String
+	description: String
+	updateFrequencyMinutes: Int
+	active: Boolean
+	lastFetchAt: String
+	lastError: String
+}
+
+type IngestionLog @table @export {
+	id: ID @primaryKey
+	sourceId: ID @indexed
+	source: DataSource @relationship(from: "sourceId")
+	timestamp: String @indexed
+	status: String @indexed
+	recordsProcessed: Int
+	errors: String
+	durationMs: Int
+}

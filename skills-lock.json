@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "harper-best-practices": {
+      "source": "harperfast/skills",
+      "sourceType": "github",
+      "skillPath": "harper-best-practices/SKILL.md",
+      "computedHash": "d1202b45e77f9d96486cad8857132c3914dfdf262c45ad04012e875067d1a23a"
+    }
+  }
+}

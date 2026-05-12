@@ -1,0 +1,26 @@
+type Gauge @table @export {
+	id: ID @primaryKey
+	name: String
+	source: String @indexed
+	sourceId: String @indexed
+	riverId: ID @indexed
+	river: River @relationship(from: "riverId")
+	latitude: Float
+	longitude: Float
+	parameter: String
+	unit: String
+	url: String
+	active: Boolean
+	readings: [GaugeReading] @relationship(to: "gaugeId")
+}
+
+type GaugeReading @table @export {
+	id: ID @primaryKey
+	gaugeId: ID @indexed
+	gauge: Gauge @relationship(from: "gaugeId")
+	timestamp: String @indexed
+	value: Float
+	unit: String
+	qualityFlag: String
+	source: String
+}

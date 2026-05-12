@@ -1,0 +1,22 @@
+type SnowpackBasin @table @export {
+	id: ID @primaryKey
+	name: String
+	state: String
+	huc: String
+	relevantRiverIds: String
+	source: String
+	url: String
+	readings: [SnowpackReading] @relationship(to: "basinId")
+}
+
+type SnowpackReading @table @export {
+	id: ID @primaryKey
+	basinId: ID @indexed
+	basin: SnowpackBasin @relationship(from: "basinId")
+	timestamp: String @indexed
+	sweInches: Float
+	swePercentMedian: Float
+	snowDepthInches: Float
+	precipAccumInches: Float
+	source: String
+}

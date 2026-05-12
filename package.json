@@ -1,0 +1,41 @@
+{
+	"name": "flow-state",
+	"version": "1.0.0",
+	"description": "Colorado river-flow forecasting app for rafters, built on Harper",
+	"type": "module",
+	"scripts": {
+		"agent:run": "npx -y @harperfast/agent@latest",
+		"agent:skills:update": "npx -y skills@latest add harperfast/skills --all --yes",
+		"start": "harper run .",
+		"dev": "harper dev .",
+		"lint": "eslint .",
+		"format": "prettier --write .",
+		"test": "node --test test/*.test.js",
+		"test:watch": "node --watch --test test/*.test.js",
+		"ui:dev": "vite",
+		"ui:build": "vite build",
+		"deploy": "dotenv -- npm run deploy:component",
+		"deploy:component": "harper deploy_component . restart=rolling replicated=true"
+	},
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"@harperfast/schema-codegen": "^1.0.10",
+		"@types/react": "^19.2.14",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^6.0.1",
+		"dotenv-cli": "^11.0.0",
+		"eslint": "^10.0.2",
+		"globals": "^17.4.0",
+		"prettier": "^3.8.1",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.8"
+	},
+	"dependencies": {
+		"@tanstack/react-query": "^5.99.1",
+		"harper": "^5.0.1",
+		"nanoid": "^5.1.9",
+		"react": "^19.2.5",
+		"react-dom": "^19.2.5",
+		"react-router-dom": "^7.6.1"
+	}
+}
