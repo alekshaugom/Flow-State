@@ -11,6 +11,9 @@
 .leaflet-container {
 	cursor: grab;
 }
+.leaflet-tile-pane {
+	filter: grayscale(1) brightness(1.05) contrast(0.95);
+}
 .leaflet-container a {
 	color: var(--river-600) !important;
 }
