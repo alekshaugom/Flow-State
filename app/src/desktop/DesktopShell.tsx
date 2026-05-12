@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { STATUS_ORDER, STATUS_LABEL, type DesignStatus } from '../constants';
 import { useDashboard } from '../hooks/useDashboard';
+import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
 import { StatusGroupHeader } from '../components/StatusGroupHeader';
 import { NavLink } from './NavLink';
@@ -14,6 +15,7 @@ export function DesktopShell() {
 	const { sectionId: urlSectionId } = useParams<{ sectionId?: string }>();
 	const navigate = useNavigate();
 	const { data, isLoading, error } = useDashboard();
+	const auth = useAuth();
 	const [filter, setFilter] = useState<'all' | DesignStatus>('all');
 	const [selectedId, setSelectedId] = useState<string | null>(urlSectionId || null);
 
@@ -100,7 +102,9 @@ export function DesktopShell() {
 					<nav style={{ display: 'flex', gap: 4 }}>
 						<NavLink active>Rivers</NavLink>
 						<NavLink onClick={() => navigate('/map')}>Map</NavLink>
-						<NavLink onClick={() => navigate('/admin')}>Admin</NavLink>
+						{auth.isAuthenticated && auth.user && ['aleks@harperdb.io', 'alekshaugom@gmail.com', 'dev@localhost'].includes(auth.user.email) && (
+							<NavLink onClick={() => navigate('/admin')}>Admin</NavLink>
+						)}
 					</nav>
 				</div>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -113,6 +117,27 @@ export function DesktopShell() {
 						<Icon name="search" size={15} color="var(--ink-3)" />
 						<span style={{ fontSize: 13 }}>Search rivers, sections, gauges…</span>
 					</div>
+					{auth.isAuthenticated ? (
+						<button onClick={auth.logout} style={{
+							display: 'flex', alignItems: 'center', gap: 6,
+							padding: '8px 14px', borderRadius: 'var(--r-pill)',
+							background: 'var(--bg-sunken)', border: '1px solid var(--rule)',
+							fontSize: 13, fontWeight: 600, color: 'var(--ink-1)', cursor: 'pointer',
+						}}>
+							<Icon name="user" size={14} color="var(--ink-2)" />
+							{auth.user?.name?.split(' ')[0] || 'Account'}
+						</button>
+					) : (
+						<button onClick={() => navigate('/login')} style={{
+							display: 'flex', alignItems: 'center', gap: 6,
+							padding: '8px 14px', borderRadius: 'var(--r-pill)',
+							background: 'var(--river-700)', color: 'white',
+							fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer',
+						}}>
+							<Icon name="user" size={14} color="white" />
+							Sign in
+						</button>
+					)}
 				</div>
 			</header>
 

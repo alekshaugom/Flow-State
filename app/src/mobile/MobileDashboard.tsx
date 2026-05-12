@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { STATUS_ORDER, STATUS_LABEL, type DesignStatus } from '../constants';
 import { useDashboard } from '../hooks/useDashboard';
+import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
 import { StatusGroupHeader } from '../components/StatusGroupHeader';
 import { FilterChip } from './FilterChip';
@@ -26,6 +27,7 @@ const summaryLabel: React.CSSProperties = {
 export function MobileDashboard() {
 	const navigate = useNavigate();
 	const { data, isLoading, error } = useDashboard();
+	const auth = useAuth();
 	const [filter, setFilter] = useState<'all' | DesignStatus>('all');
 
 	const sections = data?.sections || [];
@@ -105,6 +107,7 @@ export function MobileDashboard() {
 					<div style={{ display: 'flex', gap: 8 }}>
 						<button style={iconBtn} onClick={() => navigate('/map')}><Icon name="map-pin" size={18} color="white" /></button>
 						<button style={iconBtn}><Icon name="search" size={18} color="white" /></button>
+						<button style={iconBtn} onClick={() => navigate('/login')}><Icon name="user" size={18} color="white" /></button>
 					</div>
 				</div>
 				<div style={{ display: 'flex', gap: 8, marginTop: 18, position: 'relative' }}>

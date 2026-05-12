@@ -14,6 +14,7 @@
 		"test:watch": "node --watch --test test/*.test.js",
 		"ui:dev": "vite",
 		"ui:build": "vite build",
+		"generate:geometries": "npx tsx scripts/generate-geometries.ts",
 		"deploy": "dotenv -- npm run deploy:component",
 		"deploy:component": "harper deploy_component . restart=rolling replicated=true"
 	},
@@ -27,10 +28,12 @@
 		"eslint": "^10.0.2",
 		"globals": "^17.4.0",
 		"prettier": "^3.8.1",
+		"tsx": "^4.21.0",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.8"
 	},
 	"dependencies": {
+		"@harperfast/oauth": "^1.4.0",
 		"@tanstack/react-query": "^5.99.1",
 		"@types/leaflet": "^1.9.21",
 		"harper": "^5.0.1",
