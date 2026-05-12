@@ -2,10 +2,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { STATUS_ORDER, STATUS_LABEL, type DesignStatus } from '../constants';
 import { useDashboard } from '../hooks/useDashboard';
-import { useAuth } from '../hooks/useAuth';
-import { Icon } from '../components/Icon';
+import { AppHeader } from '../components/AppHeader';
+import { Skeleton } from '../components/Skeleton';
 import { StatusGroupHeader } from '../components/StatusGroupHeader';
-import { NavLink } from './NavLink';
 import { SummaryStat } from './SummaryStat';
 import { DesktopFilter } from './DesktopFilter';
 import { DesktopRiverRow } from './DesktopRiverRow';
@@ -15,7 +14,6 @@ export function DesktopShell() {
 	const { sectionId: urlSectionId } = useParams<{ sectionId?: string }>();
 	const navigate = useNavigate();
 	const { data, isLoading, error } = useDashboard();
-	const auth = useAuth();
 	const [filter, setFilter] = useState<'all' | DesignStatus>('all');
 	const [selectedId, setSelectedId] = useState<string | null>(urlSectionId || null);
 
@@ -57,13 +55,10 @@ export function DesktopShell() {
 	const now = new Date();
 	const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-	if (isLoading) {
-		return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--ink-3)' }}>Loading river data...</div>;
-	}
 	if (error) {
 		return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--danger-solid)' }}>Failed to load dashboard. Is the server running?</div>;
 	}
-	if (!sections.length) {
+	if (!isLoading && !sections.length) {
 		return (
 			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 12 }}>
 				<div style={{ fontSize: 16, color: 'var(--ink-2)' }}>No data yet.</div>
@@ -80,66 +75,7 @@ export function DesktopShell() {
 			fontFamily: 'var(--font-sans)',
 			color: 'var(--ink-1)',
 		}}>
-			{/* Top app bar */}
-			<header style={{
-				height: 64, padding: '0 28px',
-				borderBottom: '1px solid var(--rule)',
-				background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)',
-				display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-				flexShrink: 0,
-			}}>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-					<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-						<svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-							<rect width="28" height="28" rx="8" fill="var(--river-700)"/>
-							<path d="M5 18 C 8 14, 11 22, 14 18 S 20 14, 23 18" stroke="var(--ideal-line)" strokeWidth="2" strokeLinecap="round" fill="none"/>
-							<path d="M5 13 C 8 9, 11 17, 14 13 S 20 9, 23 13" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7"/>
-						</svg>
-						<span style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink-0)', letterSpacing: '-0.01em' }}>
-							Flow State
-						</span>
-					</div>
-					<nav style={{ display: 'flex', gap: 4 }}>
-						<NavLink active>Rivers</NavLink>
-						<NavLink onClick={() => navigate('/map')}>Map</NavLink>
-						{auth.isAuthenticated && auth.user && ['aleks@harperdb.io', 'alekshaugom@gmail.com', 'dev@localhost'].includes(auth.user.email) && (
-							<NavLink onClick={() => navigate('/admin')}>Admin</NavLink>
-						)}
-					</nav>
-				</div>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-					<div style={{
-						display: 'flex', alignItems: 'center', gap: 8,
-						padding: '8px 12px', borderRadius: 'var(--r-pill)',
-						background: 'var(--bg-sunken)', border: '1px solid var(--rule)',
-						color: 'var(--ink-3)', width: 280,
-					}}>
-						<Icon name="search" size={15} color="var(--ink-3)" />
-						<span style={{ fontSize: 13 }}>Search rivers, sections, gauges…</span>
-					</div>
-					{auth.isAuthenticated ? (
-						<button onClick={auth.logout} style={{
-							display: 'flex', alignItems: 'center', gap: 6,
-							padding: '8px 14px', borderRadius: 'var(--r-pill)',
-							background: 'var(--bg-sunken)', border: '1px solid var(--rule)',
-							fontSize: 13, fontWeight: 600, color: 'var(--ink-1)', cursor: 'pointer',
-						}}>
-							<Icon name="user" size={14} color="var(--ink-2)" />
-							{auth.user?.name?.split(' ')[0] || 'Account'}
-						</button>
-					) : (
-						<button onClick={() => navigate('/login')} style={{
-							display: 'flex', alignItems: 'center', gap: 6,
-							padding: '8px 14px', borderRadius: 'var(--r-pill)',
-							background: 'var(--river-700)', color: 'white',
-							fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer',
-						}}>
-							<Icon name="user" size={14} color="white" />
-							Sign in
-						</button>
-					)}
-				</div>
-			</header>
+			<AppHeader activePage="rivers" />
 
 			{/* Page heading */}
 			<div style={{
@@ -159,45 +95,63 @@ export function DesktopShell() {
 					</h1>
 				</div>
 				<div style={{ display: 'flex', gap: 8 }}>
-					<SummaryStat label="Running" value={totalRunnable} sub={`of ${sections.length} tracked`} />
-					<SummaryStat label="Ideal" value={idealCount} color="var(--ideal-solid)" sub="sweet spot" />
-					<SummaryStat label="Rising" value={risingCount} color="var(--trend-up)" sub="last 24h" trendIcon="up" />
-					<SummaryStat label="Falling" value={fallingCount} color="var(--trend-down)" sub="last 24h" trendIcon="down" />
+					{isLoading ? (
+						<>{[1,2,3,4].map(i => <Skeleton key={i} width={110} height={70} borderRadius="var(--r-lg)" />)}</>
+					) : (
+						<>
+							<SummaryStat label="Running" value={totalRunnable} sub={`of ${sections.length} tracked`} />
+							<SummaryStat label="Ideal" value={idealCount} color="var(--ideal-solid)" sub="sweet spot" />
+							<SummaryStat label="Rising" value={risingCount} color="var(--trend-up)" sub="last 24h" trendIcon="up" />
+							<SummaryStat label="Falling" value={fallingCount} color="var(--trend-down)" sub="last 24h" trendIcon="down" />
+						</>
+					)}
 				</div>
 			</div>
 
 			{/* Filter strip */}
 			<div style={{ padding: '0 28px 16px', display: 'flex', gap: 8 }}>
-				<DesktopFilter label="All sections" count={sections.length} active={filter === 'all'} onClick={() => setFilter('all')} />
-				{STATUS_ORDER.map(s => {
-					const n = sections.filter(r => r.status === s).length;
-					if (n === 0) return null;
-					return <DesktopFilter key={s} label={STATUS_LABEL[s]} count={n} status={s} active={filter === s} onClick={() => setFilter(s)} />;
-				})}
+				{isLoading ? (
+					<>{[90, 70, 80, 55].map((w, i) => <Skeleton key={i} width={w} height={36} borderRadius="var(--r-pill)" />)}</>
+				) : (
+					<>
+						<DesktopFilter label="All sections" count={sections.length} active={filter === 'all'} onClick={() => setFilter('all')} />
+						{STATUS_ORDER.map(s => {
+							const n = sections.filter(r => r.status === s).length;
+							if (n === 0) return null;
+							return <DesktopFilter key={s} label={STATUS_LABEL[s]} count={n} status={s} active={filter === s} onClick={() => setFilter(s)} />;
+						})}
+					</>
+				)}
 			</div>
 
 			{/* Main split: sidebar + detail */}
 			<div style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: 20, padding: '0 28px 28px', flex: 1, minHeight: 0 }}>
 				<aside style={{ display: 'flex', flexDirection: 'column', gap: 18, overflow: 'auto', paddingRight: 4 }}>
-					{STATUS_ORDER.map(status => {
-						const items = grouped[status];
-						if (!items || items.length === 0) return null;
-						return (
-							<section key={status}>
-								<StatusGroupHeader status={status} count={items.length} />
-								<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-									{items.map(s => (
-										<DesktopRiverRow
-											key={s.id}
-											section={s}
-											selected={s.id === selectedId}
-											onClick={() => handleSelect(s.id)}
-										/>
-									))}
-								</div>
-							</section>
-						);
-					})}
+					{isLoading ? (
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+							{[1,2,3,4,5,6].map(i => <Skeleton key={i} height={88} borderRadius="var(--r-lg)" />)}
+						</div>
+					) : (
+						STATUS_ORDER.map(status => {
+							const items = grouped[status];
+							if (!items || items.length === 0) return null;
+							return (
+								<section key={status}>
+									<StatusGroupHeader status={status} count={items.length} />
+									<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+										{items.map(s => (
+											<DesktopRiverRow
+												key={s.id}
+												section={s}
+												selected={s.id === selectedId}
+												onClick={() => handleSelect(s.id)}
+											/>
+										))}
+									</div>
+								</section>
+							);
+						})
+					)}
 				</aside>
 
 				<main style={{
@@ -205,7 +159,18 @@ export function DesktopShell() {
 					borderRadius: 'var(--r-xl)', boxShadow: 'var(--shadow-card)',
 					overflow: 'auto', padding: 28,
 				}}>
-					{selectedId ? (
+					{isLoading ? (
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+							<Skeleton width="60%" height={24} />
+							<Skeleton width="40%" height={14} />
+							<Skeleton height={200} borderRadius="var(--r-lg)" style={{ marginTop: 8 }} />
+							<div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+								<Skeleton width="30%" height={60} borderRadius="var(--r-lg)" />
+								<Skeleton width="30%" height={60} borderRadius="var(--r-lg)" />
+								<Skeleton width="30%" height={60} borderRadius="var(--r-lg)" />
+							</div>
+						</div>
+					) : selectedId ? (
 						<DesktopDetail sectionId={selectedId} />
 					) : (
 						<div style={{ padding: 40, textAlign: 'center', color: 'var(--ink-3)' }}>

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
+import { AppHeader } from '../components/AppHeader';
 import { WaitlistPanel } from './WaitlistPanel';
 
 const card: React.CSSProperties = {
@@ -69,38 +70,7 @@ export function AdminPage() {
 			fontFamily: 'var(--font-sans)',
 			color: 'var(--ink-1)',
 		}}>
-			{/* Header */}
-			<header style={{
-				height: 64, padding: '0 28px',
-				borderBottom: '1px solid var(--rule)',
-				background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)',
-				display: 'flex', alignItems: 'center', gap: 28,
-			}}>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-					<svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-						<rect width="28" height="28" rx="8" fill="var(--river-700)"/>
-						<path d="M5 18 C 8 14, 11 22, 14 18 S 20 14, 23 18" stroke="var(--ideal-line)" strokeWidth="2" strokeLinecap="round" fill="none"/>
-						<path d="M5 13 C 8 9, 11 17, 14 13 S 20 9, 23 13" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7"/>
-					</svg>
-					<span style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink-0)', letterSpacing: '-0.01em' }}>
-						Flow State
-					</span>
-				</div>
-				<nav style={{ display: 'flex', gap: 4 }}>
-					<button onClick={() => navigate('/')} style={{
-						padding: '6px 14px', borderRadius: 'var(--r-pill)',
-						fontSize: 13, fontWeight: 600,
-						background: 'transparent', color: 'var(--ink-2)', border: 'none',
-					}}>Rivers</button>
-					{auth.isAuthenticated && auth.user && ['aleks@harperdb.io', 'alekshaugom@gmail.com', 'dev@localhost'].includes(auth.user.email) && (
-						<button style={{
-							padding: '6px 14px', borderRadius: 'var(--r-pill)',
-							fontSize: 13, fontWeight: 600,
-							background: 'var(--bg-sunken)', color: 'var(--ink-0)', border: '1px solid var(--rule)',
-						}}>Admin</button>
-					)}
-				</nav>
-			</header>
+			<AppHeader activePage="admin" />
 
 			<div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 28px' }}>
 				<div style={{
