@@ -1,20 +1,25 @@
 import { fetchWithRetry, compositeId, isoDate, daysAgo } from '../utils.ts';
 
-const USGS_BASE = 'https://waterservices.usgs.gov/nwis/iv';
-const USGS_DAILY_BASE = 'https://waterservices.usgs.gov/nwis/dv';
+const API_BASE = 'https://api.waterdata.usgs.gov/ogcapi/v0/collections';
+const DISCHARGE = '00060';
 
-// USGS parameter codes
-const DISCHARGE_CFS = '00060';
-const GAGE_HEIGHT_FT = '00065';
-
-interface USGSTimeSeries {
-	sourceInfo: { siteCode: Array<{ value: string }>; siteName: string };
-	variable: { variableCode: Array<{ value: string }>; unit: { unitCode: string } };
-	values: Array<{ value: Array<{ value: string; dateTime: string; qualifiers: string[] }> }>;
+interface OGCFeature {
+	properties: {
+		monitoring_location_id: string;
+		parameter_code: string;
+		time: string;
+		value: string;
+		unit_of_measure: string;
+		approval_status: string;
+		qualifier: string | null;
+	};
 }
 
-interface USGSResponse {
-	value: { timeSeries: USGSTimeSeries[] };
+interface OGCResponse {
+	type: string;
+	features: OGCFeature[];
+	numberReturned: number;
+	links: Array<{ rel: string; href: string }>;
 }
 
 export interface GaugeReadingRecord {
@@ -27,57 +32,71 @@ export interface GaugeReadingRecord {
 	source: string;
 }
 
-export async function fetchInstantaneous(siteIds: string[], periodHours = 24): Promise<GaugeReadingRecord[]> {
-	const sites = siteIds.join(',');
-	const url = `${USGS_BASE}/?format=json&sites=${sites}&parameterCd=${DISCHARGE_CFS}&period=PT${periodHours}H`;
-	const data: USGSResponse = await fetchWithRetry(url);
-	return parseTimeSeries(data, 'usgs-iv');
+function siteParam(siteIds: string[]): string {
+	return siteIds.map(id => id.startsWith('USGS-') ? id : `USGS-${id}`).join(',');
 }
 
-export async function fetchDaily(siteIds: string[], startDate: Date, endDate: Date): Promise<GaugeReadingRecord[]> {
-	const sites = siteIds.join(',');
-	const url = `${USGS_DAILY_BASE}/?format=json&sites=${sites}&parameterCd=${DISCHARGE_CFS}&startDT=${isoDate(startDate)}&endDT=${isoDate(endDate)}`;
-	const data: USGSResponse = await fetchWithRetry(url);
-	return parseTimeSeries(data, 'usgs-dv');
-}
-
-export async function fetchHistorical(siteIds: string[], days = 30): Promise<GaugeReadingRecord[]> {
-	return fetchDaily(siteIds, daysAgo(days), new Date());
-}
-
-function parseTimeSeries(data: USGSResponse, source: string): GaugeReadingRecord[] {
+function parseFeatures(data: OGCResponse, source: string): GaugeReadingRecord[] {
+	if (!data?.features) return [];
 	const records: GaugeReadingRecord[] = [];
-	if (!data?.value?.timeSeries) return records;
 
-	for (const series of data.value.timeSeries) {
-		const siteCode = series.sourceInfo?.siteCode?.[0]?.value;
-		const paramCode = series.variable?.variableCode?.[0]?.value;
-		if (!siteCode || paramCode !== DISCHARGE_CFS) continue;
+	for (const f of data.features) {
+		const p = f.properties;
+		if (p.parameter_code !== DISCHARGE) continue;
 
-		const unit = series.variable?.unit?.unitCode || 'cfs';
+		const val = parseFloat(p.value);
+		if (isNaN(val) || val < 0) continue;
+
+		const locId = p.monitoring_location_id;
+		const siteCode = locId.startsWith('USGS-') ? locId.slice(5) : locId;
 		const gaugeId = `usgs-${siteCode}`;
+		const ts = new Date(p.time).toISOString();
 
-		for (const valSet of series.values) {
-			for (const point of valSet.value) {
-				const val = parseFloat(point.value);
-				if (isNaN(val) || val < 0) continue;
-
-				const ts = new Date(point.dateTime).toISOString();
-				records.push({
-					id: compositeId([gaugeId, ts]),
-					gaugeId,
-					timestamp: ts,
-					value: val,
-					unit,
-					qualityFlag: point.qualifiers?.join(',') || '',
-					source,
-				});
-			}
-		}
+		records.push({
+			id: compositeId([gaugeId, ts]),
+			gaugeId,
+			timestamp: ts,
+			value: val,
+			unit: p.unit_of_measure === 'ft^3/s' ? 'cfs' : p.unit_of_measure,
+			qualityFlag: p.qualifier || '',
+			source,
+		});
 	}
 	return records;
 }
 
+async function fetchAllPages(url: string, source: string, maxPages = 10): Promise<GaugeReadingRecord[]> {
+	const records: GaugeReadingRecord[] = [];
+	let currentUrl: string | null = url;
+
+	for (let page = 0; page < maxPages && currentUrl; page++) {
+		const data: OGCResponse = await fetchWithRetry(currentUrl);
+		records.push(...parseFeatures(data, source));
+		const next = data.links?.find(l => l.rel === 'next');
+		currentUrl = next?.href || null;
+	}
+	return records;
+}
+
+export async function fetchInstantaneous(siteIds: string[], periodHours = 24): Promise<GaugeReadingRecord[]> {
+	const end = new Date();
+	const start = new Date(end.getTime() - periodHours * 3600_000);
+	const url = `${API_BASE}/continuous/items?monitoring_location_id=${siteParam(siteIds)}&parameter_code=${DISCHARGE}&datetime=${isoDate(start)}/${isoDate(end)}&f=json&limit=10000`;
+	return fetchAllPages(url, 'usgs-iv');
+}
+
+export async function fetchDaily(siteIds: string[], startDate: Date, endDate: Date): Promise<GaugeReadingRecord[]> {
+	const url = `${API_BASE}/daily/items?monitoring_location_id=${siteParam(siteIds)}&parameter_code=${DISCHARGE}&datetime=${isoDate(startDate)}/${isoDate(endDate)}&f=json&limit=10000`;
+	return fetchAllPages(url, 'usgs-dv');
+}
+
+export async function fetchHistorical(siteIds: string[], days = 30): Promise<GaugeReadingRecord[]> {
+	const end = new Date();
+	const start = daysAgo(days);
+	const url = `${API_BASE}/continuous/items?monitoring_location_id=${siteParam(siteIds)}&parameter_code=${DISCHARGE}&datetime=${isoDate(start)}/${isoDate(end)}&f=json&limit=10000`;
+	return fetchAllPages(url, 'usgs-iv');
+}
+
 export function buildSiteUrl(siteId: string): string {
-	return `https://waterdata.usgs.gov/nwis/uv?site_no=${siteId}`;
+	return `https://waterdata.usgs.gov/monitoring-location/${siteId}/`;
 }
