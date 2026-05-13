@@ -19,6 +19,7 @@ static:
 
 '@harperfast/oauth':
   package: '@harperfast/oauth'
+  redirectUri: ${OAUTH_REDIRECT_BASE_URI}
   providers:
     google:
       clientId: ${OAUTH_GOOGLE_CLIENT_ID}
