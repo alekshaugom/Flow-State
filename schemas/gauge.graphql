@@ -24,3 +24,15 @@ type GaugeReading @table @export {
 	qualityFlag: String
 	source: String
 }
+
+type GaugeSnapshot @table @export {
+	id: ID @primaryKey
+	gaugeName: String
+	currentFlow: Float
+	trend: String
+	change24h: Float
+	change7d: Float
+	sparkline: String
+	unit: String
+	updatedAt: String
+}

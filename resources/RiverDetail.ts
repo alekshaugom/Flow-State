@@ -25,12 +25,12 @@ async function getFlowData(gaugeIds: string[], days = 90) {
 			tables.GaugeReading.search({
 				conditions: [
 					{ attribute: 'gaugeId', value: gid, comparator: 'equals' as const },
+					{ attribute: 'timestamp', value: cutoff, comparator: 'gte' as const },
 				],
+				sort: { attribute: 'timestamp', descending: false },
 			})
 		);
-		const filtered = readings.filter((r: any) => (r.timestamp || '') >= cutoff);
-		filtered.sort((a: any, b: any) => (a.timestamp || '').localeCompare(b.timestamp || ''));
-		series[gid] = filtered.map((r: any) => ({
+		series[gid] = readings.map((r: any) => ({
 			timestamp: r.timestamp,
 			value: r.value,
 			unit: r.unit,
@@ -52,15 +52,15 @@ async function getDamReleases(reservoirIds: string[]) {
 		const reservoir = await tables.Reservoir.get(rid);
 		if (!reservoir) continue;
 
-		const allReleases = await collect(
+		const releases = await collect(
 			tables.DamRelease.search({
 				conditions: [
 					{ attribute: 'reservoirId', value: rid, comparator: 'equals' as const },
+					{ attribute: 'timestamp', value: cutoff, comparator: 'gte' as const },
 				],
+				sort: { attribute: 'timestamp', descending: true },
 			})
 		);
-		const releases = allReleases.filter((r: any) => (r.timestamp || '') >= cutoff);
-		releases.sort((a: any, b: any) => (b.timestamp || '').localeCompare(a.timestamp || ''));
 
 		results.push({
 			reservoir,
@@ -79,15 +79,15 @@ async function getSnowpackData(basinIds: string[]) {
 		const basin = await tables.SnowpackBasin.get(bid);
 		if (!basin) continue;
 
-		const allReadings = await collect(
+		const readings = await collect(
 			tables.SnowpackReading.search({
 				conditions: [
 					{ attribute: 'basinId', value: bid, comparator: 'equals' as const },
+					{ attribute: 'timestamp', value: cutoff, comparator: 'gte' as const },
 				],
+				sort: { attribute: 'timestamp', descending: true },
 			})
 		);
-		const readings = allReadings.filter((r: any) => (r.timestamp || '') >= cutoff);
-		readings.sort((a: any, b: any) => (b.timestamp || '').localeCompare(a.timestamp || ''));
 
 		results.push({
 			basin,

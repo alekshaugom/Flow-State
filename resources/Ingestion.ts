@@ -38,6 +38,68 @@ async function logIngestion(sourceId: string, status: string, recordsProcessed: 
 	});
 }
 
+async function updateGaugeSnapshots(): Promise<void> {
+	const gauges = await collect(
+		tables.Gauge.search({ conditions: [{ attribute: 'active', value: true, comparator: 'equals' }] })
+	);
+
+	const cutoff7d = new Date(Date.now() - 7 * 24 * 3600_000).toISOString();
+
+	for (const gauge of gauges) {
+		try {
+			const readings = await collect(
+				tables.GaugeReading.search({
+					conditions: [
+						{ attribute: 'gaugeId', value: gauge.id, comparator: 'equals' },
+						{ attribute: 'timestamp', value: cutoff7d, comparator: 'gte' },
+					],
+					sort: { attribute: 'timestamp', descending: true },
+				})
+			);
+
+			if (!readings.length) continue;
+
+			const current = readings[0].value;
+			const now = Date.now();
+			const reading24h = readings.find((r: any) =>
+				new Date(r.timestamp).getTime() <= now - 24 * 3600_000
+			);
+			const reading7d = readings.find((r: any) =>
+				new Date(r.timestamp).getTime() <= now - 7 * 24 * 3600_000
+			);
+
+			const change24h = reading24h ? Math.round(current - reading24h.value) : null;
+			const change7d = reading7d ? Math.round(current - reading7d.value) : null;
+
+			let trend = 'steady';
+			if (change24h !== null) {
+				if (change24h > 50) trend = 'rising';
+				else if (change24h < -50) trend = 'falling';
+			}
+
+			const sparkline = readings
+				.slice(0, 30)
+				.reverse()
+				.map((r: any) => Math.round(r.value));
+
+			await tables.GaugeSnapshot.put(gauge.id, {
+				id: gauge.id,
+				gaugeName: gauge.name || gauge.id,
+				currentFlow: Math.round(current),
+				trend,
+				change24h,
+				change7d,
+				sparkline: JSON.stringify(sparkline),
+				unit: gauge.unit || 'cfs',
+				updatedAt: readings[0].timestamp,
+			});
+		} catch (err) {
+			console.warn(`[ingestion] snapshot failed for ${gauge.id}:`, (err as Error).message);
+		}
+	}
+	console.log(`[ingestion] snapshots updated for ${gauges.length} gauges`);
+}
+
 async function ingestGauges(): Promise<void> {
 	const start = Date.now();
 	const gauges = await collect(tables.Gauge.search({ conditions: [{ attribute: 'active', value: true, comparator: 'equals' }] }));
@@ -83,6 +145,7 @@ async function ingestGauges(): Promise<void> {
 	}
 
 	console.log(`[ingestion] gauges: ${totalRecords + cdssRecords} readings stored`);
+	await updateGaugeSnapshots();
 }
 
 async function ingestSnowpack(): Promise<void> {
@@ -167,6 +230,9 @@ function startWorker() {
 	if (g[WORKER_FLAG]) return;
 	g[WORKER_FLAG] = true;
 	console.log(`[ingestion] started, checking every ${POLL_MS / 1000}s`);
+	updateGaugeSnapshots().catch(err =>
+		console.warn('[ingestion] initial snapshot seeding failed:', (err as Error).message)
+	);
 	g.__flowStateIngestionInterval = setInterval(tick, POLL_MS);
 }
 
@@ -194,6 +260,10 @@ export class Ingestion extends Resource {
 			if (source === 'snotel' || !source) await ingestSnowpack();
 			if (source === 'bor' || !source) await ingestReservoirs();
 			return { ok: true, action: 'run', source: source || 'all' };
+		}
+		if (data?.action === 'rebuild-snapshots') {
+			await updateGaugeSnapshots();
+			return { ok: true, action: 'rebuild-snapshots' };
 		}
 		if (data?.action === 'backfill') {
 			const days = data.days || 30;

@@ -26,7 +26,7 @@ async function buildDataPackage(sectionId: string) {
 				{ attribute: 'gaugeId', value: section.primaryGaugeId, comparator: 'equals' },
 				{ attribute: 'timestamp', value: cutoff30d, comparator: 'gte' },
 			],
-			sort: [{ attribute: 'timestamp', descending: true }],
+			sort: { attribute: 'timestamp', descending: true },
 		}))
 		: [];
 
@@ -53,7 +53,7 @@ async function buildDataPackage(sectionId: string) {
 	for (const bid of basinIds) {
 		const latest = await collect(tables.SnowpackReading.search({
 			conditions: [{ attribute: 'basinId', value: bid, comparator: 'equals' }],
-			sort: [{ attribute: 'timestamp', descending: true }],
+			sort: { attribute: 'timestamp', descending: true },
 			limit: 1,
 		}));
 		if (latest.length) snowpackData.push({ basinId: bid, ...latest[0] });
@@ -65,7 +65,7 @@ async function buildDataPackage(sectionId: string) {
 	for (const rid of reservoirIds) {
 		const latest = await collect(tables.DamRelease.search({
 			conditions: [{ attribute: 'reservoirId', value: rid, comparator: 'equals' }],
-			sort: [{ attribute: 'timestamp', descending: true }],
+			sort: { attribute: 'timestamp', descending: true },
 			limit: 1,
 		}));
 		if (latest.length) {
