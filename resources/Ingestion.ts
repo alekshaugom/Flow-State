@@ -275,6 +275,7 @@ export class Ingestion extends Resource {
 		}
 		if (data?.action === 'rebuild-snapshots') {
 			await updateGaugeSnapshots();
+			invalidateDashboardCache();
 			return { ok: true, action: 'rebuild-snapshots' };
 		}
 		if (data?.action === 'backfill') {
