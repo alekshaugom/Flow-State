@@ -65,7 +65,7 @@ export function MobileForecastPanel({ detail }: MobileForecastPanelProps) {
 					{pct > 0 ? '+' : ''}{pct}%
 				</div>
 			</div>
-			<ForecastBand history={detail.history.slice(-30)} forecast={fc} width={326} height={110} status={detail.status} />
+			<ForecastBand history={detail.history.slice(-30).map(p => p.v)} forecast={fc} width={326} height={110} status={detail.status} />
 			<div style={{
 				display: 'flex', justifyContent: 'space-between',
 				fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--ink-3)', letterSpacing: '0.06em',

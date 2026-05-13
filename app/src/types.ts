@@ -53,7 +53,7 @@ export interface DetailViewModel {
 	updatedAt: string | null;
 
 	thresholds: Thresholds;
-	history: number[];
+	history: Array<{ t: number; v: number }>;
 
 	forecastBand: ForecastBandData | null;
 	forecastDirection: string;

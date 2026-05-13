@@ -45,7 +45,7 @@ export function transformDetail(data: any): DetailViewModel {
 
 	const primaryGaugeId = section.primaryGaugeId;
 	const primarySeries = charts?.[primaryGaugeId] || Object.values(charts || {})[0] || [];
-	const history: number[] = primarySeries.map((r: any) => Math.round(r.value));
+	const history = primarySeries.map((r: any) => ({ t: new Date(r.timestamp).getTime(), v: Math.round(r.value) }));
 
 	let forecastBand: ForecastBandData | null = null;
 	let forecastDirection = 'stable';

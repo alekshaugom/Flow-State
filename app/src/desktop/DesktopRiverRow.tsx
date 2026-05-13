@@ -8,9 +8,10 @@ interface DesktopRiverRowProps {
 	section: DashboardSection;
 	selected: boolean;
 	onClick: () => void;
+	sparkDays?: number;
 }
 
-export function DesktopRiverRow({ section: s, selected, onClick }: DesktopRiverRowProps) {
+export function DesktopRiverRow({ section: s, selected, onClick, sparkDays = 30 }: DesktopRiverRowProps) {
 	const c = STATUS_COLORS[s.status];
 	return (
 		<button onClick={onClick} style={{
@@ -47,7 +48,7 @@ export function DesktopRiverRow({ section: s, selected, onClick }: DesktopRiverR
 			</div>
 			{s.sparkline.length > 1 && (
 				<div style={{ flex: '0 0 auto' }}>
-					<Sparkline data={s.sparkline} width={80} height={36} status={s.status} />
+					<Sparkline data={s.sparkline.slice(-sparkDays)} width={80} height={36} status={s.status} />
 				</div>
 			)}
 			<Icon name="chevron-right" size={14} color="var(--ink-4)" />

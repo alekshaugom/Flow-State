@@ -5,7 +5,7 @@ import { useDashboard } from '../hooks/useDashboard';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
 import { Skeleton } from '../components/Skeleton';
-import { StatusGroupHeader } from '../components/StatusGroupHeader';
+import { StatusGroupHeader, type SparkRange } from '../components/StatusGroupHeader';
 import { FilterChip } from './FilterChip';
 import { RiverCard } from './RiverCard';
 
@@ -30,6 +30,7 @@ export function MobileDashboard() {
 	const { data, isLoading, error } = useDashboard();
 	const auth = useAuth();
 	const [filter, setFilter] = useState<'all' | DesignStatus>('all');
+	const [sparkDays, setSparkDays] = useState<SparkRange>(14);
 
 	const sections = data?.sections || [];
 
@@ -162,24 +163,32 @@ export function MobileDashboard() {
 						{[1,2,3,4].map(i => <Skeleton key={i} height={130} borderRadius="var(--r-lg)" />)}
 					</div>
 				) : (
-					STATUS_ORDER.map(status => {
-						const items = grouped[status];
-						if (!items || items.length === 0) return null;
-						return (
-							<section key={status}>
-								<StatusGroupHeader status={status} count={items.length} />
-								<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-									{items.map(s => (
-										<RiverCard
-											key={s.id}
-											section={s}
-											onClick={() => navigate(`/section/${s.id}`)}
-										/>
-									))}
-								</div>
-							</section>
-						);
-					})
+					(() => {
+						let isFirst = true;
+						return STATUS_ORDER.map(status => {
+							const items = grouped[status];
+							if (!items || items.length === 0) return null;
+							const showSelector = isFirst;
+							isFirst = false;
+							return (
+								<section key={status}>
+									<StatusGroupHeader status={status} count={items.length}
+										{...(showSelector ? { sparkRange: sparkDays, onSparkRangeChange: setSparkDays } : {})}
+									/>
+									<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+										{items.map(s => (
+											<RiverCard
+												key={s.id}
+												section={s}
+												onClick={() => navigate(`/section/${s.id}`)}
+												sparkDays={sparkDays}
+											/>
+										))}
+									</div>
+								</section>
+							);
+						});
+					})()
 				)}
 			</div>
 

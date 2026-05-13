@@ -9,9 +9,10 @@ import type { DashboardSection } from '../types';
 interface RiverCardProps {
 	section: DashboardSection;
 	onClick: () => void;
+	sparkDays?: number;
 }
 
-export function RiverCard({ section: s, onClick }: RiverCardProps) {
+export function RiverCard({ section: s, onClick, sparkDays = 30 }: RiverCardProps) {
 	const c = STATUS_COLORS[s.status];
 
 	const updatedLabel = (() => {
@@ -60,11 +61,11 @@ export function RiverCard({ section: s, onClick }: RiverCardProps) {
 				</div>
 				{s.sparkline.length > 1 && (
 					<div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-						<Sparkline data={s.sparkline} width={130} height={40} status={s.status} />
+						<Sparkline data={s.sparkline.slice(-sparkDays)} width={130} height={40} status={s.status} />
 						<span style={{
 							fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--ink-4)',
 							letterSpacing: '0.06em',
-						}}>30d</span>
+						}}>{sparkDays}d</span>
 					</div>
 				)}
 			</div>

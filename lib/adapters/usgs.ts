@@ -58,7 +58,7 @@ function parseFeatures(data: OGCResponse, source: string): GaugeReadingRecord[] 
 			timestamp: ts,
 			value: val,
 			unit: p.unit_of_measure === 'ft^3/s' ? 'cfs' : p.unit_of_measure,
-			qualityFlag: p.qualifier || '',
+			qualityFlag: Array.isArray(p.qualifier) ? p.qualifier.join(',') : (p.qualifier || ''),
 			source,
 		});
 	}
@@ -93,6 +93,11 @@ export async function fetchDaily(siteIds: string[], startDate: Date, endDate: Da
 export async function fetchHistorical(siteIds: string[], days = 30): Promise<GaugeReadingRecord[]> {
 	const end = new Date();
 	const start = daysAgo(days);
+	const url = `${API_BASE}/continuous/items?monitoring_location_id=${siteParam(siteIds)}&parameter_code=${DISCHARGE}&datetime=${isoDate(start)}/${isoDate(end)}&f=json&limit=10000`;
+	return fetchAllPages(url, 'usgs-iv');
+}
+
+export async function fetchContinuousRange(siteIds: string[], start: Date, end: Date): Promise<GaugeReadingRecord[]> {
 	const url = `${API_BASE}/continuous/items?monitoring_location_id=${siteParam(siteIds)}&parameter_code=${DISCHARGE}&datetime=${isoDate(start)}/${isoDate(end)}&f=json&limit=10000`;
 	return fetchAllPages(url, 'usgs-iv');
 }

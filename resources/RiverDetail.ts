@@ -12,7 +12,7 @@ function splitIds(ids: string | null | undefined): string[] {
 	return ids.split(',').map(s => s.trim()).filter(Boolean);
 }
 
-async function getFlowData(gaugeIds: string[], days = 90) {
+async function getFlowData(gaugeIds: string[], days = 360) {
 	const cutoff = daysAgo(days).toISOString();
 	const series: Record<string, any[]> = {};
 	const gaugeList: any[] = [];

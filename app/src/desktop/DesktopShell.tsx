@@ -4,7 +4,7 @@ import { STATUS_ORDER, STATUS_LABEL, type DesignStatus } from '../constants';
 import { useDashboard } from '../hooks/useDashboard';
 import { AppHeader } from '../components/AppHeader';
 import { Skeleton } from '../components/Skeleton';
-import { StatusGroupHeader } from '../components/StatusGroupHeader';
+import { StatusGroupHeader, type SparkRange } from '../components/StatusGroupHeader';
 import { SummaryStat } from './SummaryStat';
 import { DesktopFilter } from './DesktopFilter';
 import { DesktopRiverRow } from './DesktopRiverRow';
@@ -16,6 +16,7 @@ export function DesktopShell() {
 	const { data, isLoading, error } = useDashboard();
 	const [filter, setFilter] = useState<'all' | DesignStatus>('all');
 	const [selectedId, setSelectedId] = useState<string | null>(urlSectionId || null);
+	const [sparkDays, setSparkDays] = useState<SparkRange>(14);
 
 	const sections = data?.sections || [];
 
@@ -132,25 +133,33 @@ export function DesktopShell() {
 							{[1,2,3,4,5,6].map(i => <Skeleton key={i} height={88} borderRadius="var(--r-lg)" />)}
 						</div>
 					) : (
-						STATUS_ORDER.map(status => {
-							const items = grouped[status];
-							if (!items || items.length === 0) return null;
-							return (
-								<section key={status}>
-									<StatusGroupHeader status={status} count={items.length} />
-									<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-										{items.map(s => (
-											<DesktopRiverRow
-												key={s.id}
-												section={s}
-												selected={s.id === selectedId}
-												onClick={() => handleSelect(s.id)}
-											/>
-										))}
-									</div>
-								</section>
-							);
-						})
+						(() => {
+							let isFirst = true;
+							return STATUS_ORDER.map(status => {
+								const items = grouped[status];
+								if (!items || items.length === 0) return null;
+								const showSelector = isFirst;
+								isFirst = false;
+								return (
+									<section key={status}>
+										<StatusGroupHeader status={status} count={items.length}
+											{...(showSelector ? { sparkRange: sparkDays, onSparkRangeChange: setSparkDays } : {})}
+										/>
+										<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+											{items.map(s => (
+												<DesktopRiverRow
+													key={s.id}
+													section={s}
+													selected={s.id === selectedId}
+													onClick={() => handleSelect(s.id)}
+													sparkDays={sparkDays}
+												/>
+											))}
+										</div>
+									</section>
+								);
+							});
+						})()
 					)}
 				</aside>
 

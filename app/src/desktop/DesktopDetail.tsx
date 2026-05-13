@@ -40,7 +40,8 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 	}
 
 	const c = STATUS_COLORS[detail.status];
-	const histSlice = detail.history.slice(-range);
+	const cutoff = Date.now() - range * 24 * 3600_000;
+	const histSlice = detail.history.filter(p => p.t >= cutoff);
 
 	const fcPct = (() => {
 		if (!detail.forecastBand || !detail.now) return null;
@@ -123,7 +124,7 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 				<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
 					<SectionHead title="Flow history" eyebrow="Recent" />
 					<div style={{ display: 'flex', gap: 4, padding: 3, background: 'var(--bg-sunken)', borderRadius: 'var(--r-pill)' }}>
-						{[7, 30, 90].map(d => (
+						{[7, 30, 90, 180, 360].map(d => (
 							<button key={d} onClick={() => setRange(d)} style={{
 								padding: '6px 12px', borderRadius: 'var(--r-pill)',
 								background: range === d ? 'var(--bg-card)' : 'transparent',
@@ -136,7 +137,7 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 					</div>
 				</div>
 				<div style={{ background: 'var(--bg-raised)', border: '1px solid var(--rule)', borderRadius: 'var(--r-lg)', padding: 18 }}>
-					<DesktopFlowChart data={histSlice} status={detail.status} thresholds={detail.thresholds} />
+					<DesktopFlowChart data={histSlice} days={range} status={detail.status} thresholds={detail.thresholds} />
 				</div>
 			</div>
 
@@ -169,7 +170,7 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 										</div>
 									)}
 								</div>
-								<ForecastBand history={detail.history.slice(-30)} forecast={detail.forecastBand} width={500} height={110} status={detail.status} />
+								<ForecastBand history={detail.history.slice(-30).map(p => p.v)} forecast={detail.forecastBand} width={500} height={110} status={detail.status} />
 								<div style={{
 									display: 'flex', justifyContent: 'space-between',
 									fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--ink-3)', letterSpacing: '0.06em',

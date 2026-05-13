@@ -1,6 +1,6 @@
 import { Resource, tables } from 'harper';
 import { compositeId, isoNow } from '../lib/utils.ts';
-import { fetchInstantaneous, fetchHistorical } from '../lib/adapters/usgs.ts';
+import { fetchInstantaneous, fetchHistorical, fetchDaily } from '../lib/adapters/usgs.ts';
 import { fetchTelemetryTimeSeries } from '../lib/adapters/cdss.ts';
 import { fetchBasinSnowData, COLORADO_BASINS } from '../lib/adapters/snotel.ts';
 import { fetchReservoirData, BOR_CATALOG } from '../lib/adapters/bor.ts';
@@ -44,7 +44,7 @@ async function updateGaugeSnapshots(): Promise<void> {
 		tables.Gauge.search({ conditions: [{ attribute: 'active', value: true, comparator: 'equals' }] })
 	);
 
-	const cutoff7d = new Date(Date.now() - 7 * 24 * 3600_000).toISOString();
+	const cutoff30d = new Date(Date.now() - 30 * 24 * 3600_000).toISOString();
 
 	for (const gauge of gauges) {
 		try {
@@ -52,7 +52,7 @@ async function updateGaugeSnapshots(): Promise<void> {
 				tables.GaugeReading.search({
 					conditions: [
 						{ attribute: 'gaugeId', value: gauge.id, comparator: 'equals' },
-						{ attribute: 'timestamp', value: cutoff7d, comparator: 'gte' },
+						{ attribute: 'timestamp', value: cutoff30d, comparator: 'gte' },
 					],
 					sort: { attribute: 'timestamp', descending: true },
 				})
@@ -78,10 +78,12 @@ async function updateGaugeSnapshots(): Promise<void> {
 				else if (change24h < -50) trend = 'falling';
 			}
 
-			const sparkline = readings
-				.slice(0, 30)
-				.reverse()
-				.map((r: any) => Math.round(r.value));
+			const daily = new Map<string, number>();
+			for (const r of readings) {
+				const day = (r as any).timestamp.slice(0, 10);
+				if (!daily.has(day)) daily.set(day, Math.round((r as any).value));
+			}
+			const sparkline = [...daily.values()].reverse();
 
 			await tables.GaugeSnapshot.put(gauge.id, {
 				id: gauge.id,
@@ -192,20 +194,24 @@ async function ingestReservoirs(): Promise<void> {
 
 async function backfill(days: number): Promise<{ gaugeReadings: number }> {
 	const gauges = await collect(tables.Gauge.search({ conditions: [{ attribute: 'active', value: true, comparator: 'equals' }] }));
-	const usgsIds = gauges.filter(g => g.source === 'usgs').map(g => g.sourceId);
+	const usgsGauges = gauges.filter(g => g.source === 'usgs');
+
+	const endDate = new Date();
+	const startDate = new Date(endDate.getTime() - days * 24 * 3600_000);
 
 	let total = 0;
-	for (let i = 0; i < usgsIds.length; i += 20) {
-		const batch = usgsIds.slice(i, i + 20);
+	for (const gauge of usgsGauges) {
 		try {
-			const readings = await fetchHistorical(batch, days);
+			const readings = await fetchDaily([gauge.sourceId], startDate, endDate);
 			for (const r of readings) await tables.GaugeReading.put(r.id, r);
 			total += readings.length;
+			console.log(`[backfill] ${gauge.sourceId}: ${readings.length} daily readings stored`);
 		} catch (err) {
-			console.warn(`[ingestion] backfill batch ${i} failed:`, (err as Error).message);
+			console.warn(`[backfill] ${gauge.sourceId} failed:`, (err as Error).message);
 		}
+		await new Promise(r => setTimeout(r, 2000));
 	}
-	console.log(`[ingestion] backfill: ${total} historical readings stored for ${days} days`);
+	console.log(`[backfill] complete: ${total} daily readings across ${usgsGauges.length} gauges`);
 	return { gaugeReadings: total };
 }
 
@@ -243,6 +249,8 @@ function startWorker() {
 startWorker();
 
 export class Ingestion extends Resource {
+	allowRead() { return true; }
+	allowCreate() { return true; } // TODO: remove after backfill
 	async get() {
 		return {
 			worker_started: !!(globalThis as any)[WORKER_FLAG],

@@ -21,6 +21,11 @@ export async function fetchJson(url: string, options?: RequestInit): Promise<any
 		...options,
 		headers: { 'Accept': 'application/json', ...options?.headers },
 	});
+	if (res.status === 429) {
+		const err: any = new Error(`HTTP 429 from ${url}: Too Many Requests`);
+		err.status = 429;
+		throw err;
+	}
 	if (!res.ok) {
 		throw new Error(`HTTP ${res.status} from ${url}: ${res.statusText}`);
 	}
@@ -31,7 +36,8 @@ export async function fetchWithRetry(url: string, retries = 3, delayMs = 1000): 
 	for (let attempt = 1; attempt <= retries; attempt++) {
 		try {
 			return await fetchJson(url);
-		} catch (err) {
+		} catch (err: any) {
+			if (err?.status === 429) throw err;
 			if (attempt === retries) throw err;
 			await new Promise(r => setTimeout(r, delayMs * attempt));
 		}

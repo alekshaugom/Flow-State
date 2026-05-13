@@ -34,7 +34,8 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 	}
 
 	const c = STATUS_COLORS[detail.status];
-	const histSlice = detail.history.slice(-range);
+	const cutoff = Date.now() - range * 24 * 3600_000;
+	const histSlice = detail.history.filter(p => p.t >= cutoff);
 
 	return (
 		<div style={{
@@ -102,7 +103,7 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 			<section style={sectionStyle}>
 				<SectionHead title="Flow History" eyebrow="Recent" />
 				<div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-					{[7, 30, 90].map(d => (
+					{[7, 30, 90, 180, 360].map(d => (
 						<button key={d} onClick={() => setRange(d)} style={{
 							padding: '7px 14px', borderRadius: 'var(--r-pill)',
 							background: range === d ? 'var(--ink-0)' : 'transparent',
@@ -114,7 +115,7 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 						</button>
 					))}
 				</div>
-				<MobileFlowChart data={histSlice} status={detail.status} thresholds={detail.thresholds} />
+				<MobileFlowChart data={histSlice} days={range} status={detail.status} thresholds={detail.thresholds} />
 			</section>
 
 			{/* Forecast */}
