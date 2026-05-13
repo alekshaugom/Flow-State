@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
+import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
+import { AppHeader } from '../components/AppHeader';
+import { WaitlistPanel } from './WaitlistPanel';
 
 const card: React.CSSProperties = {
 	background: 'var(--bg-card)', border: '1px solid var(--rule)',
@@ -25,10 +28,14 @@ const btnOutline: React.CSSProperties = {
 	border: '1px solid var(--rule)',
 };
 
+type AdminTab = 'data' | 'waitlist';
+
 export function AdminPage() {
 	const navigate = useNavigate();
+	const auth = useAuth();
 	const qc = useQueryClient();
 	const [message, setMessage] = useState('');
+	const [tab, setTab] = useState<AdminTab>('data');
 
 	const seedStatus = useQuery({ queryKey: ['seedStatus'], queryFn: api.seedStatus });
 	const ingestion = useQuery({ queryKey: ['ingestion'], queryFn: api.ingestionStatus, refetchInterval: 10_000 });
@@ -63,36 +70,7 @@ export function AdminPage() {
 			fontFamily: 'var(--font-sans)',
 			color: 'var(--ink-1)',
 		}}>
-			{/* Header */}
-			<header style={{
-				height: 64, padding: '0 28px',
-				borderBottom: '1px solid var(--rule)',
-				background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)',
-				display: 'flex', alignItems: 'center', gap: 28,
-			}}>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-					<svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-						<rect width="28" height="28" rx="8" fill="var(--river-700)"/>
-						<path d="M5 18 C 8 14, 11 22, 14 18 S 20 14, 23 18" stroke="var(--ideal-line)" strokeWidth="2" strokeLinecap="round" fill="none"/>
-						<path d="M5 13 C 8 9, 11 17, 14 13 S 20 9, 23 13" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7"/>
-					</svg>
-					<span style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink-0)', letterSpacing: '-0.01em' }}>
-						Flow State
-					</span>
-				</div>
-				<nav style={{ display: 'flex', gap: 4 }}>
-					<button onClick={() => navigate('/')} style={{
-						padding: '6px 14px', borderRadius: 'var(--r-pill)',
-						fontSize: 13, fontWeight: 600,
-						background: 'transparent', color: 'var(--ink-2)', border: 'none',
-					}}>Rivers</button>
-					<button style={{
-						padding: '6px 14px', borderRadius: 'var(--r-pill)',
-						fontSize: 13, fontWeight: 600,
-						background: 'var(--bg-sunken)', color: 'var(--ink-0)', border: '1px solid var(--rule)',
-					}}>Admin</button>
-				</nav>
-			</header>
+			<AppHeader activePage="admin" />
 
 			<div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 28px' }}>
 				<div style={{
@@ -102,100 +80,136 @@ export function AdminPage() {
 					<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 					System controls
 				</div>
-				<h1 style={{ margin: '4px 0 24px', fontSize: 32, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--ink-0)' }}>
+				<h1 style={{ margin: '4px 0 16px', fontSize: 32, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--ink-0)' }}>
 					Admin
 				</h1>
 
-				{message && (
-					<div style={{
-						...card, marginBottom: 16,
-						background: 'var(--bg-tint)', border: '1px solid var(--river-100)',
-						fontSize: 13, color: 'var(--ink-1)',
-					}}>
-						{message}
-					</div>
-				)}
+				{/* Tabs */}
+				<div style={{ display: 'flex', gap: 4, marginBottom: 24 }}>
+					{(['data', 'waitlist'] as AdminTab[]).map(t => (
+						<button key={t} onClick={() => setTab(t)} style={{
+							padding: '8px 16px', borderRadius: 'var(--r-md)',
+							fontSize: 13, fontWeight: 600, cursor: 'pointer',
+							background: tab === t ? 'var(--bg-sunken)' : 'transparent',
+							color: tab === t ? 'var(--ink-0)' : 'var(--ink-3)',
+							border: tab === t ? '1px solid var(--rule)' : '1px solid transparent',
+						}}>
+							{t === 'data' ? 'Data' : 'Waitlist'}
+						</button>
+					))}
+				</div>
 
-				<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-					{/* Seed */}
-					<div style={card}>
-						<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Database</div>
-						<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 8px' }}>Seed Data</h3>
-						{seedStatus.data && (
-							<div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 12 }}>
-								{seedStatus.data.seeded ? (
-									<>{seedStatus.data.counts.rivers} rivers, {seedStatus.data.counts.sections} sections, {seedStatus.data.counts.gauges} gauges</>
+				{!auth.isLoading && !auth.isApproved && tab === 'waitlist' ? (
+					<div style={{
+						...card, textAlign: 'center', padding: 40,
+					}}>
+						<Icon name="shield" size={32} color="var(--ink-3)" />
+						<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '12px 0 8px' }}>
+							Admin access required
+						</h3>
+						<p style={{ fontSize: 13, color: 'var(--ink-3)', margin: '0 0 16px' }}>
+							You need an approved account to manage the waitlist.
+						</p>
+						{!auth.isAuthenticated && (
+							<button onClick={() => navigate('/login')} style={btn}>Sign in</button>
+						)}
+					</div>
+				) : tab === 'waitlist' ? (
+					<WaitlistPanel />
+				) : (
+					<>
+						{message && (
+							<div style={{
+								...card, marginBottom: 16,
+								background: 'var(--bg-tint)', border: '1px solid var(--river-100)',
+								fontSize: 13, color: 'var(--ink-1)',
+							}}>
+								{message}
+							</div>
+						)}
+
+						<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+							{/* Seed */}
+							<div style={card}>
+								<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Database</div>
+								<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 8px' }}>Seed Data</h3>
+								{seedStatus.data && (
+									<div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 12 }}>
+										{seedStatus.data.seeded ? (
+											<>{seedStatus.data.counts.rivers} rivers, {seedStatus.data.counts.sections} sections, {seedStatus.data.counts.gauges} gauges</>
+										) : (
+											<span style={{ color: 'var(--low-solid)' }}>Database not seeded yet</span>
+										)}
+									</div>
+								)}
+								<button style={btn} disabled={busy} onClick={() => seedMutation.mutate()}>
+									<Icon name="refresh" size={14} color="white" />
+									{seedMutation.isPending ? 'Seeding...' : 'Run Seed'}
+								</button>
+							</div>
+
+							{/* Ingestion */}
+							<div style={card}>
+								<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Ingestion</div>
+								<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 8px' }}>Fetch Data</h3>
+								{ingestion.data && (
+									<div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 12, lineHeight: 1.6 }}>
+										<div>Worker: <span style={{ fontFamily: 'var(--font-mono)', color: ingestion.data.worker_started ? 'var(--ideal-solid)' : 'var(--low-solid)' }}>{ingestion.data.worker_started ? 'Running' : 'Stopped'}</span></div>
+										<div>Last gauge: <span style={{ fontFamily: 'var(--font-mono)' }}>{ingestion.data.last_gauge_fetch || 'Never'}</span></div>
+										<div>Last snow: <span style={{ fontFamily: 'var(--font-mono)' }}>{ingestion.data.last_snow_fetch || 'Never'}</span></div>
+									</div>
+								)}
+								<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+									<button style={btn} disabled={busy} onClick={() => ingestMutation.mutate({ action: 'run' })}>Fetch All</button>
+									<button style={btnOutline} disabled={busy} onClick={() => ingestMutation.mutate({ action: 'run', source: 'usgs' })}>USGS Only</button>
+									<button style={btnOutline} disabled={busy} onClick={() => ingestMutation.mutate({ action: 'backfill', days: 7 })}>Backfill 7d</button>
+									<button style={btnOutline} disabled={busy} onClick={() => ingestMutation.mutate({ action: 'backfill', days: 30 })}>Backfill 30d</button>
+								</div>
+							</div>
+
+							{/* Logs */}
+							<div style={{ ...card, gridColumn: '1 / -1' }}>
+								<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>History</div>
+								<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 12px' }}>Recent Ingestion Logs</h3>
+								{logs.data && Array.isArray(logs.data) && logs.data.length > 0 ? (
+									<div style={{ overflowX: 'auto' }}>
+										<table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+											<thead>
+												<tr style={{ borderBottom: '1px solid var(--rule)' }}>
+													{['Source', 'Status', 'Records', 'Duration', 'Time', 'Errors'].map(h => (
+														<th key={h} style={{
+															textAlign: h === 'Records' || h === 'Duration' ? 'right' : 'left',
+															padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: 10,
+															letterSpacing: '0.10em', textTransform: 'uppercase',
+															color: 'var(--ink-3)', fontWeight: 500,
+														}}>{h}</th>
+													))}
+												</tr>
+											</thead>
+											<tbody>
+												{logs.data.map((log: any) => (
+													<tr key={log.id} style={{ borderBottom: '1px solid var(--rule)' }}>
+														<td style={{ padding: '8px 10px', fontFamily: 'var(--font-mono)' }}>{log.sourceId}</td>
+														<td style={{
+															padding: '8px 10px', fontWeight: 600,
+															color: log.status === 'success' ? 'var(--ideal-solid)' : log.status === 'error' ? 'var(--danger-solid)' : 'var(--low-solid)',
+														}}>{log.status}</td>
+														<td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{log.recordsProcessed}</td>
+														<td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{log.durationMs ? `${log.durationMs}ms` : '—'}</td>
+														<td style={{ padding: '8px 10px', fontSize: 11, color: 'var(--ink-2)' }}>{log.timestamp ? new Date(log.timestamp).toLocaleString() : '—'}</td>
+														<td style={{ padding: '8px 10px', color: 'var(--danger-solid)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.errors || '—'}</td>
+													</tr>
+												))}
+											</tbody>
+										</table>
+									</div>
 								) : (
-									<span style={{ color: 'var(--low-solid)' }}>Database not seeded yet</span>
+									<div style={{ fontSize: 13, color: 'var(--ink-3)', padding: '12px 0' }}>No ingestion logs yet. Run an ingestion to see results.</div>
 								)}
 							</div>
-						)}
-						<button style={btn} disabled={busy} onClick={() => seedMutation.mutate()}>
-							<Icon name="refresh" size={14} color="white" />
-							{seedMutation.isPending ? 'Seeding...' : 'Run Seed'}
-						</button>
-					</div>
-
-					{/* Ingestion */}
-					<div style={card}>
-						<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Ingestion</div>
-						<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 8px' }}>Fetch Data</h3>
-						{ingestion.data && (
-							<div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 12, lineHeight: 1.6 }}>
-								<div>Worker: <span style={{ fontFamily: 'var(--font-mono)', color: ingestion.data.worker_started ? 'var(--ideal-solid)' : 'var(--low-solid)' }}>{ingestion.data.worker_started ? 'Running' : 'Stopped'}</span></div>
-								<div>Last gauge: <span style={{ fontFamily: 'var(--font-mono)' }}>{ingestion.data.last_gauge_fetch || 'Never'}</span></div>
-								<div>Last snow: <span style={{ fontFamily: 'var(--font-mono)' }}>{ingestion.data.last_snow_fetch || 'Never'}</span></div>
-							</div>
-						)}
-						<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-							<button style={btn} disabled={busy} onClick={() => ingestMutation.mutate({ action: 'run' })}>Fetch All</button>
-							<button style={btnOutline} disabled={busy} onClick={() => ingestMutation.mutate({ action: 'run', source: 'usgs' })}>USGS Only</button>
-							<button style={btnOutline} disabled={busy} onClick={() => ingestMutation.mutate({ action: 'backfill', days: 7 })}>Backfill 7d</button>
-							<button style={btnOutline} disabled={busy} onClick={() => ingestMutation.mutate({ action: 'backfill', days: 30 })}>Backfill 30d</button>
 						</div>
-					</div>
-
-					{/* Logs */}
-					<div style={{ ...card, gridColumn: '1 / -1' }}>
-						<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>History</div>
-						<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 12px' }}>Recent Ingestion Logs</h3>
-						{logs.data && Array.isArray(logs.data) && logs.data.length > 0 ? (
-							<div style={{ overflowX: 'auto' }}>
-								<table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-									<thead>
-										<tr style={{ borderBottom: '1px solid var(--rule)' }}>
-											{['Source', 'Status', 'Records', 'Duration', 'Time', 'Errors'].map(h => (
-												<th key={h} style={{
-													textAlign: h === 'Records' || h === 'Duration' ? 'right' : 'left',
-													padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: 10,
-													letterSpacing: '0.10em', textTransform: 'uppercase',
-													color: 'var(--ink-3)', fontWeight: 500,
-												}}>{h}</th>
-											))}
-										</tr>
-									</thead>
-									<tbody>
-										{logs.data.map((log: any) => (
-											<tr key={log.id} style={{ borderBottom: '1px solid var(--rule)' }}>
-												<td style={{ padding: '8px 10px', fontFamily: 'var(--font-mono)' }}>{log.sourceId}</td>
-												<td style={{
-													padding: '8px 10px', fontWeight: 600,
-													color: log.status === 'success' ? 'var(--ideal-solid)' : log.status === 'error' ? 'var(--danger-solid)' : 'var(--low-solid)',
-												}}>{log.status}</td>
-												<td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{log.recordsProcessed}</td>
-												<td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{log.durationMs ? `${log.durationMs}ms` : '—'}</td>
-												<td style={{ padding: '8px 10px', fontSize: 11, color: 'var(--ink-2)' }}>{log.timestamp ? new Date(log.timestamp).toLocaleString() : '—'}</td>
-												<td style={{ padding: '8px 10px', color: 'var(--danger-solid)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.errors || '—'}</td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-							</div>
-						) : (
-							<div style={{ fontSize: 13, color: 'var(--ink-3)', padding: '12px 0' }}>No ingestion logs yet. Run an ingestion to see results.</div>
-						)}
-					</div>
-				</div>
+					</>
+				)}
 			</div>
 		</div>
 	);

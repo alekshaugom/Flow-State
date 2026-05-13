@@ -37,4 +37,17 @@ export const api = {
 
 	ingestionLogs: () =>
 		fetch('/IngestionLog/?sort(-timestamp)&limit(20)').then(json<any>),
+
+	me: () =>
+		fetch('/Me').then(json<any>),
+
+	adminWaitlist: () =>
+		fetch('/AdminWaitlist').then(json<any>),
+
+	adminWaitlistAction: (userId: string, action: 'approve' | 'deny' | 'revoke') =>
+		fetch('/AdminWaitlist', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ userId, action }),
+		}).then(json<any>),
 };

@@ -39,6 +39,10 @@ export default defineConfig({
 			...proxyEntry('/Seed'),
 			...proxyEntry('/DataSource'),
 			...proxyEntry('/IngestionLog'),
+			...proxyEntry('/Me'),
+			...proxyEntry('/AdminWaitlist'),
+			...proxyEntry('/WaitlistUser'),
+			...proxyEntry('/oauth'),
 		},
 	},
 });

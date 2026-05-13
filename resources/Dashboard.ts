@@ -12,9 +12,28 @@ const STATUS_ORDER: Record<string, number> = {
 	runnable: 4, low: 5, 'too-low': 6, 'no-flow': 7, unknown: 8,
 };
 
+let cachedResult: any = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 5 * 60_000;
+
+export function invalidateDashboardCache() {
+	cachedResult = null;
+	cacheTimestamp = 0;
+}
+
 export class Dashboard extends Resource {
 	allowRead() { return true; }
 	async get() {
+		const now = Date.now();
+		if (cachedResult && (now - cacheTimestamp) < CACHE_TTL_MS) {
+			return new Response(JSON.stringify(cachedResult), {
+				headers: {
+					'Content-Type': 'application/json',
+					'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+				},
+			});
+		}
+
 		const [rivers, sections, snapshots] = await Promise.all([
 			collect(tables.River.search({ conditions: [] })),
 			collect(tables.RiverSection.search({ conditions: [] })),
@@ -84,6 +103,15 @@ export class Dashboard extends Resource {
 		}
 
 		dashboard.sort((a, b) => a.name.localeCompare(b.name));
-		return { generated_at: new Date().toISOString(), rivers: dashboard };
+
+		const result = { generated_at: new Date().toISOString(), rivers: dashboard };
+		cachedResult = result;
+		cacheTimestamp = Date.now();
+		return new Response(JSON.stringify(result), {
+			headers: {
+				'Content-Type': 'application/json',
+				'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+			},
+		});
 	}
 }

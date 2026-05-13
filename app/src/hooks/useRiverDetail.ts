@@ -11,6 +11,6 @@ export function useRiverDetail(sectionId: string | undefined) {
 			return transformDetail(data);
 		},
 		enabled: !!sectionId,
-		refetchInterval: 60_000,
+		refetchInterval: 5 * 60_000,
 	});
 }

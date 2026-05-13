@@ -4,6 +4,7 @@ import { fetchInstantaneous, fetchHistorical } from '../lib/adapters/usgs.ts';
 import { fetchTelemetryTimeSeries } from '../lib/adapters/cdss.ts';
 import { fetchBasinSnowData, COLORADO_BASINS } from '../lib/adapters/snotel.ts';
 import { fetchReservoirData, BOR_CATALOG } from '../lib/adapters/bor.ts';
+import { invalidateDashboardCache } from './Dashboard.ts';
 
 const POLL_MS = 60_000;
 const GAUGE_INTERVAL_MS = 15 * 60_000;
@@ -146,6 +147,7 @@ async function ingestGauges(): Promise<void> {
 
 	console.log(`[ingestion] gauges: ${totalRecords + cdssRecords} readings stored`);
 	await updateGaugeSnapshots();
+	invalidateDashboardCache();
 }
 
 async function ingestSnowpack(): Promise<void> {
@@ -165,6 +167,7 @@ async function ingestSnowpack(): Promise<void> {
 
 	await logIngestion('snotel', errors.length ? 'partial' : 'success', totalRecords, errors.join('; '), Date.now() - start);
 	console.log(`[ingestion] snowpack: ${totalRecords} readings stored`);
+	invalidateDashboardCache();
 }
 
 async function ingestReservoirs(): Promise<void> {
@@ -184,6 +187,7 @@ async function ingestReservoirs(): Promise<void> {
 
 	await logIngestion('bor', errors.length ? 'partial' : 'success', totalRecords, errors.join('; '), Date.now() - start);
 	console.log(`[ingestion] reservoirs: ${totalRecords} records stored`);
+	invalidateDashboardCache();
 }
 
 async function backfill(days: number): Promise<{ gaugeReadings: number }> {

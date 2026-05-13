@@ -29,6 +29,11 @@ export function Icon({ name, size = 16, color = 'currentColor', strokeWidth = 2 
 		case 'wave':          return <svg {...props}><path d="M2 12c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M2 17c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/></svg>;
 		case 'list':          return <svg {...props}><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>;
 		case 'map':           return <svg {...props}><path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>;
+		case 'user':          return <svg {...props}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+		case 'log-out':       return <svg {...props}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+		case 'check':         return <svg {...props}><path d="M20 6L9 17l-5-5"/></svg>;
+		case 'x-mark':        return <svg {...props}><path d="M18 6L6 18M6 6l12 12"/></svg>;
+		case 'shield':        return <svg {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
 		default: return null;
 	}
 }

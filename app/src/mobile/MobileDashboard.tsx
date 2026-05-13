@@ -2,7 +2,9 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { STATUS_ORDER, STATUS_LABEL, type DesignStatus } from '../constants';
 import { useDashboard } from '../hooks/useDashboard';
+import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
+import { Skeleton } from '../components/Skeleton';
 import { StatusGroupHeader } from '../components/StatusGroupHeader';
 import { FilterChip } from './FilterChip';
 import { RiverCard } from './RiverCard';
@@ -26,6 +28,7 @@ const summaryLabel: React.CSSProperties = {
 export function MobileDashboard() {
 	const navigate = useNavigate();
 	const { data, isLoading, error } = useDashboard();
+	const auth = useAuth();
 	const [filter, setFilter] = useState<'all' | DesignStatus>('all');
 
 	const sections = data?.sections || [];
@@ -50,13 +53,10 @@ export function MobileDashboard() {
 	const now = new Date();
 	const dateStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
 
-	if (isLoading) {
-		return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--ink-3)' }}>Loading river data...</div>;
-	}
 	if (error) {
 		return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--danger-solid)' }}>Failed to load dashboard.</div>;
 	}
-	if (!sections.length) {
+	if (!isLoading && !sections.length) {
 		return (
 			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 12, padding: 20 }}>
 				<div style={{ fontSize: 16, color: 'var(--ink-2)' }}>No data yet.</div>
@@ -80,6 +80,7 @@ export function MobileDashboard() {
 				color: 'white',
 				position: 'relative',
 				overflow: 'hidden',
+				flexShrink: 0,
 			}}>
 				<svg style={{ position: 'absolute', right: -40, top: 30, opacity: 0.10 }} width="260" height="180" viewBox="0 0 260 180" fill="none">
 					{[0, 1, 2, 3, 4, 5].map(i => (
@@ -103,27 +104,34 @@ export function MobileDashboard() {
 						</h1>
 					</div>
 					<div style={{ display: 'flex', gap: 8 }}>
-						<button style={iconBtn} onClick={() => navigate('/map')}><Icon name="map-pin" size={18} color="white" /></button>
+						<button style={iconBtn} onClick={() => navigate('/map')}><Icon name="map" size={18} color="white" /></button>
 						<button style={iconBtn}><Icon name="search" size={18} color="white" /></button>
+						<button style={iconBtn} onClick={() => navigate('/login')}><Icon name="user" size={18} color="white" /></button>
 					</div>
 				</div>
 				<div style={{ display: 'flex', gap: 8, marginTop: 18, position: 'relative' }}>
-					<div style={summaryStat}>
-						<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, letterSpacing: '-0.02em' }}>{totalRunnable}</div>
-						<div style={summaryLabel}>running</div>
-					</div>
-					<div style={summaryStat}>
-						<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: 'var(--ideal-line)', letterSpacing: '-0.02em' }}>
-							{idealCount}
-						</div>
-						<div style={summaryLabel}>ideal</div>
-					</div>
-					<div style={summaryStat}>
-						<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: '#ffd58a', letterSpacing: '-0.02em' }}>
-							{risingCount}↑
-						</div>
-						<div style={summaryLabel}>rising</div>
-					</div>
+					{isLoading ? (
+						<>{[1,2,3].map(i => <Skeleton key={i} height={54} borderRadius="var(--r-md)" style={{ flex: 1, background: 'rgba(255,255,255,0.08)' }} />)}</>
+					) : (
+						<>
+							<div style={summaryStat}>
+								<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, letterSpacing: '-0.02em' }}>{totalRunnable}</div>
+								<div style={summaryLabel}>running</div>
+							</div>
+							<div style={summaryStat}>
+								<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: 'var(--ideal-line)', letterSpacing: '-0.02em' }}>
+									{idealCount}
+								</div>
+								<div style={summaryLabel}>ideal</div>
+							</div>
+							<div style={summaryStat}>
+								<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: '#ffd58a', letterSpacing: '-0.02em' }}>
+									{risingCount}↑
+								</div>
+								<div style={summaryLabel}>rising</div>
+							</div>
+						</>
+					)}
 				</div>
 			</header>
 
@@ -133,34 +141,46 @@ export function MobileDashboard() {
 				overflowX: 'auto', WebkitOverflowScrolling: 'touch',
 				scrollbarWidth: 'none', flexShrink: 0,
 			}}>
-				<FilterChip label="All" count={sections.length} active={filter === 'all'} onClick={() => setFilter('all')} />
-				{STATUS_ORDER.map(s => {
-					const n = sections.filter(r => r.status === s).length;
-					if (n === 0) return null;
-					return <FilterChip key={s} label={STATUS_LABEL[s]} count={n} status={s} active={filter === s} onClick={() => setFilter(s)} />;
-				})}
+				{isLoading ? (
+					<>{[60, 50, 65, 45].map((w, i) => <Skeleton key={i} width={w} height={30} borderRadius="var(--r-pill)" />)}</>
+				) : (
+					<>
+						<FilterChip label="All" count={sections.length} active={filter === 'all'} onClick={() => setFilter('all')} />
+						{STATUS_ORDER.map(s => {
+							const n = sections.filter(r => r.status === s).length;
+							if (n === 0) return null;
+							return <FilterChip key={s} label={STATUS_LABEL[s]} count={n} status={s} active={filter === s} onClick={() => setFilter(s)} />;
+						})}
+					</>
+				)}
 			</div>
 
 			{/* Cards by status group */}
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 18, padding: '10px 16px 0' }}>
-				{STATUS_ORDER.map(status => {
-					const items = grouped[status];
-					if (!items || items.length === 0) return null;
-					return (
-						<section key={status}>
-							<StatusGroupHeader status={status} count={items.length} />
-							<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-								{items.map(s => (
-									<RiverCard
-										key={s.id}
-										section={s}
-										onClick={() => navigate(`/section/${s.id}`)}
-									/>
-								))}
-							</div>
-						</section>
-					);
-				})}
+				{isLoading ? (
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+						{[1,2,3,4].map(i => <Skeleton key={i} height={130} borderRadius="var(--r-lg)" />)}
+					</div>
+				) : (
+					STATUS_ORDER.map(status => {
+						const items = grouped[status];
+						if (!items || items.length === 0) return null;
+						return (
+							<section key={status}>
+								<StatusGroupHeader status={status} count={items.length} />
+								<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+									{items.map(s => (
+										<RiverCard
+											key={s.id}
+											section={s}
+											onClick={() => navigate(`/section/${s.id}`)}
+										/>
+									))}
+								</div>
+							</section>
+						);
+					})
+				)}
 			</div>
 
 			<div style={{

@@ -156,7 +156,7 @@ export class RiverDetail extends Resource {
 			? Math.round(currentFlow - flowData.prev24h.value)
 			: null;
 
-		return {
+		const result = {
 			section: {
 				...section,
 				difficulty: section.difficultyMax !== section.difficultyMin
@@ -178,5 +178,11 @@ export class RiverDetail extends Resource {
 			snowpack,
 			forecast,
 		};
+		return new Response(JSON.stringify(result), {
+			headers: {
+				'Content-Type': 'application/json',
+				'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+			},
+		});
 	}
 }

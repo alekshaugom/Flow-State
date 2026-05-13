@@ -16,3 +16,11 @@ jsResource:
 
 static:
   files: 'web/*'
+
+'@harperfast/oauth':
+  package: '@harperfast/oauth'
+  providers:
+    google:
+      clientId: ${OAUTH_GOOGLE_CLIENT_ID}
+      clientSecret: ${OAUTH_GOOGLE_CLIENT_SECRET}
+  postLoginRedirect: '/login'
