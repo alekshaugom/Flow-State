@@ -1,4 +1,4 @@
-import { fetchWithRetry, compositeId, isoDate, daysAgo } from '../utils.ts';
+import { fetchWithRetry, compositeId, isoDate, daysAgo, tomorrow } from '../utils.ts';
 
 const BOR_RISE_BASE = 'https://data.usbr.gov/rise/api/result';
 
@@ -81,7 +81,7 @@ export async function fetchReservoirData(
 	if (!catalog) return [];
 
 	const start = isoDate(startDate || daysAgo(7));
-	const end = isoDate(endDate || new Date());
+	const end = isoDate(endDate || tomorrow());
 	const records: DamReleaseRecord[] = [];
 
 	const fetchParam = async (tsId: string): Promise<Map<string, number>> => {

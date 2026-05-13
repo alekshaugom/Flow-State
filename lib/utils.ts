@@ -12,6 +12,12 @@ export function daysAgo(n: number): Date {
 	return d;
 }
 
+export function tomorrow(): Date {
+	const d = new Date();
+	d.setDate(d.getDate() + 1);
+	return d;
+}
+
 export function hoursAgo(n: number): Date {
 	return new Date(Date.now() - n * 3600_000);
 }

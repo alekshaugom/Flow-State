@@ -1,4 +1,4 @@
-import { fetchWithRetry, compositeId, isoDate, daysAgo } from '../utils.ts';
+import { fetchWithRetry, compositeId, isoDate, daysAgo, tomorrow } from '../utils.ts';
 
 const API_BASE = 'https://api.waterdata.usgs.gov/ogcapi/v0/collections';
 const DISCHARGE = '00060';
@@ -79,9 +79,9 @@ async function fetchAllPages(url: string, source: string, maxPages = 10): Promis
 }
 
 export async function fetchInstantaneous(siteIds: string[], periodHours = 24): Promise<GaugeReadingRecord[]> {
-	const end = new Date();
-	const start = new Date(end.getTime() - periodHours * 3600_000);
-	const url = `${API_BASE}/continuous/items?monitoring_location_id=${siteParam(siteIds)}&parameter_code=${DISCHARGE}&datetime=${isoDate(start)}/${isoDate(end)}&f=json&limit=10000`;
+	const now = new Date();
+	const start = new Date(now.getTime() - periodHours * 3600_000);
+	const url = `${API_BASE}/continuous/items?monitoring_location_id=${siteParam(siteIds)}&parameter_code=${DISCHARGE}&datetime=${isoDate(start)}/${isoDate(tomorrow())}&f=json&limit=10000`;
 	return fetchAllPages(url, 'usgs-iv');
 }
 
@@ -91,9 +91,8 @@ export async function fetchDaily(siteIds: string[], startDate: Date, endDate: Da
 }
 
 export async function fetchHistorical(siteIds: string[], days = 30): Promise<GaugeReadingRecord[]> {
-	const end = new Date();
 	const start = daysAgo(days);
-	const url = `${API_BASE}/continuous/items?monitoring_location_id=${siteParam(siteIds)}&parameter_code=${DISCHARGE}&datetime=${isoDate(start)}/${isoDate(end)}&f=json&limit=10000`;
+	const url = `${API_BASE}/continuous/items?monitoring_location_id=${siteParam(siteIds)}&parameter_code=${DISCHARGE}&datetime=${isoDate(start)}/${isoDate(tomorrow())}&f=json&limit=10000`;
 	return fetchAllPages(url, 'usgs-iv');
 }
 

@@ -1,4 +1,4 @@
-import { fetchWithRetry, compositeId, isoDate, daysAgo } from '../utils.ts';
+import { fetchWithRetry, compositeId, isoDate, daysAgo, tomorrow } from '../utils.ts';
 
 const CDSS_BASE = 'https://dwr.state.co.us/Rest/GET/api/v2';
 
@@ -37,7 +37,7 @@ export async function fetchTelemetryTimeSeries(
 	endDate?: Date
 ): Promise<GaugeReadingRecord[]> {
 	const start = isoDate(startDate || daysAgo(7));
-	const end = isoDate(endDate || new Date());
+	const end = isoDate(endDate || tomorrow());
 	const url = `${CDSS_BASE}/telemetrystations/telemetrytimeseriesraw/?format=json&abbrev=${abbrev}&parameter=${parameter}&startDate=${start}&endDate=${end}`;
 	const data = await fetchWithRetry(url);
 	return parseTelemetry(data?.ResultList || [], abbrev);

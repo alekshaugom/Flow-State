@@ -1,4 +1,4 @@
-import { fetchWithRetry, compositeId, isoDate, daysAgo } from '../utils.ts';
+import { fetchWithRetry, compositeId, isoDate, daysAgo, tomorrow } from '../utils.ts';
 
 const AWDB_BASE = 'https://wcc.sc.egov.usda.gov/awdbRestApi';
 
@@ -19,7 +19,7 @@ export async function fetchBasinSnowData(
 	endDate?: Date
 ): Promise<SnowpackReadingRecord[]> {
 	const start = isoDate(startDate || daysAgo(7));
-	const end = isoDate(endDate || new Date());
+	const end = isoDate(endDate || tomorrow());
 
 	const records: SnowpackReadingRecord[] = [];
 
