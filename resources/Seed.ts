@@ -1,5 +1,7 @@
 import { Resource, tables } from 'harper';
 import { RIVERS, SECTIONS, GAUGES, RESERVOIRS, SNOWPACK_BASINS, DATA_SOURCES, FLOW_BANDS } from '../lib/seed-data.ts';
+import { invalidateFlowBandsCache } from '../lib/flow-bands.ts';
+import { invalidateDashboardCache } from './Dashboard.ts';
 
 async function count(table: any): Promise<number> {
 	let n = 0;
@@ -26,6 +28,8 @@ export class Seed extends Resource {
 
 		if (action === 'flow-bands') {
 			for (const b of FLOW_BANDS) await tables.FlowBand.put(b.id, b);
+			invalidateFlowBandsCache();
+			invalidateDashboardCache();
 			return { ok: true, flowBands: FLOW_BANDS.length, action };
 		}
 
@@ -34,6 +38,8 @@ export class Seed extends Resource {
 			const flowBandsExisting = await count(tables.FlowBand);
 			if (flowBandsExisting === 0) {
 				for (const b of FLOW_BANDS) await tables.FlowBand.put(b.id, b);
+				invalidateFlowBandsCache();
+				invalidateDashboardCache();
 				return { ok: true, message: 'Backfilled flow bands', flowBands: FLOW_BANDS.length };
 			}
 			return { ok: true, message: 'Already seeded', skipped: true };
