@@ -1,5 +1,5 @@
 import { Resource, tables } from 'harper';
-import { getFlowStatus, daysAgo } from '../lib/utils.ts';
+import { getFlowStatus, daysAgo, isoNow } from '../lib/utils.ts';
 import { loadBandsForSection, resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -39,8 +39,22 @@ async function getFlowData(gaugeIds: string[], days = 360) {
 	}
 
 	const primaryReadings = series[gaugeIds[0]] || [];
-	const latest = primaryReadings.length ? primaryReadings[primaryReadings.length - 1] : null;
+	let latest = primaryReadings.length ? primaryReadings[primaryReadings.length - 1] : null;
 	const prev24h = primaryReadings.find((r: any) => new Date(r.timestamp).getTime() >= Date.now() - 25 * 3600_000);
+
+	// Defensive fallback: if GaugeReading search returned empty (e.g. transient
+	// replication lag after a deploy), borrow current flow from GaugeSnapshot —
+	// the denormalized cache the ingestion worker keeps fresh.
+	if (!latest && gaugeIds[0]) {
+		const snap = await tables.GaugeSnapshot.get(gaugeIds[0]);
+		if (snap && snap.currentFlow != null) {
+			latest = {
+				timestamp: snap.updatedAt || isoNow(),
+				value: snap.currentFlow,
+				unit: snap.unit || 'cfs',
+			};
+		}
+	}
 
 	return { series, gaugeList, latest, prev24h };
 }
