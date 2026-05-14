@@ -2,20 +2,19 @@
 
 Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
-**Last updated:** 2026-05-13
-**Active slice:** [01-flowband-browns-fix](slices/01-flowband-browns-fix/plan.md)
+**Last updated:** 2026-05-14
+**Active slice:** [02-watershed-corridor-ia](slices/02-watershed-corridor-ia/plan.md)
 
 ## Active
 
 | # | Slice | Value | Effort | Goal |
 |---|---|---|---|---|
-| 01 | [flowband-browns-fix](slices/01-flowband-browns-fix/plan.md) | 10 | M | Browns at 396 cfs reads "Runnable (technical)" not "too low"; craft+skill-aware bands ship behind a selector UI |
+| 02 | [watershed-corridor-ia](slices/02-watershed-corridor-ia/plan.md) | 9 | L | Watershed → Corridor → Section hierarchy; new routes; sidebar watershed-grouped |
 
 ## Queued — detailed plans
 
 | # | Slice | Value | Effort | Depends | Goal |
 |---|---|---|---|---|---|
-| 02 | [watershed-corridor-ia](slices/02-watershed-corridor-ia/plan.md) | 9 | L | — | Watershed → Corridor → Section hierarchy; new routes; sidebar watershed-grouped |
 | 03 | [forecast-snapshot-infra](slices/03-forecast-snapshot-infra/plan.md) | 8 | M | — | ForecastInput + ForecastAccuracy + DailyGaugeRollup; daily reconciliation; no UI yet |
 | 04 | [nws-weather-pipeline](slices/04-nws-weather-pipeline/plan.md) | 8 | M | — | NWS gridpoint forecast per section into WeatherForecast table; driver-conditioned heuristic forecaster |
 
@@ -40,6 +39,7 @@ Single source of truth for what ships next. Sorted by value × confidence ÷ eff
 
 | # | Slice | Closed | Notes |
 |---|---|---|---|
+| 01 | [flowband-browns-fix](completed/01-flowband-browns-fix/plan.md) | 2026-05-14 | FlowBand schema + 315 seeded rows; global Craft/Skill context with Oar-Raft / Paddle Boat / Kayak/SUP options in dashboard segmented control; per-craft/skill interpretation in section flow tile; Browns at 396 now correctly reads "Runnable (technical)" |
 | 00 | [v1-foundation](completed/00-v1-foundation.md) | 2026-05-13 | Harper backend, ingestion worker, custom SVG charts, Leaflet map, ForecastPipeline stub |
 
 ## Deferred / killed

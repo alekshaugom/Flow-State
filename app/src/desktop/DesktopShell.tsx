@@ -5,6 +5,7 @@ import { useDashboard } from '../hooks/useDashboard';
 import { AppHeader } from '../components/AppHeader';
 import { Skeleton } from '../components/Skeleton';
 import { StatusGroupHeader, type SparkRange } from '../components/StatusGroupHeader';
+import { CraftSkillControl } from '../components/CraftSkillControl';
 import { SummaryStat } from './SummaryStat';
 import { DesktopFilter } from './DesktopFilter';
 import { DesktopRiverRow } from './DesktopRiverRow';
@@ -81,9 +82,10 @@ export function DesktopShell() {
 			{/* Page heading */}
 			<div style={{
 				padding: '24px 28px 16px', display: 'flex',
-				alignItems: 'flex-end', justifyContent: 'space-between', gap: 24,
+				alignItems: 'flex-end', justifyContent: 'space-between',
+				gap: 20, flexWrap: 'wrap',
 			}}>
-				<div>
+				<div style={{ minWidth: 0 }}>
 					<div style={{
 						fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--river-600)',
 						letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 500,
@@ -95,17 +97,23 @@ export function DesktopShell() {
 						Rivers running today
 					</h1>
 				</div>
-				<div style={{ display: 'flex', gap: 8 }}>
-					{isLoading ? (
-						<>{[1,2,3,4].map(i => <Skeleton key={i} width={110} height={70} borderRadius="var(--r-lg)" />)}</>
-					) : (
-						<>
-							<SummaryStat label="Running" value={totalRunnable} sub={`of ${sections.length} tracked`} />
-							<SummaryStat label="Ideal" value={idealCount} color="var(--ideal-solid)" sub="sweet spot" />
-							<SummaryStat label="Rising" value={risingCount} color="var(--trend-up)" sub="last 24h" trendIcon="up" />
-							<SummaryStat label="Falling" value={fallingCount} color="var(--trend-down)" sub="last 24h" trendIcon="down" />
-						</>
-					)}
+				<div style={{
+					display: 'flex', alignItems: 'flex-end',
+					gap: 16, flexWrap: 'wrap',
+				}}>
+					<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+						{isLoading ? (
+							<>{[1,2,3,4].map(i => <Skeleton key={i} width={110} height={70} borderRadius="var(--r-lg)" />)}</>
+						) : (
+							<>
+								<SummaryStat label="Running" value={totalRunnable} sub={`of ${sections.length} tracked`} />
+								<SummaryStat label="Ideal" value={idealCount} color="var(--ideal-solid)" sub="sweet spot" />
+								<SummaryStat label="Rising" value={risingCount} color="var(--trend-up)" sub="last 24h" trendIcon="up" />
+								<SummaryStat label="Falling" value={fallingCount} color="var(--trend-down)" sub="last 24h" trendIcon="down" />
+							</>
+						)}
+					</div>
+					<CraftSkillControl variant="desktop" />
 				</div>
 			</div>
 
@@ -126,8 +134,12 @@ export function DesktopShell() {
 			</div>
 
 			{/* Main split: sidebar + detail */}
-			<div style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: 20, padding: '0 28px 28px', flex: 1, minHeight: 0 }}>
-				<aside style={{ display: 'flex', flexDirection: 'column', gap: 18, overflow: 'auto', paddingRight: 4 }}>
+			<div style={{
+				display: 'grid',
+				gridTemplateColumns: 'minmax(320px, 440px) minmax(0, 1fr)',
+				gap: 20, padding: '0 28px 28px', flex: 1, minHeight: 0,
+			}}>
+				<aside style={{ display: 'flex', flexDirection: 'column', gap: 18, overflow: 'auto', paddingRight: 4, minWidth: 0 }}>
 					{isLoading ? (
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 							{[1,2,3,4,5,6].map(i => <Skeleton key={i} height={88} borderRadius="var(--r-lg)" />)}
@@ -167,6 +179,7 @@ export function DesktopShell() {
 					background: 'var(--bg-card)', border: '1px solid var(--rule)',
 					borderRadius: 'var(--r-xl)', boxShadow: 'var(--shadow-card)',
 					overflow: 'auto', padding: 28,
+					minWidth: 0,
 				}}>
 					{isLoading ? (
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

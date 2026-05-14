@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App } from './App';
 import { AuthProvider } from './hooks/useAuth';
+import { CraftProvider } from './lib/craftContext';
 import './tokens.css';
 import './global.css';
 
@@ -16,7 +17,9 @@ createRoot(document.getElementById('root')!).render(
 	<StrictMode>
 		<QueryClientProvider client={queryClient}>
 			<AuthProvider>
-				<App />
+				<CraftProvider>
+					<App />
+				</CraftProvider>
 			</AuthProvider>
 		</QueryClientProvider>
 	</StrictMode>

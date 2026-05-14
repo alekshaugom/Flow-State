@@ -1,5 +1,6 @@
 import { Resource, tables } from 'harper';
 import { getFlowStatus } from '../lib/utils.ts';
+import { resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -34,14 +35,22 @@ export class Dashboard extends Resource {
 			});
 		}
 
-		const [rivers, sections, snapshots] = await Promise.all([
+		const [rivers, sections, snapshots, allBands] = await Promise.all([
 			collect(tables.River.search({ conditions: [] })),
 			collect(tables.RiverSection.search({ conditions: [] })),
 			collect(tables.GaugeSnapshot.search({ conditions: [] })),
+			collect(tables.FlowBand.search({ conditions: [] })),
 		]);
 
 		const snapshotMap = new Map<string, any>();
 		for (const s of snapshots) snapshotMap.set(s.id, s);
+
+		const bandsBySection = new Map<string, any[]>();
+		for (const b of allBands) {
+			const arr = bandsBySection.get(b.sectionId) || [];
+			arr.push(b);
+			bandsBySection.set(b.sectionId, arr);
+		}
 
 		const dashboard = [];
 		for (const river of rivers) {
@@ -54,14 +63,23 @@ export class Dashboard extends Resource {
 					: null;
 
 				const currentFlow = snap?.currentFlow ?? null;
-				const status = currentFlow !== null
-					? getFlowStatus(currentFlow, {
-						low: section.flowLow, runnable: section.flowRunnable,
-						idealMin: section.flowIdealMin, idealMax: section.flowIdealMax,
-						high: section.flowHigh, expert: section.flowExpert,
-						dangerous: section.flowDangerous,
-					})
-					: 'unknown';
+				const roundedFlow = currentFlow !== null ? Math.round(currentFlow) : null;
+
+				const sectionBands = bandsBySection.get(section.id) || [];
+				const resolvedBand = resolveFromCache(sectionBands, section, 'raft', 'intermediate', roundedFlow);
+
+				const status = resolvedBand
+					? bandToDesignStatus(resolvedBand.bandName)
+					: (currentFlow !== null
+						? getFlowStatus(currentFlow, {
+							low: section.flowLow, runnable: section.flowRunnable,
+							idealMin: section.flowIdealMin, idealMax: section.flowIdealMax,
+							high: section.flowHigh, expert: section.flowExpert,
+							dangerous: section.flowDangerous,
+						})
+						: 'unknown');
+
+				const statusLabel = resolvedBand ? bandToLabel(resolvedBand.bandName) : null;
 
 				let sparkline: number[] = [];
 				try {
@@ -81,12 +99,23 @@ export class Dashboard extends Resource {
 					change24h: snap?.change24h ?? null,
 					change7d: snap?.change7d ?? null,
 					status,
+					statusLabel,
 					primaryGaugeId: section.primaryGaugeId,
 					latitude: section.latitude,
 					longitude: section.longitude,
 					sparkline,
 					updatedAt: snap?.updatedAt || null,
 					gaugeName: snap?.gaugeName || null,
+					flowBands: sectionBands,
+					thresholds: {
+						flowLow: section.flowLow,
+						flowRunnable: section.flowRunnable,
+						flowIdealMin: section.flowIdealMin,
+						flowIdealMax: section.flowIdealMax,
+						flowHigh: section.flowHigh,
+						flowExpert: section.flowExpert,
+						flowDangerous: section.flowDangerous,
+					},
 				});
 			}
 

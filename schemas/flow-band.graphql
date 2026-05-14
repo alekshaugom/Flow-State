@@ -1,0 +1,18 @@
+type FlowBand @table @export {
+	id: ID @primaryKey
+	sectionId: ID @indexed
+	section: RiverSection @relationship(from: "sectionId")
+	craftType: String @indexed
+	commercial: Boolean @indexed
+	skillLevel: String @indexed
+	bandName: String
+	minCfs: Int
+	maxCfs: Int
+	rating: String
+	description: String
+	authorNote: String
+	source: String
+	sourceUserId: String
+	updatedAt: String
+	active: Boolean @indexed
+}

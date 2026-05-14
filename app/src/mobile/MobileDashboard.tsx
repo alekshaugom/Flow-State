@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
 import { Skeleton } from '../components/Skeleton';
 import { StatusGroupHeader, type SparkRange } from '../components/StatusGroupHeader';
+import { CraftSkillControl } from '../components/CraftSkillControl';
 import { FilterChip } from './FilterChip';
 import { RiverCard } from './RiverCard';
 
@@ -133,6 +134,9 @@ export function MobileDashboard() {
 							</div>
 						</>
 					)}
+				</div>
+				<div style={{ marginTop: 10, position: 'relative' }}>
+					<CraftSkillControl variant="mobile" />
 				</div>
 			</header>
 

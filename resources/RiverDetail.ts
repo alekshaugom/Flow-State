@@ -1,5 +1,6 @@
 import { Resource, tables } from 'harper';
 import { getFlowStatus, daysAgo } from '../lib/utils.ts';
+import { loadBandsForSection, resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -135,22 +136,32 @@ export class RiverDetail extends Resource {
 		const reservoirIds = splitIds(section.reservoirIds);
 		const basinIds = splitIds(section.snowpackBasinIds);
 
-		const [flowData, damReleases, snowpack, forecast] = await Promise.all([
+		const [flowData, damReleases, snowpack, forecast, flowBands] = await Promise.all([
 			getFlowData(gaugeIds),
 			getDamReleases(reservoirIds),
 			getSnowpackData(basinIds),
 			getLatestForecast(sectionId),
+			loadBandsForSection(sectionId),
 		]);
 
 		const currentFlow = flowData.latest?.value ?? null;
-		const status = currentFlow !== null
-			? getFlowStatus(currentFlow, {
-				low: section.flowLow, runnable: section.flowRunnable,
-				idealMin: section.flowIdealMin, idealMax: section.flowIdealMax,
-				high: section.flowHigh, expert: section.flowExpert,
-				dangerous: section.flowDangerous,
-			})
-			: 'unknown';
+		const roundedFlow = currentFlow !== null ? Math.round(currentFlow) : null;
+
+		// Resolve current band for the default selection (raft + intermediate).
+		// The frontend has all bands and re-resolves locally when the user toggles.
+		const resolvedBand = resolveFromCache(flowBands, section, 'raft', 'intermediate', roundedFlow);
+
+		const status = resolvedBand
+			? bandToDesignStatus(resolvedBand.bandName)
+			: (currentFlow !== null
+				? getFlowStatus(currentFlow, {
+					low: section.flowLow, runnable: section.flowRunnable,
+					idealMin: section.flowIdealMin, idealMax: section.flowIdealMax,
+					high: section.flowHigh, expert: section.flowExpert,
+					dangerous: section.flowDangerous,
+				})
+				: 'unknown');
+		const statusLabel = resolvedBand ? bandToLabel(resolvedBand.bandName) : null;
 
 		const change24h = (currentFlow && flowData.prev24h)
 			? Math.round(currentFlow - flowData.prev24h.value)
@@ -165,13 +176,16 @@ export class RiverDetail extends Resource {
 			},
 			river,
 			flow: {
-				current: currentFlow ? Math.round(currentFlow) : null,
+				current: roundedFlow,
 				unit: 'cfs',
 				status,
+				statusLabel,
 				change24h,
 				trend: change24h !== null ? (change24h > 50 ? 'rising' : change24h < -50 ? 'falling' : 'steady') : 'unknown',
 				timestamp: flowData.latest?.timestamp || null,
 			},
+			flowBands,
+			resolvedBand,
 			charts: flowData.series,
 			gauges: flowData.gaugeList,
 			reservoirs: damReleases,

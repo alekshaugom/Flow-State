@@ -96,6 +96,19 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 					</div>
 				</div>
 
+				{detail.resolvedBand?.description && (
+					<div style={{
+						marginTop: 14,
+						padding: '12px 14px',
+						borderRadius: 'var(--r-lg)',
+						background: c.bg,
+						border: `1px solid ${c.line}`,
+						fontSize: 13, lineHeight: 1.55, color: 'var(--ink-1)',
+					}}>
+						{detail.resolvedBand.description}
+					</div>
+				)}
+
 				<RangeGauge currentFlow={detail.now ?? 0} thresholds={detail.thresholds} />
 			</section>
 

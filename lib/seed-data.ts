@@ -197,3 +197,218 @@ export const DATA_SOURCES = [
 	{ id: 'bor', name: 'Bureau of Reclamation RISE', type: 'reservoir', baseUrl: 'https://data.usbr.gov/rise/api', description: 'Reservoir storage, elevation, inflow, and outflow data', updateFrequencyMinutes: 360, active: true, lastFetchAt: null, lastError: null },
 	{ id: 'noaa', name: 'NOAA / CBRFC', type: 'forecast', baseUrl: 'https://www.cbrfc.noaa.gov', description: 'Colorado Basin River Forecast Center runoff forecasts', updateFrequencyMinutes: 720, active: true, lastFetchAt: null, lastError: null },
 ];
+
+// === FLOW BANDS ===
+// Per (section, craft, skill) sets of bands describing what each flow level
+// means. Generated from per-section baselines + craft/skill multipliers.
+// Browns Canyon raft+intermediate has hand-authored copy; the rest is
+// templated. All editable in admin later.
+
+type CraftType = 'raft' | 'paddle-raft' | 'kayak';
+type SkillLevel = 'beginner' | 'intermediate' | 'expert';
+
+interface SectionBaseline {
+	sectionId: string;
+	shortName: string;
+	// raft + intermediate breakpoints (cfs). other crafts/skills are derived.
+	tooLowMax: number;
+	lowRunnableMax: number;
+	idealMin: number;
+	idealMax: number;
+	pushyMax: number;
+	expertMax: number;
+	character: string; // 1-line section character used in templated copy
+}
+
+const ARK_BASELINES: SectionBaseline[] = [
+	{
+		sectionId: 'arkansas-numbers',
+		shortName: 'The Numbers',
+		tooLowMax: 299,
+		lowRunnableMax: 499,
+		idealMin: 700,
+		idealMax: 1800,
+		pushyMax: 2500,
+		expertMax: 3500,
+		character: 'continuous Class IV-V whitewater',
+	},
+	{
+		sectionId: 'arkansas-fractions',
+		shortName: 'The Fractions',
+		tooLowMax: 299,
+		lowRunnableMax: 399,
+		idealMin: 600,
+		idealMax: 2000,
+		pushyMax: 3000,
+		expertMax: 4000,
+		character: 'intermediate Class III between Numbers and Browns',
+	},
+	{
+		sectionId: 'arkansas-browns-canyon',
+		shortName: 'Browns Canyon',
+		tooLowMax: 349,
+		lowRunnableMax: 499,
+		idealMin: 700,
+		idealMax: 2500,
+		pushyMax: 3500,
+		expertMax: 4500,
+		character: 'classic Class III-IV with Zoom Flume, Seidel\'s Suckhole, and Staircase',
+	},
+	{
+		sectionId: 'arkansas-bighorn-sheep',
+		shortName: 'Bighorn Sheep Canyon',
+		tooLowMax: 299,
+		lowRunnableMax: 499,
+		idealMin: 600,
+		idealMax: 3000,
+		pushyMax: 4000,
+		expertMax: 5000,
+		character: 'Class III-IV scenic canyon, friendlier than the Gorge',
+	},
+	{
+		sectionId: 'arkansas-royal-gorge',
+		shortName: 'Royal Gorge',
+		tooLowMax: 399,
+		lowRunnableMax: 599,
+		idealMin: 800,
+		idealMax: 2500,
+		pushyMax: 3500,
+		expertMax: 4500,
+		character: 'Class IV-V deep-canyon big water with Sunshine Falls',
+	},
+];
+
+// Multipliers shift all thresholds for a given (craft, skill) relative to
+// the raft+intermediate baseline. Smaller = the band starts at lower cfs
+// (this craft/skill can handle less water).
+const CRAFT_SKILL_MULT: Record<string, number> = {
+	'raft|beginner':           1.40,
+	'raft|intermediate':       1.00,
+	'raft|expert':             0.75,
+	'paddle-raft|beginner':    1.20,
+	'paddle-raft|intermediate':0.85,
+	'paddle-raft|expert':      0.65,
+	'kayak|beginner':          0.90,
+	'kayak|intermediate':      0.55,
+	'kayak|expert':            0.40,
+};
+
+interface BandTemplate {
+	bandName: string;
+	rating: string;
+	description: (section: SectionBaseline, craft: CraftType, skill: SkillLevel) => string;
+	authorNote?: (section: SectionBaseline, craft: CraftType, skill: SkillLevel) => string | undefined;
+}
+
+function craftLabel(craft: CraftType): string {
+	if (craft === 'paddle-raft') return 'paddle raft';
+	return craft;
+}
+
+const TEMPLATES: BandTemplate[] = [
+	{
+		bandName: 'too-low',
+		rating: 'no-go',
+		description: (s, c) => `Below the runnable threshold for a ${craftLabel(c)} on ${s.shortName}. Expect frequent boat-stoppers, exposed rocks, and unsafe pinning risk. Wait for more water or move to a different section — this is not a day to run it.`,
+	},
+	{
+		bandName: 'low-runnable',
+		rating: 'marginal',
+		description: (s, c, sk) =>
+			sk === 'beginner'
+				? `Not recommended at this level — ${s.shortName} is too technical for a beginner ${craftLabel(c)} crew at low water. Pick an easier section or wait for flows to come up before attempting this one.`
+				: `Runnable for an experienced ${craftLabel(c)} crew. Expect frequent scraping, technical maneuvering around exposed rocks, and a slower day overall. Scout the bigger features if you're not already familiar with the section.`,
+	},
+	{
+		bandName: 'technical',
+		rating: 'good',
+		description: (s, c) => `Lower end of ideal for a ${craftLabel(c)} on ${s.shortName}. Solid technical run — features are clean, lines are manageable, and the rapids have personality without being pushy. A great day if you like reading water.`,
+	},
+	{
+		bandName: 'ideal',
+		rating: 'ideal',
+		description: (s, c) => `Sweet spot for a ${craftLabel(c)} on ${s.shortName}. The ${s.character} is at its best — clean lines, fun waves, and plenty of room to play in the bigger features without overwhelming consequence.`,
+	},
+	{
+		bandName: 'pushy',
+		rating: 'challenging',
+		description: (s, c, sk) =>
+			sk === 'expert'
+				? `Big, pushy water — fun for an expert ${craftLabel(c)} crew but the consequences are real. Bigger boats and a strong roster preferred; smaller paddle setups should size up or sit this one out.`
+				: `Pushy water on ${s.shortName}. Fewer eddies, swims travel further, and the bigger features hit harder. Experienced ${craftLabel(c)} crews with strong recoveries only — skip if you're not confident on this section.`,
+	},
+	{
+		bandName: 'expert-only',
+		rating: 'challenging',
+		description: (s, c) => `Expert-only flows for a ${craftLabel(c)}. Most teams should sit this one out — consequences for swims and missed lines are significant, eddies are scarce, and rescue windows are short. Only with a proven crew.`,
+	},
+	{
+		bandName: 'unsafe',
+		rating: 'dangerous',
+		description: (s) => `Not recommended at any skill on ${s.shortName}. Most outfitters close above this level, and self-rescue would be slim if anything went wrong. Wait for the river to come back into range before attempting.`,
+	},
+];
+
+function generateBands(): any[] {
+	const out: any[] = [];
+	for (const base of ARK_BASELINES) {
+		for (const [key, mult] of Object.entries(CRAFT_SKILL_MULT)) {
+			const [craft, skill] = key.split('|') as [CraftType, SkillLevel];
+			const tooLow = Math.round(base.tooLowMax * mult);
+			const lowRun = Math.round(base.lowRunnableMax * mult);
+			const ideal0 = Math.round(base.idealMin * mult);
+			const ideal1 = Math.round(base.idealMax * mult);
+			const pushy = Math.round(base.pushyMax * mult);
+			const expert = Math.round(base.expertMax * mult);
+
+			const bandsForCombo: Array<[string, number, number]> = [
+				['too-low',     0,           tooLow],
+				['low-runnable',tooLow + 1,  lowRun],
+				['technical',   lowRun + 1,  ideal0 - 1],
+				['ideal',       ideal0,      ideal1],
+				['pushy',       ideal1 + 1,  pushy],
+				['expert-only', pushy + 1,   expert],
+				['unsafe',      expert + 1,  99999],
+			];
+
+			for (const [bandName, minCfs, maxCfs] of bandsForCombo) {
+				if (minCfs > maxCfs) continue;
+				const tpl = TEMPLATES.find(t => t.bandName === bandName)!;
+				out.push({
+					id: `${base.sectionId}_${craft}_${skill}_${bandName}`,
+					sectionId: base.sectionId,
+					craftType: craft,
+					commercial: null,
+					skillLevel: skill,
+					bandName,
+					minCfs,
+					maxCfs,
+					rating: tpl.rating,
+					description: tpl.description(base, craft, skill),
+					authorNote: tpl.authorNote?.(base, craft, skill) || null,
+					source: 'guide-input',
+					sourceUserId: null,
+					updatedAt: '2026-05-13T00:00:00Z',
+					active: true,
+				});
+			}
+		}
+	}
+	return out;
+}
+
+const GENERATED_BANDS = generateBands();
+
+// Hand-authored override for the canonical Browns Canyon raft+intermediate
+// low-runnable band — v1 incorrectly labeled 396 cfs as "too low" here.
+const BROWNS_RAFT_INT_LOW = GENERATED_BANDS.find(
+	b => b.id === 'arkansas-browns-canyon_raft_intermediate_low-runnable',
+);
+if (BROWNS_RAFT_INT_LOW) {
+	BROWNS_RAFT_INT_LOW.description =
+		"Runnable for an experienced paddle crew. Expect frequent scraping and technical moves around the bigger features (Zoom Flume, Seidel's Suckhole, Staircase). Slow day, scout if unfamiliar.";
+	BROWNS_RAFT_INT_LOW.authorNote =
+		"Browns at this level scrubs but goes — v1 incorrectly labeled this as 'too low'. Private trips run it all season at the low end with a strong crew.";
+}
+
+export const FLOW_BANDS = GENERATED_BANDS;

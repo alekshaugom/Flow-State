@@ -1,13 +1,13 @@
 ---
 slice: 01-flowband-browns-fix
-status: active
+status: done
 value: 10
 confidence: 10
 effort: M
 depends_on: []
 unlocks: [02-watershed-corridor-ia, 05-history-forecast-chart, 07-drivers-and-context-ui, 10-admin-editorial-ui]
 opened: 2026-05-13
-closed: null
+closed: 2026-05-14
 ---
 
 # Slice 01 — FlowBand schema + Browns Canyon fix

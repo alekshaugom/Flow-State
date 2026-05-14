@@ -46,6 +46,9 @@ Every lesson is tagged with one or more:
 - [L001 — Deploy must exclude worktree build artifacts](L001-deploy-worktrees.md) — `deploy_component` ignores `.gitignore`; stale `web/` dirs in worktrees deploy old assets
 - [L002 — Always verify .env edits with hex dump](L002-env-newlines.md) — missing newlines silently break env var parsing
 
+### discovery
+- [L003 — Harper `Resource.post()` takes `data` as first argument](L003-harper-resource-post-signature.md) — not `(target, data)` like `put/patch`; mirrors of `get()` signature silently fall through
+
 <!-- New entries go above this line. -->
 
 ## Promoting a lesson to vision

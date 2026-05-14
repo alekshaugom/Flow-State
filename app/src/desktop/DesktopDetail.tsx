@@ -68,11 +68,11 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 					<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 					{detail.river} · {detail.classification}{detail.miles ? ` · ${detail.miles} mi` : ''}
 				</div>
-				<div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginTop: 4 }}>
-					<h1 style={{ margin: 0, fontSize: 32, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--ink-0)' }}>
+				<div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginTop: 4, flexWrap: 'wrap' }}>
+					<h1 style={{ margin: 0, fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--ink-0)', minWidth: 0, wordBreak: 'break-word' }}>
 						{detail.section}
 					</h1>
-					<div style={{ display: 'flex', gap: 8 }}>
+					<div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
 						<button style={detailBtn}><Icon name="star" size={16} />Save</button>
 						<button style={detailBtn}><Icon name="bell" size={16} />Alerts</button>
 					</div>
@@ -86,20 +86,43 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 			</div>
 
 			{/* Stat strip */}
-			<div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: 16 }}>
-				<div style={{ padding: 20, borderRadius: 'var(--r-lg)', border: `1px solid ${c.line}`, background: c.bg, position: 'relative', overflow: 'hidden' }}>
+			<div style={{
+				display: 'grid',
+				gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+				gap: 16, alignItems: 'start',
+			}}>
+				<div style={{
+					gridColumn: 'span 2', minWidth: 0,
+					padding: 20, borderRadius: 'var(--r-lg)',
+					border: `1px solid ${c.line}`, background: c.bg,
+					position: 'relative', overflow: 'hidden',
+				}}>
 					<div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.fg, fontWeight: 600 }}>
 						<span style={{ opacity: 0.6 }}>{'// '}</span>Current flow
 					</div>
-					<div style={{ marginTop: 6, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
+					<div style={{
+						marginTop: 8,
+						display: 'flex', flexWrap: 'wrap',
+						alignItems: 'baseline', justifyContent: 'space-between',
+						columnGap: 14, rowGap: 10,
+					}}>
 						<BigCFS cfs={detail.now} size="lg" color={c.fg} />
-						<div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
-							<StatusPill status={detail.status} label={detail.statusLabel} size="lg" />
-							<TrendChip trend={detail.trend} pct={detail.trendPct} size="lg" />
+						<div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+							<StatusPill status={detail.status} label={detail.statusLabel} size="md" />
+							<TrendChip trend={detail.trend} pct={detail.trendPct} size="md" />
 						</div>
 					</div>
+					{detail.resolvedBand?.description && (
+						<div style={{
+							marginTop: 14, paddingTop: 14,
+							borderTop: `1px solid ${c.line}`,
+							fontSize: 13, lineHeight: 1.55, color: 'var(--ink-1)',
+						}}>
+							{detail.resolvedBand.description}
+						</div>
+					)}
 				</div>
-				<div style={statCard}>
+				<div style={{ ...statCard, minWidth: 0 }}>
 					<div style={statLabel}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Ideal band</div>
 					<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: 'var(--ink-0)', letterSpacing: '-0.02em', marginTop: 6 }}>
 						{detail.thresholds.idealLo.toLocaleString()}–{detail.thresholds.idealHi.toLocaleString()}
@@ -107,9 +130,9 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 					</div>
 					<div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>Where this section runs at its best.</div>
 				</div>
-				<div style={statCard}>
+				<div style={{ ...statCard, minWidth: 0 }}>
 					<div style={statLabel}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Snowpack</div>
-					<div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 6 }}>
+					<div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
 						<span style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: (detail.snowpackPct ?? 0) >= 100 ? 'var(--ideal-solid)' : 'var(--low-solid)', letterSpacing: '-0.02em' }}>
 							{detail.snowpackPct !== null ? `${detail.snowpackPct}%` : '—'}
 						</span>
@@ -121,9 +144,9 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 
 			{/* Chart */}
 			<div>
-				<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+				<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 12, flexWrap: 'wrap' }}>
 					<SectionHead title="Flow history" eyebrow="Recent" />
-					<div style={{ display: 'flex', gap: 4, padding: 3, background: 'var(--bg-sunken)', borderRadius: 'var(--r-pill)' }}>
+					<div style={{ display: 'flex', gap: 4, padding: 3, background: 'var(--bg-sunken)', borderRadius: 'var(--r-pill)', flexWrap: 'wrap' }}>
 						{[7, 30, 90, 180, 360].map(d => (
 							<button key={d} onClick={() => setRange(d)} style={{
 								padding: '6px 12px', borderRadius: 'var(--r-pill)',
@@ -142,7 +165,11 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 			</div>
 
 			{/* Forecast + summary + context */}
-			<div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16 }}>
+			<div style={{
+				display: 'grid',
+				gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+				gap: 16,
+			}}>
 				<div>
 					<SectionHead title="14-day forecast" eyebrow="Outlook" />
 					<div style={{ marginTop: 12 }}>

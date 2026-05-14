@@ -1,4 +1,5 @@
 import type { DesignStatus } from './constants';
+import type { FlowBandRow, ResolvedBand } from './lib/craftTypes';
 
 // --- Dashboard view model (flat section list for sidebar/cards) ---
 
@@ -19,6 +20,12 @@ export interface DashboardSection {
 	primaryGaugeId: string | null;
 	latitude: number | null;
 	longitude: number | null;
+	flowBands: FlowBandRow[];
+	legacyThresholds: {
+		flowLow: number; flowRunnable: number;
+		flowIdealMin: number; flowIdealMax: number;
+		flowHigh: number; flowExpert: number; flowDangerous: number;
+	} | null;
 }
 
 // --- Detail view model ---
@@ -65,6 +72,9 @@ export interface DetailViewModel {
 	reservoirs: any[];
 	snowpack: any[];
 	forecast: any;
+
+	flowBands: FlowBandRow[];
+	resolvedBand: ResolvedBand | null;
 }
 
 // --- API response shapes ---
@@ -80,6 +90,13 @@ export interface ApiSectionSummary {
 	change24h: number | null;
 	change7d: number | null;
 	status: string;
+	statusLabel?: string | null;
+	flowBands?: FlowBandRow[];
+	thresholds?: {
+		flowLow: number; flowRunnable: number;
+		flowIdealMin: number; flowIdealMax: number;
+		flowHigh: number; flowExpert: number; flowDangerous: number;
+	};
 	primaryGaugeId: string;
 	latitude: number;
 	longitude: number;

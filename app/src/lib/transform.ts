@@ -1,11 +1,28 @@
 import { mapStatusToDesign, mapTrend, STATUS_LABEL } from '../constants';
 import type { DashboardSection, DetailViewModel, ForecastBandData, ApiDashboardResponse } from '../types';
+import {
+	resolveBandClient, bandToDesignStatus, bandToLabel,
+	type CraftType, type SkillLevel, type ResolvedBand,
+} from './craftTypes';
 
-export function transformDashboard(data: ApiDashboardResponse): DashboardSection[] {
+export function transformDashboard(
+	data: ApiDashboardResponse,
+	craft: CraftType = 'raft',
+	skill: SkillLevel = 'intermediate',
+): DashboardSection[] {
 	const sections: DashboardSection[] = [];
 	for (const river of data.rivers) {
 		for (const s of river.sections) {
-			const designStatus = mapStatusToDesign(s.status);
+			// Resolve band locally so the dashboard reflects the global craft/skill.
+			// Falls back to server-provided status if no bands match.
+			const bands = s.flowBands || [];
+			const resolved = resolveBandClient(bands, craft, skill, s.currentFlow);
+
+			const apiStatus = resolved ? bandToDesignStatus(resolved.bandName) : s.status;
+			const designStatus = mapStatusToDesign(apiStatus);
+			const label = resolved ? bandToLabel(resolved.bandName)
+				: (s.statusLabel || STATUS_LABEL[s.status] || STATUS_LABEL[designStatus]);
+
 			const trend = mapTrend(s.trend);
 			const trendPct = s.currentFlow && s.change24h
 				? Math.round((s.change24h / s.currentFlow) * 100)
@@ -18,7 +35,7 @@ export function transformDashboard(data: ApiDashboardResponse): DashboardSection
 				classification: s.difficulty ? `Class ${s.difficulty}` : '',
 				now: s.currentFlow,
 				status: designStatus,
-				statusLabel: STATUS_LABEL[s.status] || STATUS_LABEL[designStatus],
+				statusLabel: label,
 				trend,
 				trendPct,
 				change24h: s.change24h,
@@ -28,16 +45,32 @@ export function transformDashboard(data: ApiDashboardResponse): DashboardSection
 				primaryGaugeId: s.primaryGaugeId || null,
 				latitude: s.latitude,
 				longitude: s.longitude,
+				flowBands: bands,
+				legacyThresholds: s.thresholds || null,
 			});
 		}
 	}
 	return sections;
 }
 
-export function transformDetail(data: any): DetailViewModel {
-	const { section, river, flow, charts, gauges, reservoirs, snowpack, forecast } = data;
+export function transformDetail(
+	data: any,
+	craft: CraftType = 'raft',
+	skill: SkillLevel = 'intermediate',
+): DetailViewModel {
+	const { section, river, flow, charts, gauges, reservoirs, snowpack, forecast, flowBands, resolvedBand: serverBand } = data;
 
-	const designStatus = mapStatusToDesign(flow.status);
+	// Re-resolve the band client-side based on the global craft/skill context.
+	// Falls back to the server-resolved band (default raft+intermediate or legacy).
+	const localResolved = resolveBandClient(flowBands || [], craft, skill, flow.current);
+	const resolvedBand: ResolvedBand | null = localResolved || serverBand || null;
+
+	const apiStatus = resolvedBand ? bandToDesignStatus(resolvedBand.bandName) : flow.status;
+	const designStatus = mapStatusToDesign(apiStatus);
+	const statusLabelComputed = resolvedBand
+		? bandToLabel(resolvedBand.bandName)
+		: (flow.statusLabel || STATUS_LABEL[flow.status] || STATUS_LABEL[designStatus]);
+
 	const trend = mapTrend(flow.trend);
 	const trendPct = flow.current && flow.change24h
 		? Math.round((flow.change24h / flow.current) * 100)
@@ -88,7 +121,7 @@ export function transformDetail(data: any): DetailViewModel {
 		notes: section.notes || null,
 		now: flow.current,
 		status: designStatus,
-		statusLabel: STATUS_LABEL[flow.status] || STATUS_LABEL[designStatus],
+		statusLabel: statusLabelComputed,
 		trend,
 		trendPct,
 		updatedAt: flow.timestamp || null,
@@ -107,5 +140,7 @@ export function transformDetail(data: any): DetailViewModel {
 		reservoirs: reservoirs || [],
 		snowpack: snowpack || [],
 		forecast: forecast || null,
+		flowBands: flowBands || [],
+		resolvedBand,
 	};
 }
