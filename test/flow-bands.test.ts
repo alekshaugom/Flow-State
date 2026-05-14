@@ -9,7 +9,7 @@ import {
 	bandToDesignStatus,
 	bandToLabel,
 	type FlowBandRow,
-} from '../lib/flow-bands.ts';
+} from '../lib/flow-bands-pure.ts';
 
 function makeBand(partial: Partial<FlowBandRow>): FlowBandRow {
 	return {
