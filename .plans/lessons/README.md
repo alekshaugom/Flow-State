@@ -49,6 +49,9 @@ Every lesson is tagged with one or more:
 ### discovery
 - [L003 — Harper `Resource.post()` takes `data` as first argument](L003-harper-resource-post-signature.md) — not `(target, data)` like `put/patch`; mirrors of `get()` signature silently fall through
 
+### debug
+- [L004 — Harper requires static `tables` import; filtered `search` lags after a rolling restart](L004-harper-static-import-and-search-after-restart.md) — dynamic-imported `tables` is not data-consistent; filtered `search` returns 0 rows post-restart while full-scan returns all rows. Solution: static import + module-scope cache for small reference tables.
+
 <!-- New entries go above this line. -->
 
 ## Promoting a lesson to vision

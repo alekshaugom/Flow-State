@@ -23,8 +23,27 @@
 - **Seed bands are generated** from per-section baselines + craft/skill multipliers (raft+intermediate = 1.0; beginners shift up 1.2–1.4×; experts shift down 0.4–0.75×). One hand-authored override exists: the Browns Canyon raft+intermediate low-runnable band gets the explicit "v1 incorrectly labeled this as 'too low'" author note.
 - **Frontend resolves locally on toggle** rather than re-fetching. The full `flowBands: FlowBand[]` array comes down in the `RiverDetail` response; client-side `resolveBandClient()` mirrors the server logic. Server-resolved band is included as `resolvedBand` for the default selection (raft + intermediate) to avoid a flash on first render.
 - **Test runner switched to `npx tsx --test`** (from `node --test`) so tests can import `.ts` source directly without a separate build step.
-- **Harper imports made lazy** in `lib/flow-bands.ts` so the pure functions can be tested outside the Harper runtime. `loadBandsForSection` and `resolveFlowBand` do `await import('harper')` internally.
+- **Harper imports made lazy** in `lib/flow-bands.ts` so the pure functions can be tested outside the Harper runtime. `loadBandsForSection` and `resolveFlowBand` do `await import('harper')` internally. — **Reverted on 2026-05-14**, see post-ship incident below.
 
-## Closed: 2026-05-13
+## Closed: 2026-05-14
 
-In-review pending user verification at http://localhost:5173/section/arkansas-browns-canyon.
+Shipped to GitHub ([ea21adf](https://github.com/alekshaugom/Flow-State/commit/ea21adf)) and Fabric ([flow.state.harperfabric.com](https://flow.state.harperfabric.com)). Production verified: all 5 Arkansas Headwaters sections resolve to `guide-input` source with their craft-specific descriptions; non-Arkansas sections fall back cleanly to legacy thresholds with the bumped descriptions.
+
+## Post-ship incident — 2026-05-14
+
+After the deploy + first production seed, section detail pages were sporadically returning `flow.current: null` and `flowBands: 0`, even though the Dashboard endpoint (same Harper instance, same prod) was returning the correct 63 bands per Arkansas section.
+
+Root cause was two stacked Harper gotchas:
+
+1. **Dynamic-imported `tables` is not data-consistent** with the static-imported `tables` proxy other Resources use. `lib/flow-bands.ts` used `await import('harper')` for testability, and the returned `tables.FlowBand.search()` view did not see the seeded rows on Fabric even though the same query worked via a Resource that statically imported `tables`. → Reverted to a static `import { tables } from 'harper'` and extracted the pure helpers into `lib/flow-bands-pure.ts` so tests don't need to boot Harper. ([187c90d](https://github.com/alekshaugom/Flow-State/commit/187c90d))
+
+2. **Filtered `tables.X.search({conditions: [{attribute: 'sectionId', comparator: 'equals'}]})` returned 0 rows after a rolling restart**, while `search({conditions: []})` on the same table returned all 315 rows and the same row was queryable via REST. The indexed-search path apparently lags behind the full-scan path on Fabric for a window after restart. → Switched `loadBandsForSection` to a process-local cache: load all FlowBand rows once with empty conditions (cheap — table is small), keep them in module scope for 5 min, filter by sectionId in memory. Seed action now calls `invalidateFlowBandsCache()` + `invalidateDashboardCache()` so freshly seeded bands take effect immediately. ([c047180](https://github.com/alekshaugom/Flow-State/commit/c047180))
+
+3. **`Resource.post()` takes `data` as the first positional arg** (not `(target, data)` like `put`/`patch`). This bit during initial seed wiring. → Already captured in [L003](../../lessons/L003-harper-resource-post-signature.md).
+
+Defensive improvements added along the way:
+- `RiverDetail` now falls back to `GaugeSnapshot.currentFlow` when `GaugeReading.search` returns empty. ([5bd5896](https://github.com/alekshaugom/Flow-State/commit/5bd5896))
+
+New lesson captured: [L004 — Harper static-import requirement + indexed-search post-restart lag](../../lessons/L004-harper-static-import-and-search-after-restart.md).
+
+Final production check across 5 sections + 2 fallback sections — all correct.
