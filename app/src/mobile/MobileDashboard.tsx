@@ -5,7 +5,7 @@ import { useDashboard } from '../hooks/useDashboard';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
 import { Skeleton } from '../components/Skeleton';
-import { StatusGroupHeader, type SparkRange } from '../components/StatusGroupHeader';
+import { WatershedGroupHeader, type SparkRange } from '../components/WatershedGroupHeader';
 import { CraftSkillControl } from '../components/CraftSkillControl';
 import { FilterChip } from './FilterChip';
 import { RiverCard } from './RiverCard';
@@ -34,19 +34,50 @@ export function MobileDashboard() {
 	const [sparkDays, setSparkDays] = useState<SparkRange>(14);
 
 	const sections = data?.sections || [];
+	const [collapsedWatersheds, setCollapsedWatersheds] = useState<Set<string>>(new Set());
 
 	const filtered = useMemo(() => {
 		return filter === 'all' ? sections : sections.filter(s => s.status === filter);
 	}, [sections, filter]);
 
-	const grouped = useMemo(() => {
-		const byStatus: Record<string, typeof sections> = {};
-		for (const s of STATUS_ORDER) byStatus[s] = [];
+	const watershedOrder = useMemo(() => {
+		const seen = new Map<string, string>();
 		for (const s of filtered) {
-			if (byStatus[s.status]) byStatus[s.status].push(s);
+			const slug = s.watershedSlug || '_unassigned';
+			if (!seen.has(slug)) seen.set(slug, s.watershedName || 'Other');
 		}
-		return byStatus;
+		return Array.from(seen.entries())
+			.sort(([, aName], [, bName]) => aName.localeCompare(bName));
 	}, [filtered]);
+
+	const groupedByWatershed = useMemo(() => {
+		const m: Record<string, typeof sections> = {};
+		for (const s of filtered) {
+			const slug = s.watershedSlug || '_unassigned';
+			if (!m[slug]) m[slug] = [];
+			m[slug].push(s);
+		}
+		// Within each watershed, sort upstream→downstream by corridor then section
+		// sortIndex (matches desktop sidebar + watershed/corridor pages).
+		for (const slug of Object.keys(m)) {
+			m[slug] = m[slug].slice().sort((a, b) => {
+				const ai = a.corridorSortIndex ?? 999;
+				const bi = b.corridorSortIndex ?? 999;
+				if (ai !== bi) return ai - bi;
+				return (a.sortIndex ?? 999) - (b.sortIndex ?? 999);
+			});
+		}
+		return m;
+	}, [filtered]);
+
+	const toggleWatershed = (slug: string) => {
+		setCollapsedWatersheds(prev => {
+			const next = new Set(prev);
+			if (next.has(slug)) next.delete(slug);
+			else next.add(slug);
+			return next;
+		});
+	};
 
 	const totalRunnable = sections.filter(s => s.status === 'ideal' || s.status === 'runnable' || s.status === 'high').length;
 	const idealCount = sections.filter(s => s.status === 'ideal').length;
@@ -160,7 +191,7 @@ export function MobileDashboard() {
 				)}
 			</div>
 
-			{/* Cards by status group */}
+			{/* Cards grouped by watershed (upstream → downstream within each) */}
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 18, padding: '10px 16px 0' }}>
 				{isLoading ? (
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -169,26 +200,34 @@ export function MobileDashboard() {
 				) : (
 					(() => {
 						let isFirst = true;
-						return STATUS_ORDER.map(status => {
-							const items = grouped[status];
+						return watershedOrder.map(([slug, name]) => {
+							const items = groupedByWatershed[slug];
 							if (!items || items.length === 0) return null;
 							const showSelector = isFirst;
 							isFirst = false;
+							const collapsed = collapsedWatersheds.has(slug);
 							return (
-								<section key={status}>
-									<StatusGroupHeader status={status} count={items.length}
+								<section key={slug}>
+									<WatershedGroupHeader
+										slug={slug}
+										name={name}
+										count={items.length}
+										collapsed={collapsed}
+										onToggle={() => toggleWatershed(slug)}
 										{...(showSelector ? { sparkRange: sparkDays, onSparkRangeChange: setSparkDays } : {})}
 									/>
-									<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-										{items.map(s => (
-											<RiverCard
-												key={s.id}
-												section={s}
-												onClick={() => navigate(`/section/${s.id}`)}
-												sparkDays={sparkDays}
-											/>
-										))}
-									</div>
+									{!collapsed && (
+										<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+											{items.map(s => (
+												<RiverCard
+													key={s.id}
+													section={s}
+													onClick={() => navigate(`/section/${s.id}`)}
+													sparkDays={sparkDays}
+												/>
+											))}
+										</div>
+									)}
 								</section>
 							);
 						});
