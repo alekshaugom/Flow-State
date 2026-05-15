@@ -8,6 +8,7 @@ import { Icon } from '../components/Icon';
 import { SectionHead } from '../components/SectionHead';
 import { RangeGauge } from '../components/RangeGauge';
 import { ContextStrip } from '../components/ContextStrip';
+import { WeatherStrip } from '../components/WeatherStrip';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { MobileFlowChart } from './MobileFlowChart';
 import { MobileForecastPanel } from './MobileForecastPanel';
@@ -141,7 +142,25 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 			{/* Forecast */}
 			<section style={sectionStyle}>
 				<SectionHead title="14-Day Forecast" eyebrow="Outlook" />
-				<MobileForecastPanel detail={detail} />
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+					<MobileForecastPanel detail={detail} />
+					{detail.weatherForecast?.length > 0 && (
+						<div style={{
+							background: 'var(--bg-card)', border: '1px solid var(--rule)',
+							borderRadius: 'var(--r-lg)', padding: 14,
+							display: 'flex', flexDirection: 'column', gap: 10,
+						}}>
+							<div style={{
+								fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em',
+								textTransform: 'uppercase', color: 'var(--ink-3)', fontWeight: 500,
+							}}>
+								<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
+								Weather · Open-Meteo · {detail.weatherForecast.length}-day
+							</div>
+							<WeatherStrip weather={detail.weatherForecast} />
+						</div>
+					)}
+				</div>
 			</section>
 
 			{/* Briefing */}
@@ -163,6 +182,8 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 					snowpackPct={detail.snowpackPct}
 					damControlled={detail.damControlled}
 					riverName={detail.river}
+					snowpack={detail.snowpack}
+					reservoirs={detail.reservoirs}
 				/>
 			</section>
 

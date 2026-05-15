@@ -44,6 +44,9 @@ export const api = {
 	ingestionLogs: () =>
 		fetch('/IngestionLog/?sort(-timestamp)&limit(20)').then(json<any>),
 
+	dataHealth: () =>
+		fetch('/DataHealth').then(json<any>),
+
 	me: () =>
 		fetch('/Me').then(json<any>),
 

@@ -1,5 +1,5 @@
 ---
-slice: 03-forecast-snapshot-infra
+slice: 03b-forecast-snapshot-infra
 status: active
 value: 8
 confidence: 9
@@ -10,7 +10,7 @@ opened: 2026-05-13
 closed: null
 ---
 
-# Slice 03 — Forecast input snapshots + reconciliation infrastructure
+# Slice 03b — Forecast input snapshots + reconciliation infrastructure
 
 ## Goal
 

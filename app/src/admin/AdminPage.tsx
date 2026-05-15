@@ -40,6 +40,7 @@ export function AdminPage() {
 	const seedStatus = useQuery({ queryKey: ['seedStatus'], queryFn: api.seedStatus });
 	const ingestion = useQuery({ queryKey: ['ingestion'], queryFn: api.ingestionStatus, refetchInterval: 10_000 });
 	const logs = useQuery({ queryKey: ['ingestionLogs'], queryFn: api.ingestionLogs, refetchInterval: 30_000 });
+	const health = useQuery({ queryKey: ['dataHealth'], queryFn: api.dataHealth, refetchInterval: 30_000 });
 
 	const seedMutation = useMutation({
 		mutationFn: api.seed,
@@ -165,6 +166,93 @@ export function AdminPage() {
 									<button style={btnOutline} disabled={busy} onClick={() => ingestMutation.mutate({ action: 'backfill', days: 7 })}>Backfill 7d</button>
 									<button style={btnOutline} disabled={busy} onClick={() => ingestMutation.mutate({ action: 'backfill', days: 30 })}>Backfill 30d</button>
 								</div>
+							</div>
+
+							{/* Data Health */}
+							<div style={{ ...card, gridColumn: '1 / -1' }}>
+								<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Health</div>
+								<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 12px' }}>Data Source Health</h3>
+								{health.data ? (
+									<div style={{ overflowX: 'auto' }}>
+										<table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+											<thead>
+												<tr style={{ borderBottom: '1px solid var(--rule)' }}>
+													{['Source', 'Type', 'Last fetch', 'Last records', 'Latest data', 'Total rows'].map(h => (
+														<th key={h} style={{
+															textAlign: h.includes('records') || h.includes('rows') ? 'right' : 'left',
+															padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: 10,
+															letterSpacing: '0.10em', textTransform: 'uppercase',
+															color: 'var(--ink-3)', fontWeight: 500,
+														}}>{h}</th>
+													))}
+												</tr>
+											</thead>
+											<tbody>
+												{(health.data.sources || []).map((s: any) => {
+													const records = s.lastLog?.recordsProcessed;
+													const recordColor = records === 0 || records == null
+														? 'var(--ink-3)'
+														: 'var(--ideal-solid)';
+													const data = s.data || {};
+													const tableRowsColor = (data.totalRows || 0) === 0 ? 'var(--low-solid)' : 'var(--ink-1)';
+													return (
+														<tr key={s.id} style={{ borderBottom: '1px solid var(--rule)' }}>
+															<td style={{ padding: '8px 10px', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{s.id}</td>
+															<td style={{ padding: '8px 10px', color: 'var(--ink-3)' }}>{s.type}</td>
+															<td style={{ padding: '8px 10px', fontSize: 11, color: 'var(--ink-2)' }}>
+																{s.lastFetchAgeMin != null ? `${s.lastFetchAgeMin} min ago` : '—'}
+															</td>
+															<td style={{
+																padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono)',
+																color: recordColor,
+															}}>
+																{records != null ? records : '—'}
+															</td>
+															<td style={{ padding: '8px 10px', fontSize: 11, color: 'var(--ink-2)' }}>
+																{data.ageMin != null ? `${data.ageMin} min ago` : '—'}
+															</td>
+															<td style={{
+																padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono)',
+																color: tableRowsColor,
+															}}>
+																{data.totalRows != null ? data.totalRows.toLocaleString() : '—'}
+															</td>
+														</tr>
+													);
+												})}
+											</tbody>
+										</table>
+										{health.data.tables && (
+											<div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--rule)' }}>
+												<div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 8 }}>
+													Tables
+												</div>
+												<div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+													{Object.entries(health.data.tables).map(([name, info]: any) => (
+														<div key={name} style={{
+															padding: '8px 12px', borderRadius: 'var(--r-md)',
+															background: 'var(--bg-sunken)', border: '1px solid var(--rule)',
+															fontFamily: 'var(--font-mono)', fontSize: 12,
+															color: info.totalRows > 0 ? 'var(--ink-1)' : 'var(--low-solid)',
+														}}>
+															<span style={{ fontWeight: 600 }}>{name}</span>
+															<span style={{ color: 'var(--ink-3)', margin: '0 6px' }}>·</span>
+															<span>{info.totalRows.toLocaleString()} rows</span>
+															{info.ageMin != null && (
+																<>
+																	<span style={{ color: 'var(--ink-3)', margin: '0 6px' }}>·</span>
+																	<span style={{ color: 'var(--ink-3)' }}>{info.ageMin}m ago</span>
+																</>
+															)}
+														</div>
+													))}
+												</div>
+											</div>
+										)}
+									</div>
+								) : (
+									<div style={{ fontSize: 13, color: 'var(--ink-3)', padding: '12px 0' }}>Loading data health...</div>
+								)}
 							</div>
 
 							{/* Logs */}

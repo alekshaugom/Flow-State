@@ -256,6 +256,7 @@ export const DATA_SOURCES = [
 	{ id: 'snotel', name: 'NRCS SNOTEL', type: 'snowpack', baseUrl: 'https://wcc.sc.egov.usda.gov/awdbRestApi', description: 'Snow water equivalent, depth, and precipitation from SNOTEL stations', updateFrequencyMinutes: 360, active: true, lastFetchAt: null, lastError: null },
 	{ id: 'bor', name: 'Bureau of Reclamation RISE', type: 'reservoir', baseUrl: 'https://data.usbr.gov/rise/api', description: 'Reservoir storage, elevation, inflow, and outflow data', updateFrequencyMinutes: 360, active: true, lastFetchAt: null, lastError: null },
 	{ id: 'noaa', name: 'NOAA / CBRFC', type: 'forecast', baseUrl: 'https://www.cbrfc.noaa.gov', description: 'Colorado Basin River Forecast Center runoff forecasts', updateFrequencyMinutes: 720, active: true, lastFetchAt: null, lastError: null },
+	{ id: 'open-meteo', name: 'Open-Meteo', type: 'weather', baseUrl: 'https://api.open-meteo.com/v1', description: '14-day daily forecast with WMO weathercode, temp high/low, precip prob/sum, snowfall, wind. Free, no API key.', updateFrequencyMinutes: 360, active: true, lastFetchAt: null, lastError: null },
 ];
 
 // === FLOW BANDS ===

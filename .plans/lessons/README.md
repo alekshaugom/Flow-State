@@ -52,6 +52,7 @@ Every lesson is tagged with one or more:
 ### debug
 - [L004 — Harper requires static `tables` import; filtered `search` lags after a rolling restart](L004-harper-static-import-and-search-after-restart.md) — dynamic-imported `tables` is not data-consistent; filtered `search` returns 0 rows post-restart while full-scan returns all rows. Solution: static import + module-scope cache for small reference tables.
 - [L005 — Harper custom `Resource` class names must not collide with schema `@export` types](L005-harper-resource-class-name-collisions.md) — `class Watershed extends Resource` collides with the auto-generated `/Watershed/` CRUD endpoint from `type Watershed @table @export`. Rename to `WatershedView` / `CorridorView` / `*Detail`.
+- [L006 — Third-party API adapters need real-response fixture tests, not just unit tests on assumed shapes](L006-third-party-api-response-shape-verification.md) — three sources (BOR / SNOTEL / NOAA-weather) silently produced zero records each because hardcoded response shapes and catalog IDs went stale. `status: success, recordsProcessed: 0` is the smell. Capture real-response fixtures; runtime-warn on entity-name drift; expose row counts via `DataHealth`.
 
 <!-- New entries go above this line. -->
 

@@ -63,13 +63,107 @@ export const CBRFC_STATIONS: Record<string, { stationId: string; name: string; r
 	'animas-durango': { stationId: 'DURC2', name: 'Animas R at Durango', riverId: 'animas' },
 };
 
-// NOAA NWS forecast API for weather context
+// NWS API: forecast headers are recommended to include a User-Agent identifying the app.
+const NWS_USER_AGENT = 'flow-state (https://flow.state.harperfabric.com)';
+
+export interface NwsGridpoint {
+	gridId: string;
+	gridX: number;
+	gridY: number;
+	forecastUrl: string;
+}
+
+export interface NwsDailyForecast {
+	date: string;            // YYYY-MM-DD (local-day boundary per the day-period start)
+	tempHighF: number | null;
+	tempLowF: number | null;
+	sky: string | null;
+	precipProb: number | null;
+	precipIn: number | null;
+	snowOrRain: string | null;
+	windMph: number | null;
+}
+
+async function nwsFetch(url: string): Promise<any> {
+	return fetchWithRetry(url, { headers: { 'User-Agent': NWS_USER_AGENT, 'Accept': 'application/geo+json' } });
+}
+
+export async function fetchNwsGridpoint(lat: number, lon: number): Promise<NwsGridpoint | null> {
+	const point = await nwsFetch(`https://api.weather.gov/points/${lat},${lon}`);
+	const p = point?.properties;
+	if (!p?.gridId || p.gridX == null || p.gridY == null || !p.forecast) return null;
+	return { gridId: p.gridId, gridX: p.gridX, gridY: p.gridY, forecastUrl: p.forecast };
+}
+
+export async function fetchDailyForecastByGrid(grid: NwsGridpoint): Promise<NwsDailyForecast[]> {
+	const data = await nwsFetch(grid.forecastUrl);
+	const periods: any[] = data?.properties?.periods || [];
+	return combineNwsPeriodsToDaily(periods);
+}
+
+// NWS returns 12-hour periods (e.g., "Tonight" + "Wednesday" + "Wednesday Night" + ...).
+// Each period has isDaytime; pair day period N with night period N+1 (same date) to form one daily row.
+export function combineNwsPeriodsToDaily(periods: any[]): NwsDailyForecast[] {
+	const byDate = new Map<string, { day?: any; night?: any }>();
+
+	for (const p of periods) {
+		const start = (p.startTime || '').slice(0, 10);
+		if (!start) continue;
+		const slot = byDate.get(start) || {};
+		if (p.isDaytime) slot.day = p; else slot.night = p;
+		byDate.set(start, slot);
+	}
+
+	const dates = [...byDate.keys()].sort();
+	const out: NwsDailyForecast[] = [];
+
+	for (const date of dates) {
+		const slot = byDate.get(date)!;
+		const day = slot.day;
+		const night = slot.night;
+		const wind = extractWind(day?.windSpeed) ?? extractWind(night?.windSpeed) ?? null;
+
+		out.push({
+			date,
+			tempHighF: typeof day?.temperature === 'number' ? day.temperature : null,
+			tempLowF: typeof night?.temperature === 'number' ? night.temperature : null,
+			sky: day?.shortForecast || night?.shortForecast || null,
+			precipProb: extractPercent(day?.probabilityOfPrecipitation?.value) ?? extractPercent(night?.probabilityOfPrecipitation?.value),
+			precipIn: null, // NWS forecast endpoint doesn't expose quantitative precip; gridpoints/raw could be added later
+			snowOrRain: inferSnowOrRain(day, night),
+			windMph: wind,
+		});
+	}
+
+	return out;
+}
+
+function extractPercent(v: any): number | null {
+	if (typeof v === 'number') return v;
+	return null;
+}
+
+function extractWind(s: string | undefined): number | null {
+	if (!s) return null;
+	// NWS returns strings like "5 to 10 mph" or "10 mph" — take the highest number
+	const matches = String(s).match(/\d+/g);
+	if (!matches) return null;
+	return Math.max(...matches.map(n => parseInt(n, 10)));
+}
+
+function inferSnowOrRain(day: any, night: any): string | null {
+	const text = `${day?.detailedForecast || ''} ${night?.detailedForecast || ''}`.toLowerCase();
+	if (text.includes('snow')) return 'snow';
+	if (text.includes('rain') || text.includes('shower')) return 'rain';
+	return null;
+}
+
+// Back-compat raw forecast fetch (kept for callers that want the unparsed NWS payload).
 export async function fetchWeatherForecast(lat: number, lon: number): Promise<any> {
-	const pointUrl = `https://api.weather.gov/points/${lat},${lon}`;
+	const grid = await fetchNwsGridpoint(lat, lon);
+	if (!grid) return null;
 	try {
-		const point = await fetchWithRetry(pointUrl);
-		if (!point?.properties?.forecast) return null;
-		return await fetchWithRetry(point.properties.forecast);
+		return await nwsFetch(grid.forecastUrl);
 	} catch {
 		return null;
 	}

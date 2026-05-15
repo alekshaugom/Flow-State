@@ -4,17 +4,20 @@ import { fetchInstantaneous, fetchHistorical, fetchDaily } from '../lib/adapters
 import { fetchTelemetryTimeSeries } from '../lib/adapters/cdss.ts';
 import { fetchBasinSnowData, COLORADO_BASINS } from '../lib/adapters/snotel.ts';
 import { fetchReservoirData, BOR_CATALOG } from '../lib/adapters/bor.ts';
+import { runWeatherIngestion } from '../lib/agents/weather-agent.ts';
 import { invalidateDashboardCache } from './Dashboard.ts';
 
 const POLL_MS = 60_000;
 const GAUGE_INTERVAL_MS = 15 * 60_000;
 const SNOW_INTERVAL_MS = 6 * 3600_000;
 const RESERVOIR_INTERVAL_MS = 6 * 3600_000;
+const WEATHER_INTERVAL_MS = 6 * 3600_000;
 const WORKER_FLAG = '__flowStateIngestionStarted';
 
 let lastGaugeFetch = 0;
 let lastSnowFetch = 0;
 let lastReservoirFetch = 0;
+let lastWeatherFetch = 0;
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -159,7 +162,7 @@ async function ingestSnowpack(): Promise<void> {
 
 	for (const [key, basin] of Object.entries(COLORADO_BASINS)) {
 		try {
-			const readings = await fetchBasinSnowData(basin.triplets);
+			const readings = await fetchBasinSnowData(key, basin.triplets);
 			for (const r of readings) await tables.SnowpackReading.put(r.id, r);
 			totalRecords += readings.length;
 		} catch (err) {
@@ -190,6 +193,23 @@ async function ingestReservoirs(): Promise<void> {
 	await logIngestion('bor', errors.length ? 'partial' : 'success', totalRecords, errors.join('; '), Date.now() - start);
 	console.log(`[ingestion] reservoirs: ${totalRecords} records stored`);
 	invalidateDashboardCache();
+}
+
+async function ingestWeather(): Promise<void> {
+	const start = Date.now();
+	try {
+		const { sectionsAttempted, rowsWritten, errors } = await runWeatherIngestion();
+		await logIngestion(
+			'open-meteo',
+			errors.length === 0 ? 'success' : (rowsWritten > 0 ? 'partial' : 'error'),
+			rowsWritten,
+			errors.join('; '),
+			Date.now() - start,
+		);
+		console.log(`[ingestion] weather: ${rowsWritten} forecast rows across ${sectionsAttempted} sections`);
+	} catch (err) {
+		await logIngestion('open-meteo', 'error', 0, (err as Error).message, Date.now() - start);
+	}
 }
 
 async function backfill(days: number): Promise<{ gaugeReadings: number }> {
@@ -230,6 +250,10 @@ async function tick(): Promise<void> {
 			lastReservoirFetch = now;
 			await ingestReservoirs();
 		}
+		if (now - lastWeatherFetch >= WEATHER_INTERVAL_MS) {
+			lastWeatherFetch = now;
+			await ingestWeather();
+		}
 	} catch (err) {
 		console.warn('[ingestion] tick error:', (err as Error).message);
 	}
@@ -258,9 +282,11 @@ export class Ingestion extends Resource {
 			gauge_interval_ms: GAUGE_INTERVAL_MS,
 			snow_interval_ms: SNOW_INTERVAL_MS,
 			reservoir_interval_ms: RESERVOIR_INTERVAL_MS,
+			weather_interval_ms: WEATHER_INTERVAL_MS,
 			last_gauge_fetch: lastGaugeFetch ? new Date(lastGaugeFetch).toISOString() : null,
 			last_snow_fetch: lastSnowFetch ? new Date(lastSnowFetch).toISOString() : null,
 			last_reservoir_fetch: lastReservoirFetch ? new Date(lastReservoirFetch).toISOString() : null,
+			last_weather_fetch: lastWeatherFetch ? new Date(lastWeatherFetch).toISOString() : null,
 			now: isoNow(),
 		};
 	}
@@ -271,6 +297,7 @@ export class Ingestion extends Resource {
 			if (source === 'usgs' || source === 'cdss' || !source) await ingestGauges();
 			if (source === 'snotel' || !source) await ingestSnowpack();
 			if (source === 'bor' || !source) await ingestReservoirs();
+			if (source === 'noaa' || source === 'weather' || !source) await ingestWeather();
 			return { ok: true, action: 'run', source: source || 'all' };
 		}
 		if (data?.action === 'rebuild-snapshots') {
@@ -283,6 +310,21 @@ export class Ingestion extends Resource {
 			const result = await backfill(days);
 			return { ok: true, action: 'backfill', days, ...result };
 		}
-		return new Response('unknown action — supported: "run", "backfill"', { status: 400 });
+		if (data?.action === 'cleanup-bor-stale-rows') {
+			// One-shot: deletes any DamRelease rows whose reservoirId is no longer in BOR_CATALOG.
+			// Used after fixing the BOR catalog to wipe rows written under wrong reservoir keys
+			// when itemIds were mapped to the wrong reservoir.
+			const validKeys = new Set(Object.keys(BOR_CATALOG));
+			const all = await collect(tables.DamRelease.search({ conditions: [] }));
+			let deleted = 0;
+			for (const row of all) {
+				if (!validKeys.has((row as any).reservoirId)) {
+					await tables.DamRelease.delete((row as any).id);
+					deleted++;
+				}
+			}
+			return { ok: true, action: 'cleanup-bor-stale-rows', deleted, kept: all.length - deleted };
+		}
+		return new Response('unknown action — supported: "run", "backfill", "cleanup-bor-stale-rows"', { status: 400 });
 	}
 }

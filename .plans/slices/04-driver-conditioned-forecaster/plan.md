@@ -1,60 +1,43 @@
 ---
-slice: 04-nws-weather-pipeline
+slice: 04-driver-conditioned-forecaster
 status: queued
 value: 8
 confidence: 9
 effort: M
-depends_on: []
+depends_on: [03a-data-integrity-sweep, 03b-forecast-snapshot-infra]
 unlocks: [05-history-forecast-chart, 07-drivers-and-context-ui]
 opened: 2026-05-13
 closed: null
 ---
 
-# Slice 04 — NWS weather pipeline + driver-conditioned forecaster
+# Slice 04 — Driver-conditioned forecaster
+
+> **Note (2026-05-14):** The NWS weather pipeline portion of this slice was promoted into slice 03a after the data-integrity audit revealed weather was never wired up. Slice 04 now focuses purely on the driver-conditioned heuristic forecaster, which assumes `WeatherForecast` rows already exist (from 03a) and snapshot infrastructure is in place (from 03b).
 
 ## Goal
 
-For every river section, capture a per-day NWS forecast into `WeatherForecast`. Upgrade the forecast pipeline from a generic linear/seasonal stub to a driver-conditioned heuristic that uses snowpack + weather + dam releases per section's `driver` field.
+Upgrade the forecast pipeline from the generic linear/seasonal stub to a driver-conditioned heuristic that uses snowpack + weather + dam releases per section's `driver` field. Plain-language assumptions explain which inputs drove each prediction.
 
 ## Acceptance criteria
 
-1. `WeatherForecast` table populated nightly for every section with a `latitude/longitude`
-2. Each row has `tempHighF / tempLowF / sky / precipProb / precipIn / snowOrRain / windMph` for one day
-3. `ForecastPipeline.buildDataPackage()` includes 7 days of `WeatherForecast` for the section
-4. The forecaster branches on `RiverSection.driver`:
+1. The forecaster branches on `RiverSection.driver`:
    - snowmelt: SWE % median + temperature forecast + seasonal curve
-   - dam-fed: latest `DamRelease.outflowCfs` + ContextItem overrides
+   - dam-fed (`reservoir-release`): latest `DamRelease.outflowCfs` + ContextItem overrides (when slice 07 ships)
    - rain-driven: precip probability + 72h accumulated precip
    - mixed: blend
-5. Tests cover each driver branch with synthetic inputs
-6. `ForecastOutput.assumptions` includes a 1-sentence plain-language explanation of which inputs drove the prediction
+2. Tests cover each driver branch with synthetic inputs
+3. `ForecastOutput.assumptions` includes a 1-sentence plain-language explanation of which inputs drove the prediction
+4. `ForecastInput.heuristicWeightsJson` is populated with the actual weight values used (from slice 03b's snapshot infrastructure)
 
 ## Files to create
 
-- `schemas/weather.graphql` — `WeatherForecast` table
-- `lib/agents/weather-agent.ts` — wraps `lib/adapters/noaa.ts`
 - `lib/forecast/heuristics.ts` — driver-conditioned weight tables + global rules
 - `lib/forecast/driver-snowmelt.ts`, `driver-damfed.ts`, `driver-rain.ts`, `driver-mixed.ts`
-- `test/weather-agent.test.js`, `test/heuristic-forecaster.test.js`
+- `test/heuristic-forecaster.test.js`
 
 ## Files to modify
 
-- `lib/adapters/noaa.ts` — implement (or extend) `fetchWeatherForecast(lat, lng)` to hit `/points/{lat},{lon}` → `/forecast` and return parsed daily data
-- `resources/Ingestion.ts` — register weather-agent in worker tick (6h interval)
 - `resources/ForecastPipeline.ts` — replace `generateStubForecast()` with `generateHeuristicForecast()` that switches on `section.driver` and uses the new helpers
-- `schemas/river.graphql` — `RiverSection` may need `weatherGridId: String` to cache the NWS gridpoint per section (avoids repeated `/points` lookups)
-- `schemas/gauge.graphql` — no changes
-
-## NWS pipeline flow
-
-For each `RiverSection` with `latitude/longitude`:
-
-1. If `weatherGridId` is null on the section, hit `https://api.weather.gov/points/{lat},{lon}` → returns `properties.forecast` URL + `gridId/gridX/gridY` — cache `gridId` on the Section row
-2. Fetch the forecast URL → 7-day daily forecast
-3. Parse each period into a day-shaped record (NWS gives 12-hour periods; combine day + night into one daily row)
-4. Upsert `WeatherForecast` row with composite ID `sectionId_YYYY-MM-DD`
-
-Rate limit awareness: NWS API has soft limits; spread the ~25 section fetches across a few minutes.
 
 ## Driver-conditioned forecaster sketch
 

@@ -17,6 +17,13 @@ export function Icon({ name, size = 16, color = 'currentColor', strokeWidth = 2 
 		case 'mountain':      return <svg {...props}><path d="M3 20l5-9 4 6 3-4 6 7H3z"/><path d="M11 11l-3-5"/></svg>;
 		case 'droplet':       return <svg {...props}><path d="M12 3s-6 7-6 12a6 6 0 0012 0c0-5-6-12-6-12z"/></svg>;
 		case 'snowflake':     return <svg {...props}><path d="M12 2v20M4 6l16 12M20 6L4 18M2 12h20"/></svg>;
+		case 'sun':           return <svg {...props}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>;
+		case 'cloud':         return <svg {...props}><path d="M17 18a4 4 0 100-8 6 6 0 00-11.7 1.5A3.5 3.5 0 006 18h11z"/></svg>;
+		case 'cloud-sun':     return <svg {...props}><path d="M12 3v1M5.6 5.6l.7.7M3 12h1M18.4 5.6l-.7.7"/><circle cx="11" cy="9" r="3"/><path d="M17 19a3.5 3.5 0 100-7 5 5 0 00-9.9 1A3 3 0 008 19h9z"/></svg>;
+		case 'cloud-rain':    return <svg {...props}><path d="M17 15a4 4 0 100-8 6 6 0 00-11.7 1.5A3.5 3.5 0 006 15h11z"/><path d="M8 18v3M12 18v3M16 18v3"/></svg>;
+		case 'cloud-snow':    return <svg {...props}><path d="M17 15a4 4 0 100-8 6 6 0 00-11.7 1.5A3.5 3.5 0 006 15h11z"/><path d="M8 19h.01M12 19h.01M16 19h.01M10 22h.01M14 22h.01"/></svg>;
+		case 'cloud-bolt':    return <svg {...props}><path d="M17 15a4 4 0 100-8 6 6 0 00-11.7 1.5A3.5 3.5 0 006 15h11z"/><path d="M12 16l-2 4h3l-2 4"/></svg>;
+		case 'cloud-fog':     return <svg {...props}><path d="M17 12a4 4 0 100-8 6 6 0 00-11.7 1.5A3.5 3.5 0 006 12h11z"/><path d="M4 16h16M6 20h12"/></svg>;
 		case 'dam':           return <svg {...props}><path d="M4 4h16v6H4z"/><path d="M4 10v10M20 10v10M4 14h16M4 18h16"/></svg>;
 		case 'search':        return <svg {...props}><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>;
 		case 'pin':           return <svg {...props}><path d="M12 22s7-7.58 7-13a7 7 0 10-14 0c0 5.42 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>;

@@ -13,64 +13,86 @@ export interface DamReleaseRecord {
 	source: string;
 }
 
-// Bureau of Reclamation RISE API catalog IDs for Colorado reservoirs
+// Bureau of Reclamation RISE API catalog for Colorado reservoirs.
+//
+// IDs verified against the live BOR RISE catalog on 2026-05-15 (see slice 03a).
+// Method: paginated /rise/api/location?locationTypeName=Lake/Reservoir, then walked each
+// location's relationships.catalogRecords → catalogItems and matched by parameterName.
+//
+// Not in BOR RISE (need alternative sources):
+//   - Aspinall Unit (Blue Mesa, Morrow Point, Crystal Dam) — Western Area Power Admin / CDSS
+//   - Taylor Park Reservoir — CDSS
+//   - McPhee Reservoir (Dolores Water Conservancy / Dolores Project) — DWCD direct
+//   - Dillon Reservoir (Denver Water, not federal) — Denver Water "operations report"
+// The seed data references these by id; sections will simply have no DamRelease data for
+// them until a CDSS-reservoir adapter (or per-source adapter) lands. Slice 04 forecaster
+// can fall back to gauges-below-dam (USGS) for dam-fed sections without RISE coverage.
 export const BOR_CATALOG: Record<string, { name: string; locationId: string; timeseriesIds: Record<string, string> }> = {
-	'blue-mesa': {
-		name: 'Blue Mesa Reservoir',
-		locationId: '913',
-		timeseriesIds: { storage: '509', elevation: '510', inflow: '511', outflow: '512' },
-	},
-	'morrow-point': {
-		name: 'Morrow Point Reservoir',
-		locationId: '915',
-		timeseriesIds: { storage: '517', elevation: '518', outflow: '520' },
-	},
-	'crystal-dam': {
-		name: 'Crystal Reservoir',
-		locationId: '914',
-		timeseriesIds: { storage: '513', elevation: '514', outflow: '516' },
-	},
-	'taylor-park': {
-		name: 'Taylor Park Reservoir',
-		locationId: '916',
-		timeseriesIds: { storage: '521', elevation: '522', outflow: '524' },
+	'green-mountain': {
+		name: 'Green Mountain Reservoir',
+		locationId: '353',
+		timeseriesIds: { storage: '21', elevation: '22', outflow: '23' },
 	},
 	'pueblo': {
 		name: 'Pueblo Reservoir',
-		locationId: '919',
-		timeseriesIds: { storage: '529', elevation: '530', inflow: '531', outflow: '532' },
-	},
-	'twin-lakes': {
-		name: 'Twin Lakes Reservoir',
-		locationId: '920',
-		timeseriesIds: { storage: '533', elevation: '534', outflow: '536' },
-	},
-	'turquoise-lake': {
-		name: 'Turquoise Lake',
-		locationId: '918',
-		timeseriesIds: { storage: '525', elevation: '526', outflow: '528' },
-	},
-	'green-mountain': {
-		name: 'Green Mountain Reservoir',
-		locationId: '912',
-		timeseriesIds: { storage: '505', elevation: '506', inflow: '507', outflow: '508' },
-	},
-	'dillon': {
-		name: 'Dillon Reservoir',
-		locationId: '911',
-		timeseriesIds: { storage: '501', elevation: '502', outflow: '504' },
+		locationId: '445',
+		timeseriesIds: { storage: '681', elevation: '682', outflow: '684' },
 	},
 	'ruedi': {
 		name: 'Ruedi Reservoir',
-		locationId: '917',
-		timeseriesIds: { elevation: '523' },
+		locationId: '456',
+		timeseriesIds: { storage: '711', elevation: '712', outflow: '716' },
 	},
-	'mcphee': {
-		name: 'McPhee Reservoir',
-		locationId: '921',
-		timeseriesIds: { storage: '537', elevation: '538', outflow: '540' },
+	'turquoise-lake': {
+		name: 'Turquoise Lake',
+		locationId: '498',
+		timeseriesIds: { storage: '814', elevation: '815', outflow: '817' },
+	},
+	'twin-lakes': {
+		name: 'Twin Lakes Reservoir',
+		locationId: '499',
+		timeseriesIds: { storage: '818', elevation: '819', outflow: '823' },
 	},
 };
+
+/**
+ * Parses a BOR RISE `/result/download` response into a date → value map.
+ *
+ * Response shape can be either:
+ *  - An array: `[{dateTime, result, ...}, ...]` (older shape)
+ *  - An object with numbered string keys plus metadata: `{"0": {...}, "1": {...}, "Location": {...}, "Timezone": "MT", ...}`
+ *
+ * If the response includes a `Location.Name` that doesn't match `expectedName`,
+ * a warning is logged — that's the signal that the itemId is mapped to the wrong reservoir.
+ *
+ * Keyed by YYYY-MM-DD (UTC-derived from the UTC timestamp BOR returns).
+ */
+export function parseRiseDownloadResponse(data: any, expectedName?: string, tsId?: string): Map<string, number> {
+	const map = new Map<string, number>();
+	if (!data) return map;
+
+	const rows: Array<{ dateTime?: string; result?: number | null }> = Array.isArray(data)
+		? data
+		: Object.entries(data)
+			.filter(([k]) => /^\d+$/.test(k))
+			.map(([, v]) => v as any);
+
+	const responseLocation = !Array.isArray(data) ? (data as any)?.Location?.Name : null;
+	if (responseLocation && expectedName) {
+		const expectedFirst = expectedName.split(/\s+/)[0].toLowerCase();
+		if (!responseLocation.toLowerCase().includes(expectedFirst)) {
+			console.warn(`[bor] itemId=${tsId ?? '?'} mapped to "${expectedName}" returned data for "${responseLocation}" — likely stale catalog`);
+		}
+	}
+
+	for (const row of rows) {
+		if (row.result != null && row.dateTime) {
+			const ts = new Date(row.dateTime).toISOString().split('T')[0];
+			map.set(ts, row.result);
+		}
+	}
+	return map;
+}
 
 export async function fetchReservoirData(
 	reservoirKey: string,
@@ -85,22 +107,14 @@ export async function fetchReservoirData(
 	const records: DamReleaseRecord[] = [];
 
 	const fetchParam = async (tsId: string): Promise<Map<string, number>> => {
-		const map = new Map<string, number>();
 		try {
 			const url = `${BOR_RISE_BASE}/download?type=json&itemId=${tsId}&after=${start}&before=${end}&order=ASC`;
 			const data = await fetchWithRetry(url);
-			if (Array.isArray(data)) {
-				for (const row of data) {
-					if (row.result != null) {
-						const ts = new Date(row.dateTime).toISOString().split('T')[0];
-						map.set(ts, row.result);
-					}
-				}
-			}
+			return parseRiseDownloadResponse(data, catalog.name, tsId);
 		} catch (err) {
 			console.error(`BOR fetch failed for timeseries ${tsId}:`, err);
+			return new Map();
 		}
-		return map;
 	};
 
 	const [storageMap, elevationMap, inflowMap, outflowMap] = await Promise.all([

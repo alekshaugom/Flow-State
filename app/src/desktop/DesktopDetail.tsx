@@ -8,6 +8,7 @@ import { SectionHead } from '../components/SectionHead';
 import { ForecastStrip } from '../components/ForecastStrip';
 import { ForecastBand } from '../components/ForecastBand';
 import { ContextStrip } from '../components/ContextStrip';
+import { WeatherStrip } from '../components/WeatherStrip';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { DesktopFlowChart } from './DesktopFlowChart';
 import { useRiverDetail } from '../hooks/useRiverDetail';
@@ -176,7 +177,7 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 			}}>
 				<div>
 					<SectionHead title="14-day forecast" eyebrow="Outlook" />
-					<div style={{ marginTop: 12 }}>
+					<div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
 						{detail.forecastBand && detail.history.length > 1 ? (
 							<div style={{
 								background: 'var(--bg-card)', border: '1px solid var(--rule)',
@@ -213,7 +214,23 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 							</div>
 						) : (
 							<div style={{ padding: 16, background: 'var(--bg-sunken)', borderRadius: 'var(--r-lg)', fontSize: 13, color: 'var(--ink-3)' }}>
-								No forecast available. Trigger one from the admin page or API.
+								No flow forecast available yet. Trigger one from the admin page or API.
+							</div>
+						)}
+						{detail.weatherForecast?.length > 0 && (
+							<div style={{
+								background: 'var(--bg-card)', border: '1px solid var(--rule)',
+								borderRadius: 'var(--r-lg)', padding: 16,
+								display: 'flex', flexDirection: 'column', gap: 10,
+							}}>
+								<div style={{
+									fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em',
+									textTransform: 'uppercase', color: 'var(--ink-3)', fontWeight: 500,
+								}}>
+									<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
+									Weather · Open-Meteo · {detail.weatherForecast.length}-day
+								</div>
+								<WeatherStrip weather={detail.weatherForecast} />
 							</div>
 						)}
 					</div>
@@ -232,11 +249,14 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 								snowpackPct={detail.snowpackPct}
 								damControlled={detail.damControlled}
 								riverName={detail.river}
+								snowpack={detail.snowpack}
+								reservoirs={detail.reservoirs}
 							/>
 						</div>
 					</div>
 				</div>
 			</div>
+
 		</div>
 	);
 }

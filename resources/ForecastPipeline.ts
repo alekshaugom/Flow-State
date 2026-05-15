@@ -74,6 +74,17 @@ async function buildDataPackage(sectionId: string) {
 		}
 	}
 
+	// Weather forecast (next 7 days for this section)
+	const todayDate = isoDate(new Date());
+	const weatherForecast = await collect(tables.WeatherForecast.search({
+		conditions: [
+			{ attribute: 'sectionId', value: sectionId, comparator: 'equals' },
+			{ attribute: 'date', value: todayDate, comparator: 'gte' },
+		],
+		sort: { attribute: 'date', descending: false },
+		limit: 7,
+	}));
+
 	return {
 		section: {
 			id: section.id,
@@ -106,6 +117,7 @@ async function buildDataPackage(sectionId: string) {
 		historicalContext: { last30Days: dailyAverages },
 		snowpack: snowpackData,
 		reservoirs: reservoirData,
+		weatherForecast,
 		generatedAt: isoNow(),
 	};
 }

@@ -38,4 +38,5 @@ type RiverSection @table @export {
 	notes: String
 	latitude: Float
 	longitude: Float
+	weatherGridId: String
 }

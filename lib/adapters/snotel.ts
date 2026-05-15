@@ -14,6 +14,7 @@ export interface SnowpackReadingRecord {
 }
 
 export async function fetchBasinSnowData(
+	basinId: string,
 	stationTriplets: string[],
 	startDate?: Date,
 	endDate?: Date
@@ -28,33 +29,50 @@ export async function fetchBasinSnowData(
 			const sweData = await fetchStationData(triplet, 'WTEQ', start, end);
 			const depthData = await fetchStationData(triplet, 'SNWD', start, end);
 			const precipData = await fetchStationData(triplet, 'PREC', start, end);
-
-			const timestamps = new Set<string>();
-			for (const d of [...sweData, ...depthData, ...precipData]) {
-				timestamps.add(d.date);
-			}
-
-			for (const ts of timestamps) {
-				const swe = sweData.find(d => d.date === ts);
-				const depth = depthData.find(d => d.date === ts);
-				const precip = precipData.find(d => d.date === ts);
-				const isoTs = new Date(ts).toISOString();
-
-				records.push({
-					id: compositeId([triplet.replace(/:/g, '-'), isoTs]),
-					basinId: triplet.replace(/:/g, '-'),
-					timestamp: isoTs,
-					sweInches: swe?.value ?? null,
-					swePercentMedian: null,
-					snowDepthInches: depth?.value ?? null,
-					precipAccumInches: precip?.value ?? null,
-					source: 'snotel',
-				});
-			}
+			records.push(...buildSnowpackRecords(basinId, triplet, sweData, depthData, precipData));
 		} catch (err) {
-			console.error(`SNOTEL fetch failed for ${triplet}:`, err);
+			console.error(`SNOTEL fetch failed for ${triplet} (basin ${basinId}):`, err);
 		}
 	}
+	return records;
+}
+
+/**
+ * Pure builder that turns per-element station readings into `SnowpackReadingRecord`s
+ * stamped with the **logical** basin id (not the station triplet — see L004 / SNOTEL adapter fix).
+ * Exported for testing.
+ */
+export function buildSnowpackRecords(
+	basinId: string,
+	triplet: string,
+	sweData: Array<{ date: string; value: number }>,
+	depthData: Array<{ date: string; value: number }>,
+	precipData: Array<{ date: string; value: number }>,
+): SnowpackReadingRecord[] {
+	const records: SnowpackReadingRecord[] = [];
+	const stationKey = triplet.replace(/:/g, '-');
+
+	const timestamps = new Set<string>();
+	for (const d of [...sweData, ...depthData, ...precipData]) timestamps.add(d.date);
+
+	for (const ts of timestamps) {
+		const swe = sweData.find(d => d.date === ts);
+		const depth = depthData.find(d => d.date === ts);
+		const precip = precipData.find(d => d.date === ts);
+		const isoTs = new Date(ts).toISOString();
+
+		records.push({
+			id: compositeId([basinId, stationKey, isoTs]),
+			basinId,
+			timestamp: isoTs,
+			sweInches: swe?.value ?? null,
+			swePercentMedian: null,
+			snowDepthInches: depth?.value ?? null,
+			precipAccumInches: precip?.value ?? null,
+			source: 'snotel',
+		});
+	}
+
 	return records;
 }
 
@@ -67,16 +85,40 @@ async function fetchStationData(
 	const url = `${AWDB_BASE}/services/v1/data?stationTriplets=${encodeURIComponent(triplet)}&elements=${element}&beginDate=${startDate}&endDate=${endDate}&duration=DAILY`;
 	try {
 		const data = await fetchWithRetry(url);
-		if (!Array.isArray(data) || data.length === 0) return [];
-		const stationData = data[0];
-		if (!stationData?.data) return [];
-
-		return stationData.data
-			.filter((d: any) => d.value != null && d.value >= 0)
-			.map((d: any) => ({ date: d.date, value: d.value }));
+		return parseAwdbResponse(data);
 	} catch {
 		return [];
 	}
+}
+
+/**
+ * Parses an AWDB `/data` response into a flat `{date, value}[]` for one element.
+ *
+ * Response shape:
+ *   `[ { stationTriplet, data: [ { stationElement, values: [ {date, value}, ... ] } ] } ]`
+ *
+ * The previous version of this function flattened the wrong level of the response
+ * (it iterated `stationData.data` looking for `{date, value}` directly), which silently
+ * produced zero readings on every call. Exported for testing.
+ */
+export function parseAwdbResponse(data: any): Array<{ date: string; value: number }> {
+	if (!Array.isArray(data) || data.length === 0) return [];
+	const stationData = data[0];
+	const elementBlocks = stationData?.data;
+	if (!Array.isArray(elementBlocks) || elementBlocks.length === 0) return [];
+
+	// Concatenate values from every element block (usually just one per request).
+	const out: Array<{ date: string; value: number }> = [];
+	for (const block of elementBlocks) {
+		const values = block?.values;
+		if (!Array.isArray(values)) continue;
+		for (const v of values) {
+			if (v?.value != null && v.value >= 0 && v.date) {
+				out.push({ date: v.date, value: v.value });
+			}
+		}
+	}
+	return out;
 }
 
 export async function fetchCurrentSnowpackSummary(huc?: string): Promise<any> {

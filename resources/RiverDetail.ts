@@ -115,6 +115,20 @@ async function getSnowpackData(basinIds: string[]) {
 	return results;
 }
 
+async function getWeatherForecast(sectionId: string) {
+	const todayDate = new Date().toISOString().split('T')[0];
+	return collect(
+		tables.WeatherForecast.search({
+			conditions: [
+				{ attribute: 'sectionId', value: sectionId, comparator: 'equals' as const },
+				{ attribute: 'date', value: todayDate, comparator: 'gte' as const },
+			],
+			sort: { attribute: 'date', descending: false },
+			limit: 14,
+		})
+	);
+}
+
 async function getLatestForecast(sectionId: string) {
 	const runs = await collect(
 		tables.ForecastRun.search({
@@ -155,10 +169,11 @@ export class RiverDetail extends Resource {
 		const reservoirIds = splitIds(section.reservoirIds);
 		const basinIds = splitIds(section.snowpackBasinIds);
 
-		const [flowData, damReleases, snowpack, forecast, flowBands] = await Promise.all([
+		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands] = await Promise.all([
 			getFlowData(gaugeIds),
 			getDamReleases(reservoirIds),
 			getSnowpackData(basinIds),
+			getWeatherForecast(sectionId),
 			getLatestForecast(sectionId),
 			loadBandsForSection(sectionId),
 		]);
@@ -219,6 +234,7 @@ export class RiverDetail extends Resource {
 			gauges: flowData.gaugeList,
 			reservoirs: damReleases,
 			snowpack,
+			weatherForecast,
 			forecast,
 		};
 		return new Response(JSON.stringify(result), {

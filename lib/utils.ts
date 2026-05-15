@@ -38,10 +38,10 @@ export async function fetchJson(url: string, options?: RequestInit): Promise<any
 	return res.json();
 }
 
-export async function fetchWithRetry(url: string, retries = 3, delayMs = 1000): Promise<any> {
+export async function fetchWithRetry(url: string, options?: RequestInit, retries = 3, delayMs = 1000): Promise<any> {
 	for (let attempt = 1; attempt <= retries; attempt++) {
 		try {
-			return await fetchJson(url);
+			return await fetchJson(url, options);
 		} catch (err: any) {
 			if (err?.status === 429) throw err;
 			if (attempt === retries) throw err;
