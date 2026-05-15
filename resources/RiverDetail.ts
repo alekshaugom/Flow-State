@@ -15,6 +15,29 @@ function splitIds(ids: string | null | undefined): string[] {
 	return ids.split(',').map(s => s.trim()).filter(Boolean);
 }
 
+// L004 workaround: filtered searches against these tables can return 0 rows
+// immediately after a Fabric rolling restart, even though empty-conditions
+// scans see the same rows. These tables are small enough (≤ a few hundred rows)
+// to cache all rows + filter in-memory. TTL = 60s — short enough to pick up
+// fresh ingestion, long enough to avoid hammering on hot endpoints.
+const CACHE_TTL_MS = 60_000;
+
+type Cache<T> = { rows: T[]; loadedAt: number };
+const _damCache: Cache<any> = { rows: [], loadedAt: 0 };
+const _snowCache: Cache<any> = { rows: [], loadedAt: 0 };
+const _weatherCache: Cache<any> = { rows: [], loadedAt: 0 };
+
+async function loadAllCached(cache: Cache<any>, table: any): Promise<any[]> {
+	if (cache.loadedAt && (Date.now() - cache.loadedAt) < CACHE_TTL_MS) {
+		return cache.rows;
+	}
+	const out: any[] = [];
+	for await (const r of table.search({ conditions: [] })) out.push(r);
+	cache.rows = out;
+	cache.loadedAt = Date.now();
+	return out;
+}
+
 async function getFlowData(gaugeIds: string[], days = 360) {
 	const cutoff = daysAgo(days).toISOString();
 	const series: Record<string, any[]> = {};
@@ -63,21 +86,16 @@ async function getFlowData(gaugeIds: string[], days = 360) {
 
 async function getDamReleases(reservoirIds: string[]) {
 	const cutoff = daysAgo(14).toISOString();
+	const all = await loadAllCached(_damCache, tables.DamRelease);
 	const results: any[] = [];
 
 	for (const rid of reservoirIds) {
 		const reservoir = await tables.Reservoir.get(rid);
 		if (!reservoir) continue;
 
-		const releases = await collect(
-			tables.DamRelease.search({
-				conditions: [
-					{ attribute: 'reservoirId', value: rid, comparator: 'equals' as const },
-					{ attribute: 'timestamp', value: cutoff, comparator: 'gte' as const },
-				],
-				sort: { attribute: 'timestamp', descending: true },
-			})
-		);
+		const releases = all
+			.filter(r => r.reservoirId === rid && (r.timestamp || '') >= cutoff)
+			.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
 
 		results.push({
 			reservoir,
@@ -90,21 +108,16 @@ async function getDamReleases(reservoirIds: string[]) {
 
 async function getSnowpackData(basinIds: string[]) {
 	const cutoff = daysAgo(30).toISOString();
+	const all = await loadAllCached(_snowCache, tables.SnowpackReading);
 	const results: any[] = [];
 
 	for (const bid of basinIds) {
 		const basin = await tables.SnowpackBasin.get(bid);
 		if (!basin) continue;
 
-		const readings = await collect(
-			tables.SnowpackReading.search({
-				conditions: [
-					{ attribute: 'basinId', value: bid, comparator: 'equals' as const },
-					{ attribute: 'timestamp', value: cutoff, comparator: 'gte' as const },
-				],
-				sort: { attribute: 'timestamp', descending: true },
-			})
-		);
+		const readings = all
+			.filter(r => r.basinId === bid && (r.timestamp || '') >= cutoff)
+			.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
 
 		results.push({
 			basin,
@@ -117,16 +130,18 @@ async function getSnowpackData(basinIds: string[]) {
 
 async function getWeatherForecast(sectionId: string) {
 	const todayDate = new Date().toISOString().split('T')[0];
-	return collect(
-		tables.WeatherForecast.search({
-			conditions: [
-				{ attribute: 'sectionId', value: sectionId, comparator: 'equals' as const },
-				{ attribute: 'date', value: todayDate, comparator: 'gte' as const },
-			],
-			sort: { attribute: 'date', descending: false },
-			limit: 14,
-		})
-	);
+	const all = await loadAllCached(_weatherCache, tables.WeatherForecast);
+	return all
+		.filter(w => w.sectionId === sectionId && (w.date || '') >= todayDate)
+		.sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+		.slice(0, 14);
+}
+
+// Allow other resources (e.g. Ingestion) to invalidate caches after a write batch.
+export function invalidateRiverDetailCaches() {
+	_damCache.loadedAt = 0;
+	_snowCache.loadedAt = 0;
+	_weatherCache.loadedAt = 0;
 }
 
 async function getLatestForecast(sectionId: string) {

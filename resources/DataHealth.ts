@@ -7,27 +7,29 @@ async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	return out;
 }
 
-async function latestLogFor(sourceId: string): Promise<any | null> {
-	const rows = await collect(tables.IngestionLog.search({
-		conditions: [{ attribute: 'sourceId', value: sourceId, comparator: 'equals' }],
-		sort: { attribute: 'timestamp', descending: true },
-		limit: 1,
-	}));
-	return rows[0] || null;
+// L004 workaround: filtered searches lag immediately after Fabric rolling restarts.
+// Empty-conditions scans see all rows, so we full-scan once + reduce in-memory.
+
+async function latestLogForAll(): Promise<Map<string, any>> {
+	const map = new Map<string, any>();
+	for await (const log of tables.IngestionLog.search({ conditions: [] })) {
+		const prev = map.get((log as any).sourceId);
+		if (!prev || ((log as any).timestamp || '') > (prev.timestamp || '')) {
+			map.set((log as any).sourceId, log);
+		}
+	}
+	return map;
 }
 
-async function latestDataFor(table: any, indexAttr: string): Promise<string | null> {
-	const rows = await collect(table.search({
-		conditions: [{ attribute: indexAttr, value: '', comparator: 'greater_than' }],
-		sort: { attribute: indexAttr, descending: true },
-		limit: 1,
-	}));
-	return rows[0]?.[indexAttr] || null;
-}
-
-async function rowCount(table: any): Promise<number> {
-	const rows = await collect(table.search({ conditions: [] }));
-	return rows.length;
+async function latestDataFor(table: any, indexAttr: string): Promise<{ latest: string | null; totalRows: number }> {
+	let latest: string | null = null;
+	let total = 0;
+	for await (const row of table.search({ conditions: [] })) {
+		total++;
+		const v = (row as any)[indexAttr];
+		if (typeof v === 'string' && (latest == null || v > latest)) latest = v;
+	}
+	return { latest, totalRows: total };
 }
 
 function ageMinutes(iso: string | null | undefined): number | null {
@@ -43,30 +45,24 @@ export class DataHealth extends Resource {
 		const sources = allSources.filter((s: any) => typeof s.id === 'string' && s.id.length > 0);
 
 		const [
-			gaugeReadingLatest,
-			gaugeReadingCount,
-			snowpackLatest,
-			snowpackCount,
-			damReleaseLatest,
-			damReleaseCount,
-			weatherLatest,
-			weatherCount,
+			gaugeRead,
+			snowRead,
+			damRead,
+			weatherRead,
+			logsBySource,
 		] = await Promise.all([
 			latestDataFor(tables.GaugeReading, 'timestamp'),
-			rowCount(tables.GaugeReading),
 			latestDataFor(tables.SnowpackReading, 'timestamp'),
-			rowCount(tables.SnowpackReading),
 			latestDataFor(tables.DamRelease, 'timestamp'),
-			rowCount(tables.DamRelease),
 			latestDataFor(tables.WeatherForecast, 'capturedAt'),
-			rowCount(tables.WeatherForecast),
+			latestLogForAll(),
 		]);
 
 		const dataByTable = {
-			GaugeReading: { latestAt: gaugeReadingLatest, ageMin: ageMinutes(gaugeReadingLatest), totalRows: gaugeReadingCount },
-			SnowpackReading: { latestAt: snowpackLatest, ageMin: ageMinutes(snowpackLatest), totalRows: snowpackCount },
-			DamRelease: { latestAt: damReleaseLatest, ageMin: ageMinutes(damReleaseLatest), totalRows: damReleaseCount },
-			WeatherForecast: { latestAt: weatherLatest, ageMin: ageMinutes(weatherLatest), totalRows: weatherCount },
+			GaugeReading: { latestAt: gaugeRead.latest, ageMin: ageMinutes(gaugeRead.latest), totalRows: gaugeRead.totalRows },
+			SnowpackReading: { latestAt: snowRead.latest, ageMin: ageMinutes(snowRead.latest), totalRows: snowRead.totalRows },
+			DamRelease: { latestAt: damRead.latest, ageMin: ageMinutes(damRead.latest), totalRows: damRead.totalRows },
+			WeatherForecast: { latestAt: weatherRead.latest, ageMin: ageMinutes(weatherRead.latest), totalRows: weatherRead.totalRows },
 		};
 
 		const sourceToTable: Record<string, keyof typeof dataByTable> = {
@@ -79,8 +75,8 @@ export class DataHealth extends Resource {
 			noaa: 'WeatherForecast',
 		};
 
-		const sourceReports = await Promise.all(sources.map(async (s: any) => {
-			const log = await latestLogFor(s.id);
+		const sourceReports = sources.map((s: any) => {
+			const log = logsBySource.get(s.id) || null;
 			const tableKey = sourceToTable[s.id];
 			return {
 				id: s.id,
@@ -99,7 +95,7 @@ export class DataHealth extends Resource {
 				} : null,
 				data: tableKey ? dataByTable[tableKey] : null,
 			};
-		}));
+		});
 
 		return {
 			generatedAt: isoNow(),
