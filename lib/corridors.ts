@@ -27,8 +27,11 @@ async function loadAllCorridors(): Promise<CorridorRow[]> {
 	for await (const c of tables.RiverCorridor.search({ conditions: [] })) {
 		out.push(c as CorridorRow);
 	}
-	_corridorsCache = out;
-	_corridorsCacheLoadedAt = Date.now();
+	// L004 refinement: never cache an empty scan — see lib/watersheds.ts.
+	if (out.length > 0) {
+		_corridorsCache = out;
+		_corridorsCacheLoadedAt = Date.now();
+	}
 	return out;
 }
 

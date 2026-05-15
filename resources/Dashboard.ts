@@ -181,8 +181,14 @@ export class Dashboard extends Resource {
 			watersheds: watershedSummaries,
 			corridors: corridorSummaries,
 		};
-		cachedResult = result;
-		cacheTimestamp = Date.now();
+		// L004 refinement: don't pin an empty assembly in cache. If any upstream
+		// scan (rivers/watersheds/corridors) came back empty due to post-restart
+		// lag, the dashboard would render with the "Other 36 sections" fallback;
+		// caching that locks the bad view in for the full TTL.
+		if (dashboard.length > 0 && watersheds.length > 0 && corridors.length > 0) {
+			cachedResult = result;
+			cacheTimestamp = Date.now();
+		}
 		return new Response(JSON.stringify(result), {
 			headers: {
 				'Content-Type': 'application/json',

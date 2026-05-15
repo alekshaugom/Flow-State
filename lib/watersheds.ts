@@ -29,8 +29,12 @@ async function loadAllWatersheds(): Promise<WatershedRow[]> {
 	for await (const w of tables.Watershed.search({ conditions: [] })) {
 		out.push(w as WatershedRow);
 	}
-	_watershedsCache = out;
-	_watershedsCacheLoadedAt = Date.now();
+	// L004 refinement: never cache an empty scan — post-restart lag can return
+	// 0 rows transiently, which would otherwise pin the cache empty for the TTL.
+	if (out.length > 0) {
+		_watershedsCache = out;
+		_watershedsCacheLoadedAt = Date.now();
+	}
 	return out;
 }
 

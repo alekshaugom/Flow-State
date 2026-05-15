@@ -24,8 +24,11 @@ export async function loadAllBands(): Promise<FlowBandRow[]> {
 	for await (const b of tables.FlowBand.search({ conditions: [] })) {
 		out.push(b as FlowBandRow);
 	}
-	_bandsCache = out;
-	_bandsCacheLoadedAt = Date.now();
+	// L004 refinement: never cache an empty scan — see lib/watersheds.ts.
+	if (out.length > 0) {
+		_bandsCache = out;
+		_bandsCacheLoadedAt = Date.now();
+	}
 	return out;
 }
 
