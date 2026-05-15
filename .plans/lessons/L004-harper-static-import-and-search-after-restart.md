@@ -53,6 +53,15 @@ The user reported the bug as "current flow no longer showing on section pages" �
 
 - **For small, slowly-changing reference tables (FlowBand, CraftType, future Watershed/Corridor), use a module-scope cache:** load all rows once with empty conditions, cache for a few minutes, filter in memory. Add an explicit `invalidateXCache()` and call it from the Seed action so freshly-seeded data takes effect without waiting on TTL.
 
+- **Never cache an empty result.** *Refinement added 2026-05-15 from slice 03a.* The empty-conditions scan itself can transiently return 0 rows in the seconds immediately after a rolling restart, then heal a moment later. If the cache stores `[]` with `loadedAt = Date.now()`, the next ~TTL window serves nothing even though the data is right there. Treat `out.length === 0` as a cache miss, not a cache hit — only persist the cache when the scan returns at least one row. This burned us on slice 03a's first Fabric verify: weather happened to load on a node that had healed, but snowpack and reservoirs landed empty and got pinned empty for 60s. The fix is one line in the cache wrapper:
+
+  ```ts
+  if (out.length > 0) {
+    cache.rows = out;
+    cache.loadedAt = Date.now();
+  }
+  ```
+
 - **For larger tables where caching everything is unreasonable**, retry the filtered search a few times after a deploy. Or query by primary key when the access pattern allows it — primary-key reads seem to be unaffected.
 
 - **Always re-seed and verify via `RiverDetail`-style endpoints**, not just via the Seed counts endpoint. The counts use full-scan; user-facing endpoints often use filtered queries that may not yet be consistent. The `flow-bands` seed action now invalidates the FlowBand and Dashboard caches.
@@ -66,6 +75,7 @@ The user reported the bug as "current flow no longer showing on section pages" �
 - Seed action that invalidates caches: [resources/Seed.ts](../../resources/Seed.ts)
 - Dashboard cache + invalidation: [resources/Dashboard.ts](../../resources/Dashboard.ts)
 - GaugeSnapshot fallback in detail: [resources/RiverDetail.ts](../../resources/RiverDetail.ts) — `getFlowData()`
+- Cache wrapper with empty-result guard (slice 03a refinement): [resources/RiverDetail.ts](../../resources/RiverDetail.ts) — `loadAllCached()`
 - Commits that walked through the fix: [5bd5896](https://github.com/alekshaugom/Flow-State/commit/5bd5896), [187c90d](https://github.com/alekshaugom/Flow-State/commit/187c90d), [c047180](https://github.com/alekshaugom/Flow-State/commit/c047180)
 - Related lesson: [L003](L003-harper-resource-post-signature.md) (Harper `Resource.post()` signature)
 - Related lesson: [L001](L001-deploy-worktrees.md) (deploy gotchas)
