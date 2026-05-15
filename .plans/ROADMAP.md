@@ -15,7 +15,6 @@ Single source of truth for what ships next. Sorted by value × confidence ÷ eff
 
 | # | Slice | Value | Effort | Depends | Goal |
 |---|---|---|---|---|---|
-| 03c | [historical-backfill](slices/03c-historical-backfill/plan.md) | 8 | M | 03b | Backfill ~13 months of flow + snowpack + weather observations + dam releases; adds `WeatherObservation` schema + Open-Meteo Archive adapter |
 | 04 | [driver-conditioned-forecaster](slices/04-driver-conditioned-forecaster/plan.md) | 8 | M | 03b, 03c | Driver-conditioned heuristic forecaster using snowpack + weather + dam releases per section's `driver` field |
 
 ## Queued — lighter plans
@@ -39,6 +38,7 @@ Single source of truth for what ships next. Sorted by value × confidence ÷ eff
 
 | # | Slice | Closed | Notes |
 |---|---|---|---|
+| 03c | [historical-backfill](completed/03c-historical-backfill/plan.md) | 2026-05-15 | Backfilled 38,799 rows of historical flow / snowpack / weather observations / dam releases (2025-03-31 → 2026-05-15) across USGS / SNOTEL / BOR / new `WeatherObservation` schema + Open-Meteo Archive adapter. SNOTEL adapter now requests AWDB climatological median (1991-2020 normals) so `swePercentMedian` is populated. Orchestrator on `POST /Ingestion { action: "backfill", days, sources }`. 45/45 tests pass. Lesson L007 on USGS rate-limiting under repeat backfill. |
 | 03a | [data-integrity-sweep](completed/03a-data-integrity-sweep/plan.md) | 2026-05-14 | Fixed BOR (response shape + catalog re-mapped: 5 verified Colorado reservoirs in RISE) + SNOTEL (basinId keying + response shape) ingestion. Switched weather pipeline to Open-Meteo for 14-day daily forecasts with WMO weathercode → icon mapping. Added DataHealth smoke endpoint + admin panel. UI: weather strip with icons inside the 14-day forecast section, snowpack + reservoir details inlined into Context's Snowpack and Dam release cards. Lesson L006 on third-party API response-shape verification. Deployed to Fabric. |
 | 02b | [watershed-corridor-refinements](completed/02b-watershed-corridor-refinements/plan.md) | 2026-05-14 | sortIndex on RiverSection + RiverCorridor for true upstream→downstream order; watershed page redesigned with stacked corridor cards embedding section rows inline (no obligatory click into corridor page); reserved // MAP · COMING SOON header; shared SectionRow component for parity. Deployed to Fabric. |
 | 02 | [watershed-corridor-ia](completed/02-watershed-corridor-ia/plan.md) | 2026-05-14 | Watershed + RiverCorridor schemas, 8 watersheds + 20 corridors seeded; /watershed/:slug + /corridor/:slug routes; watershed-grouped collapsible sidebar; breadcrumb on all non-home pages; legacy /section/:id preserved |

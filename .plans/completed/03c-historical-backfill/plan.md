@@ -1,13 +1,13 @@
 ---
 slice: 03c-historical-backfill
-status: queued
+status: done
 value: 8
 confidence: 8
 effort: M
-depends_on: [03b-forecast-snapshot-infra]
-unlocks: [04-driver-conditioned-forecaster]
+depends_on: []
+unlocks: [03b-forecast-snapshot-infra, 04-driver-conditioned-forecaster]
 opened: 2026-05-15
-closed: null
+closed: 2026-05-15
 ---
 
 # Slice 03c — Historical data backfill (Apr 2025 → today)

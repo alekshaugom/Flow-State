@@ -45,6 +45,7 @@ Every lesson is tagged with one or more:
 ### deploy
 - [L001 — Deploy must exclude worktree build artifacts](L001-deploy-worktrees.md) — `deploy_component` ignores `.gitignore`; stale `web/` dirs in worktrees deploy old assets
 - [L002 — Always verify .env edits with hex dump](L002-env-newlines.md) — missing newlines silently break env var parsing
+- [L007 — USGS OGCAPI rate-limits sustained backfill traffic](L007-usgs-rate-limit-on-repeat-backfill.md) — running the 410-day backfill twice within 10 minutes 429'd 9 of 34 stations on the second pass; no data loss thanks to composite-ID upserts. Mitigation: wait ~1h between full USGS pulls, or retarget reruns to `sources: ["snotel"]`/etc.
 
 ### discovery
 - [L003 — Harper `Resource.post()` takes `data` as first argument](L003-harper-resource-post-signature.md) — not `(target, data)` like `put/patch`; mirrors of `get()` signature silently fall through

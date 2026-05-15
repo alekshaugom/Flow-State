@@ -16,3 +16,18 @@ type WeatherForecast @table @export {
 	source: String
 	capturedAt: String
 }
+
+type WeatherObservation @table @export {
+	id: ID @primaryKey
+	sectionId: ID @indexed
+	section: RiverSection @relationship(from: "sectionId")
+	date: String @indexed
+	tempHighF: Float
+	tempLowF: Float
+	precipIn: Float
+	precipSnowIn: Float
+	windMph: Float
+	weatherCode: Int
+	source: String
+	capturedAt: String
+}

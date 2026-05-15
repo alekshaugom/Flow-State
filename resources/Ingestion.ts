@@ -1,10 +1,11 @@
 import { Resource, tables } from 'harper';
 import { compositeId, isoNow } from '../lib/utils.ts';
-import { fetchInstantaneous, fetchHistorical, fetchDaily } from '../lib/adapters/usgs.ts';
+import { fetchInstantaneous } from '../lib/adapters/usgs.ts';
 import { fetchTelemetryTimeSeries } from '../lib/adapters/cdss.ts';
 import { fetchBasinSnowData, COLORADO_BASINS } from '../lib/adapters/snotel.ts';
 import { fetchReservoirData, BOR_CATALOG } from '../lib/adapters/bor.ts';
 import { runWeatherIngestion } from '../lib/agents/weather-agent.ts';
+import { runBackfill, type BackfillSource } from '../lib/jobs/backfill.ts';
 import { invalidateDashboardCache } from './Dashboard.ts';
 
 const POLL_MS = 60_000;
@@ -212,28 +213,7 @@ async function ingestWeather(): Promise<void> {
 	}
 }
 
-async function backfill(days: number): Promise<{ gaugeReadings: number }> {
-	const gauges = await collect(tables.Gauge.search({ conditions: [{ attribute: 'active', value: true, comparator: 'equals' }] }));
-	const usgsGauges = gauges.filter(g => g.source === 'usgs');
-
-	const endDate = new Date();
-	const startDate = new Date(endDate.getTime() - days * 24 * 3600_000);
-
-	let total = 0;
-	for (const gauge of usgsGauges) {
-		try {
-			const readings = await fetchDaily([gauge.sourceId], startDate, endDate);
-			for (const r of readings) await tables.GaugeReading.put(r.id, r);
-			total += readings.length;
-			console.log(`[backfill] ${gauge.sourceId}: ${readings.length} daily readings stored`);
-		} catch (err) {
-			console.warn(`[backfill] ${gauge.sourceId} failed:`, (err as Error).message);
-		}
-		await new Promise(r => setTimeout(r, 2000));
-	}
-	console.log(`[backfill] complete: ${total} daily readings across ${usgsGauges.length} gauges`);
-	return { gaugeReadings: total };
-}
+const VALID_BACKFILL_SOURCES: BackfillSource[] = ['usgs', 'snotel', 'bor', 'weather-obs'];
 
 async function tick(): Promise<void> {
 	const now = Date.now();
@@ -307,8 +287,14 @@ export class Ingestion extends Resource {
 		}
 		if (data?.action === 'backfill') {
 			const days = data.days || 30;
-			const result = await backfill(days);
-			return { ok: true, action: 'backfill', days, ...result };
+			const requested: string[] = Array.isArray(data.sources) ? data.sources : VALID_BACKFILL_SOURCES;
+			const sources = requested.filter((s): s is BackfillSource => VALID_BACKFILL_SOURCES.includes(s as BackfillSource));
+			if (sources.length === 0) {
+				return new Response(`invalid sources — supported: ${VALID_BACKFILL_SOURCES.join(', ')}`, { status: 400 });
+			}
+			const result = await runBackfill(days, sources);
+			invalidateDashboardCache();
+			return { ok: true, action: 'backfill', ...result };
 		}
 		if (data?.action === 'cleanup-bor-stale-rows') {
 			// One-shot: deletes any DamRelease rows whose reservoirId is no longer in BOR_CATALOG.

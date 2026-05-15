@@ -13,6 +13,12 @@ export interface SnowpackReadingRecord {
 	source: string;
 }
 
+export interface AwdbDailyValue {
+	date: string;
+	value: number;
+	median?: number | null;
+}
+
 export async function fetchBasinSnowData(
 	basinId: string,
 	stationTriplets: string[],
@@ -40,14 +46,19 @@ export async function fetchBasinSnowData(
 /**
  * Pure builder that turns per-element station readings into `SnowpackReadingRecord`s
  * stamped with the **logical** basin id (not the station triplet — see L004 / SNOTEL adapter fix).
+ *
+ * When `sweData` entries carry a `median` field (from AWDB's centralTendencyType=MEDIAN
+ * request — see fetchStationData), the resulting record's `swePercentMedian` is computed
+ * as `sweInches / median * 100`. If median is missing or zero, `swePercentMedian` stays null.
+ *
  * Exported for testing.
  */
 export function buildSnowpackRecords(
 	basinId: string,
 	triplet: string,
-	sweData: Array<{ date: string; value: number }>,
-	depthData: Array<{ date: string; value: number }>,
-	precipData: Array<{ date: string; value: number }>,
+	sweData: AwdbDailyValue[],
+	depthData: AwdbDailyValue[],
+	precipData: AwdbDailyValue[],
 ): SnowpackReadingRecord[] {
 	const records: SnowpackReadingRecord[] = [];
 	const stationKey = triplet.replace(/:/g, '-');
@@ -61,12 +72,18 @@ export function buildSnowpackRecords(
 		const precip = precipData.find(d => d.date === ts);
 		const isoTs = new Date(ts).toISOString();
 
+		const sweInches = swe?.value ?? null;
+		const median = swe?.median ?? null;
+		const swePercentMedian = sweInches != null && median != null && median > 0
+			? Math.round((sweInches / median) * 100 * 10) / 10
+			: null;
+
 		records.push({
 			id: compositeId([basinId, stationKey, isoTs]),
 			basinId,
 			timestamp: isoTs,
-			sweInches: swe?.value ?? null,
-			swePercentMedian: null,
+			sweInches,
+			swePercentMedian,
 			snowDepthInches: depth?.value ?? null,
 			precipAccumInches: precip?.value ?? null,
 			source: 'snotel',
@@ -81,8 +98,14 @@ async function fetchStationData(
 	element: string,
 	startDate: string,
 	endDate: string
-): Promise<Array<{ date: string; value: number }>> {
-	const url = `${AWDB_BASE}/services/v1/data?stationTriplets=${encodeURIComponent(triplet)}&elements=${element}&beginDate=${startDate}&endDate=${endDate}&duration=DAILY`;
+): Promise<AwdbDailyValue[]> {
+	// For SWE (WTEQ), request the 30-year climatological median (1991-2020 standard normals)
+	// alongside the value, so we can compute swePercentMedian. SNWD/PREC don't need this —
+	// snow depth and accumulated precip aren't typically expressed as % of median.
+	const medianParams = element === 'WTEQ'
+		? '&centralTendencyType=MEDIAN&centralTendencyBeginYear=1991&centralTendencyEndYear=2020'
+		: '';
+	const url = `${AWDB_BASE}/services/v1/data?stationTriplets=${encodeURIComponent(triplet)}&elements=${element}&beginDate=${startDate}&endDate=${endDate}&duration=DAILY${medianParams}`;
 	try {
 		const data = await fetchWithRetry(url);
 		return parseAwdbResponse(data);
@@ -92,29 +115,35 @@ async function fetchStationData(
 }
 
 /**
- * Parses an AWDB `/data` response into a flat `{date, value}[]` for one element.
+ * Parses an AWDB `/data` response into a flat `{date, value, median?}[]` for one element.
  *
  * Response shape:
- *   `[ { stationTriplet, data: [ { stationElement, values: [ {date, value}, ... ] } ] } ]`
+ *   `[ { stationTriplet, data: [ { stationElement, values: [ {date, value, median?}, ... ] } ] } ]`
+ *
+ * The `median` field is only present when the request specifies
+ * `centralTendencyType=MEDIAN&centralTendencyBeginYear=...&centralTendencyEndYear=...`.
+ * When absent, callers see `median: undefined`.
  *
  * The previous version of this function flattened the wrong level of the response
  * (it iterated `stationData.data` looking for `{date, value}` directly), which silently
  * produced zero readings on every call. Exported for testing.
  */
-export function parseAwdbResponse(data: any): Array<{ date: string; value: number }> {
+export function parseAwdbResponse(data: any): AwdbDailyValue[] {
 	if (!Array.isArray(data) || data.length === 0) return [];
 	const stationData = data[0];
 	const elementBlocks = stationData?.data;
 	if (!Array.isArray(elementBlocks) || elementBlocks.length === 0) return [];
 
 	// Concatenate values from every element block (usually just one per request).
-	const out: Array<{ date: string; value: number }> = [];
+	const out: AwdbDailyValue[] = [];
 	for (const block of elementBlocks) {
 		const values = block?.values;
 		if (!Array.isArray(values)) continue;
 		for (const v of values) {
 			if (v?.value != null && v.value >= 0 && v.date) {
-				out.push({ date: v.date, value: v.value });
+				const row: AwdbDailyValue = { date: v.date, value: v.value };
+				if (typeof v.median === 'number') row.median = v.median;
+				out.push(row);
 			}
 		}
 	}

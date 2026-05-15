@@ -108,3 +108,54 @@ test('buildSnowpackRecords returns empty when no data', () => {
 	const records = buildSnowpackRecords('eagle-river', '842:CO:SNTL', [], [], []);
 	assert.equal(records.length, 0);
 });
+
+test('parseAwdbResponse preserves the median field when present', () => {
+	const out = parseAwdbResponse([{
+		stationTriplet: '369:CO:SNTL',
+		data: [{
+			values: [
+				{ date: '2025-12-01', value: 0.6, median: 2.8 },
+				{ date: '2025-12-02', value: 0.8, median: 2.8 },
+			],
+		}],
+	}]);
+	assert.equal(out.length, 2);
+	assert.equal(out[0].median, 2.8);
+	assert.equal(out[1].median, 2.8);
+});
+
+test('parseAwdbResponse omits median when AWDB response does not include it', () => {
+	const out = parseAwdbResponse([{
+		stationTriplet: '369:CO:SNTL',
+		data: [{ values: [{ date: '2025-12-01', value: 0.6 }] }],
+	}]);
+	assert.equal(out.length, 1);
+	assert.equal(out[0].median, undefined);
+});
+
+test('buildSnowpackRecords computes swePercentMedian when sweData carries a median', () => {
+	const records = buildSnowpackRecords(
+		'arkansas-headwaters',
+		'369:CO:SNTL',
+		[{ date: '2025-12-01', value: 0.6, median: 2.8 }],  // 21.4% of median (drought)
+		[],
+		[],
+	);
+	assert.equal(records.length, 1);
+	assert.equal(records[0].sweInches, 0.6);
+	assert.equal(records[0].swePercentMedian, 21.4);
+});
+
+test('buildSnowpackRecords leaves swePercentMedian null when median is absent or zero', () => {
+	const noMedian = buildSnowpackRecords(
+		'arkansas-headwaters', '369:CO:SNTL',
+		[{ date: '2025-12-01', value: 0.6 }], [], [],
+	);
+	assert.equal(noMedian[0].swePercentMedian, null);
+
+	const zeroMedian = buildSnowpackRecords(
+		'arkansas-headwaters', '369:CO:SNTL',
+		[{ date: '2025-08-01', value: 0, median: 0 }], [], [],   // summer baseline; both zero
+	);
+	assert.equal(zeroMedian[0].swePercentMedian, null, 'guards against divide-by-zero');
+});
