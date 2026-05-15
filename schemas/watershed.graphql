@@ -1,0 +1,14 @@
+type Watershed @table @export {
+	id: ID @primaryKey
+	name: String
+	region: String @indexed
+	state: String @indexed
+	description: String
+	summaryMd: String
+	summaryUpdatedAt: String
+	dominantDriver: String
+	peakRunoffMonth: Int
+	hucCode: String
+	bboxJson: String
+	corridors: [RiverCorridor] @relationship(to: "watershedId")
+}

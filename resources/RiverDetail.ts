@@ -1,6 +1,8 @@
 import { Resource, tables } from 'harper';
 import { getFlowStatus, daysAgo, isoNow } from '../lib/utils.ts';
 import { loadBandsForSection, resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
+import { getCorridorById } from '../lib/corridors.ts';
+import { getWatershedById } from '../lib/watersheds.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -145,6 +147,9 @@ export class RiverDetail extends Resource {
 		if (!section) return new Response('Section not found', { status: 404 });
 
 		const river = await tables.River.get(section.riverId);
+		const corridor = section.corridorId ? await getCorridorById(section.corridorId) : null;
+		const watershedId = corridor?.watershedId || (river as any)?.watershedId || null;
+		const watershed = watershedId ? await getWatershedById(watershedId) : null;
 
 		const gaugeIds = [section.primaryGaugeId, ...splitIds(section.upstreamGaugeIds), ...splitIds(section.downstreamGaugeIds)].filter(Boolean);
 		const reservoirIds = splitIds(section.reservoirIds);
@@ -181,6 +186,13 @@ export class RiverDetail extends Resource {
 			? Math.round(currentFlow - flowData.prev24h.value)
 			: null;
 
+		const breadcrumb = [
+			{ slug: 'colorado', name: 'Colorado', href: '/' },
+			...(watershed ? [{ slug: watershed.id, name: watershed.name, href: `/watershed/${watershed.id}` }] : []),
+			...(corridor ? [{ slug: corridor.id, name: corridor.name, href: `/corridor/${corridor.id}` }] : []),
+			{ slug: section.id, name: section.name, href: `/section/${section.id}` },
+		];
+
 		const result = {
 			section: {
 				...section,
@@ -189,6 +201,9 @@ export class RiverDetail extends Resource {
 					: section.difficultyMin,
 			},
 			river,
+			watershed,
+			corridor,
+			breadcrumb,
 			flow: {
 				current: roundedFlow,
 				unit: 'cfs',

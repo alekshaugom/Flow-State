@@ -1,13 +1,13 @@
 ---
 slice: 02-watershed-corridor-ia
-status: active
+status: done
 value: 9
 confidence: 8
 effort: L
 depends_on: []
-unlocks: [06-map-layering, 07-drivers-and-context-ui, 08-llm-interpretive-summaries, 11-rapid-stub-pages]
+unlocks: [02b-watershed-corridor-refinements, 06-map-layering, 07-drivers-and-context-ui, 08-llm-interpretive-summaries, 11-rapid-stub-pages]
 opened: 2026-05-13
-closed: null
+closed: 2026-05-14
 ---
 
 # Slice 02 — Watershed → Corridor → Section hierarchy

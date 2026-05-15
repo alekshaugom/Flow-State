@@ -1,0 +1,18 @@
+type RiverCorridor @table @export {
+	id: ID @primaryKey
+	watershedId: ID @indexed
+	watershed: Watershed @relationship(from: "watershedId")
+	riverId: ID @indexed
+	river: River @relationship(from: "riverId")
+	name: String
+	shortName: String
+	description: String
+	summaryMd: String
+	summaryUpdatedAt: String
+	geometryJson: String
+	governingReservoirIds: String
+	primaryGaugeId: String
+	driver: String @indexed
+	sortIndex: Int @indexed
+	sections: [RiverSection] @relationship(to: "corridorId")
+}

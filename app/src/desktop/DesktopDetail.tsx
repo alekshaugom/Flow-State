@@ -8,6 +8,7 @@ import { SectionHead } from '../components/SectionHead';
 import { ForecastStrip } from '../components/ForecastStrip';
 import { ForecastBand } from '../components/ForecastBand';
 import { ContextStrip } from '../components/ContextStrip';
+import { Breadcrumb } from '../components/Breadcrumb';
 import { DesktopFlowChart } from './DesktopFlowChart';
 import { useRiverDetail } from '../hooks/useRiverDetail';
 
@@ -62,6 +63,9 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+			{detail.breadcrumb && detail.breadcrumb.length > 0 && (
+				<Breadcrumb segments={detail.breadcrumb} />
+			)}
 			{/* Hero */}
 			<div>
 				<div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--river-600)', fontWeight: 500 }}>

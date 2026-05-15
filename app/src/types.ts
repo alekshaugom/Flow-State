@@ -21,11 +21,35 @@ export interface DashboardSection {
 	latitude: number | null;
 	longitude: number | null;
 	flowBands: FlowBandRow[];
+	watershedSlug: string | null;
+	watershedName: string | null;
+	corridorSlug: string | null;
+	corridorName: string | null;
+	corridorSortIndex: number | null;
+	sortIndex: number | null;
+	driver: string | null;
 	legacyThresholds: {
 		flowLow: number; flowRunnable: number;
 		flowIdealMin: number; flowIdealMax: number;
 		flowHigh: number; flowExpert: number; flowDangerous: number;
 	} | null;
+}
+
+export interface WatershedSummary {
+	id: string;
+	name: string;
+	region: string | null;
+	description: string | null;
+	dominantDriver: string | null;
+}
+
+export interface CorridorSummary {
+	id: string;
+	name: string;
+	shortName: string | null;
+	watershedId: string;
+	riverId: string;
+	driver: string | null;
 }
 
 // --- Detail view model ---
@@ -43,6 +67,12 @@ export interface ForecastBandData {
 	lower: number[];
 }
 
+export interface BreadcrumbSegment {
+	slug: string;
+	name: string;
+	href: string;
+}
+
 export interface DetailViewModel {
 	id: string;
 	river: string;
@@ -51,6 +81,7 @@ export interface DetailViewModel {
 	nearestTown: string | null;
 	miles: number | null;
 	notes: string | null;
+	breadcrumb: BreadcrumbSegment[];
 
 	now: number | null;
 	status: DesignStatus;
@@ -92,6 +123,13 @@ export interface ApiSectionSummary {
 	status: string;
 	statusLabel?: string | null;
 	flowBands?: FlowBandRow[];
+	watershedSlug?: string | null;
+	watershedName?: string | null;
+	corridorSlug?: string | null;
+	corridorName?: string | null;
+	corridorSortIndex?: number | null;
+	sortIndex?: number | null;
+	driver?: string | null;
 	thresholds?: {
 		flowLow: number; flowRunnable: number;
 		flowIdealMin: number; flowIdealMax: number;
@@ -109,10 +147,13 @@ export interface ApiRiverSummary {
 	id: string;
 	name: string;
 	description: string;
+	watershedId: string | null;
 	sections: ApiSectionSummary[];
 }
 
 export interface ApiDashboardResponse {
 	generated_at: string;
 	rivers: ApiRiverSummary[];
+	watersheds: WatershedSummary[];
+	corridors: CorridorSummary[];
 }

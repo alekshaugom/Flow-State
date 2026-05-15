@@ -46,6 +46,13 @@ export function transformDashboard(
 				latitude: s.latitude,
 				longitude: s.longitude,
 				flowBands: bands,
+				watershedSlug: s.watershedSlug || null,
+				watershedName: s.watershedName || null,
+				corridorSlug: s.corridorSlug || null,
+				corridorName: s.corridorName || null,
+				corridorSortIndex: s.corridorSortIndex ?? null,
+				sortIndex: s.sortIndex ?? null,
+				driver: s.driver || null,
 				legacyThresholds: s.thresholds || null,
 			});
 		}
@@ -58,7 +65,7 @@ export function transformDetail(
 	craft: CraftType = 'raft',
 	skill: SkillLevel = 'intermediate',
 ): DetailViewModel {
-	const { section, river, flow, charts, gauges, reservoirs, snowpack, forecast, flowBands, resolvedBand: serverBand } = data;
+	const { section, river, flow, charts, gauges, reservoirs, snowpack, forecast, flowBands, resolvedBand: serverBand, breadcrumb } = data;
 
 	// Re-resolve the band client-side based on the global craft/skill context.
 	// Falls back to the server-resolved band (default raft+intermediate or legacy).
@@ -119,6 +126,7 @@ export function transformDetail(
 		nearestTown: section.putIn || null,
 		miles: section.lengthMiles || null,
 		notes: section.notes || null,
+		breadcrumb: Array.isArray(breadcrumb) ? breadcrumb : [],
 		now: flow.current,
 		status: designStatus,
 		statusLabel: statusLabelComputed,

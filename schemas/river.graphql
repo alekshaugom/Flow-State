@@ -4,6 +4,7 @@ type River @table @export {
 	state: String
 	description: String
 	watershed: String
+	watershedId: ID @indexed
 	sections: [RiverSection] @relationship(to: "riverId")
 	gauges: [Gauge] @relationship(to: "riverId")
 	reservoirs: [Reservoir] @relationship(to: "riverId")
@@ -13,6 +14,9 @@ type RiverSection @table @export {
 	id: ID @primaryKey
 	riverId: ID @indexed
 	river: River @relationship(from: "riverId")
+	corridorId: ID @indexed
+	driver: String @indexed
+	sortIndex: Int @indexed
 	name: String
 	putIn: String
 	takeOut: String

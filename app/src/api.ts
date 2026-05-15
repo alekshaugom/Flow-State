@@ -11,6 +11,12 @@ export const api = {
 	riverDetail: (sectionId: string) =>
 		fetch(`/RiverDetail/${encodeURIComponent(sectionId)}`).then(json<any>),
 
+	watershed: (slug: string) =>
+		fetch(`/WatershedView/${encodeURIComponent(slug)}`).then(json<any>),
+
+	corridor: (slug: string) =>
+		fetch(`/CorridorView/${encodeURIComponent(slug)}`).then(json<any>),
+
 	ingestionStatus: () =>
 		fetch('/Ingestion').then(json<any>),
 

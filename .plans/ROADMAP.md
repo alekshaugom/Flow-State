@@ -3,13 +3,13 @@
 Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
 **Last updated:** 2026-05-14
-**Active slice:** [02-watershed-corridor-ia](slices/02-watershed-corridor-ia/plan.md)
+**Active slice:** [02b-watershed-corridor-refinements](slices/02b-watershed-corridor-refinements/plan.md)
 
 ## Active
 
 | # | Slice | Value | Effort | Goal |
 |---|---|---|---|---|
-| 02 | [watershed-corridor-ia](slices/02-watershed-corridor-ia/plan.md) | 9 | L | Watershed → Corridor → Section hierarchy; new routes; sidebar watershed-grouped |
+| 02b | [watershed-corridor-refinements](slices/02b-watershed-corridor-refinements/plan.md) | 8 | M | sortIndex on sections/corridors; watershed page embeds corridor cards w/ sections inline; map-header placeholder |
 
 ## Queued — detailed plans
 
@@ -39,6 +39,7 @@ Single source of truth for what ships next. Sorted by value × confidence ÷ eff
 
 | # | Slice | Closed | Notes |
 |---|---|---|---|
+| 02 | [watershed-corridor-ia](completed/02-watershed-corridor-ia/plan.md) | 2026-05-14 | Watershed + RiverCorridor schemas, 8 watersheds + 20 corridors seeded; /watershed/:slug + /corridor/:slug routes; watershed-grouped collapsible sidebar; breadcrumb on all non-home pages; legacy /section/:id preserved |
 | 01 | [flowband-browns-fix](completed/01-flowband-browns-fix/plan.md) | 2026-05-14 | FlowBand schema + 315 seeded rows; global Craft/Skill context with Oar-Raft / Paddle Boat / Kayak/SUP options in dashboard segmented control; per-craft/skill interpretation in section flow tile; Browns at 396 now correctly reads "Runnable (technical)" |
 | 00 | [v1-foundation](completed/00-v1-foundation.md) | 2026-05-13 | Harper backend, ingestion worker, custom SVG charts, Leaflet map, ForecastPipeline stub |
 

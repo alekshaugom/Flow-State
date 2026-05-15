@@ -1,17 +1,14 @@
 import { Resource, tables } from 'harper';
 import { getFlowStatus } from '../lib/utils.ts';
 import { resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
+import { listWatersheds } from '../lib/watersheds.ts';
+import { listCorridors } from '../lib/corridors.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
 	for await (const r of iter) out.push(r);
 	return out;
 }
-
-const STATUS_ORDER: Record<string, number> = {
-	dangerous: 0, 'expert-only': 1, high: 2, ideal: 3,
-	runnable: 4, low: 5, 'too-low': 6, 'no-flow': 7, unknown: 8,
-};
 
 let cachedResult: any = null;
 let cacheTimestamp = 0;
@@ -35,11 +32,13 @@ export class Dashboard extends Resource {
 			});
 		}
 
-		const [rivers, sections, snapshots, allBands] = await Promise.all([
+		const [rivers, sections, snapshots, allBands, watersheds, corridors] = await Promise.all([
 			collect(tables.River.search({ conditions: [] })),
 			collect(tables.RiverSection.search({ conditions: [] })),
 			collect(tables.GaugeSnapshot.search({ conditions: [] })),
 			collect(tables.FlowBand.search({ conditions: [] })),
+			listWatersheds(),
+			listCorridors(),
 		]);
 
 		const snapshotMap = new Map<string, any>();
@@ -51,6 +50,13 @@ export class Dashboard extends Resource {
 			arr.push(b);
 			bandsBySection.set(b.sectionId, arr);
 		}
+
+		const corridorMap = new Map<string, any>();
+		for (const c of corridors) corridorMap.set(c.id, c);
+		const watershedMap = new Map<string, any>();
+		for (const w of watersheds) watershedMap.set(w.id, w);
+		const riverWatershedMap = new Map<string, string | null>();
+		for (const r of rivers) riverWatershedMap.set(r.id, (r as any).watershedId || null);
 
 		const dashboard = [];
 		for (const river of rivers) {
@@ -86,6 +92,12 @@ export class Dashboard extends Resource {
 					if (snap?.sparkline) sparkline = JSON.parse(snap.sparkline);
 				} catch {}
 
+				const corridor = section.corridorId ? corridorMap.get(section.corridorId) : null;
+				const watershedSlug = corridor?.watershedId
+					|| riverWatershedMap.get(section.riverId)
+					|| null;
+				const watershed = watershedSlug ? watershedMap.get(watershedSlug) : null;
+
 				sectionData.push({
 					id: section.id,
 					name: section.name,
@@ -107,6 +119,13 @@ export class Dashboard extends Resource {
 					updatedAt: snap?.updatedAt || null,
 					gaugeName: snap?.gaugeName || null,
 					flowBands: sectionBands,
+					watershedSlug: watershedSlug || null,
+					watershedName: watershed?.name || null,
+					corridorSlug: section.corridorId || null,
+					corridorName: corridor?.name || null,
+					corridorSortIndex: corridor?.sortIndex ?? 999,
+					sortIndex: section.sortIndex ?? 999,
+					driver: section.driver || corridor?.driver || null,
 					thresholds: {
 						flowLow: section.flowLow,
 						flowRunnable: section.flowRunnable,
@@ -119,13 +138,19 @@ export class Dashboard extends Resource {
 				});
 			}
 
-			sectionData.sort((a, b) => (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99));
+			sectionData.sort((a, b) => {
+				const ai = (a as any).corridorSortIndex ?? 999;
+				const bi = (b as any).corridorSortIndex ?? 999;
+				if (ai !== bi) return ai - bi;
+				return ((a as any).sortIndex ?? 999) - ((b as any).sortIndex ?? 999);
+			});
 
 			if (sectionData.length > 0) {
 				dashboard.push({
 					id: river.id,
 					name: river.name,
 					description: river.description,
+					watershedId: (river as any).watershedId || null,
 					sections: sectionData,
 				});
 			}
@@ -133,7 +158,29 @@ export class Dashboard extends Resource {
 
 		dashboard.sort((a, b) => a.name.localeCompare(b.name));
 
-		const result = { generated_at: new Date().toISOString(), rivers: dashboard };
+		const watershedSummaries = watersheds.map(w => ({
+			id: w.id,
+			name: w.name,
+			region: w.region,
+			description: w.description,
+			dominantDriver: w.dominantDriver,
+		}));
+
+		const corridorSummaries = corridors.map(c => ({
+			id: c.id,
+			name: c.name,
+			shortName: c.shortName,
+			watershedId: c.watershedId,
+			riverId: c.riverId,
+			driver: c.driver,
+		}));
+
+		const result = {
+			generated_at: new Date().toISOString(),
+			rivers: dashboard,
+			watersheds: watershedSummaries,
+			corridors: corridorSummaries,
+		};
 		cachedResult = result;
 		cacheTimestamp = Date.now();
 		return new Response(JSON.stringify(result), {

@@ -16,7 +16,7 @@ let _bandsCache: FlowBandRow[] | null = null;
 let _bandsCacheLoadedAt = 0;
 const BANDS_CACHE_TTL_MS = 5 * 60_000;
 
-async function loadAllBands(): Promise<FlowBandRow[]> {
+export async function loadAllBands(): Promise<FlowBandRow[]> {
 	if (_bandsCache && (Date.now() - _bandsCacheLoadedAt) < BANDS_CACHE_TTL_MS) {
 		return _bandsCache;
 	}

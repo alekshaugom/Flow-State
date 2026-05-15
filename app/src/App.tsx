@@ -8,6 +8,8 @@ import { MobileDetail } from './mobile/MobileDetail';
 const MapPage = lazy(() => import('./pages/MapPage').then(m => ({ default: m.MapPage })));
 const AdminPage = lazy(() => import('./admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const WatershedPage = lazy(() => import('./pages/WatershedPage').then(m => ({ default: m.WatershedPage })));
+const CorridorPage = lazy(() => import('./pages/CorridorPage').then(m => ({ default: m.CorridorPage })));
 
 function ResponsiveHome() {
 	const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -27,6 +29,8 @@ export function App() {
 			<Routes>
 				<Route index element={<ResponsiveHome />} />
 				<Route path="/section/:sectionId" element={<ResponsiveSection />} />
+				<Route path="/watershed/:watershedSlug" element={<Suspense><WatershedPage /></Suspense>} />
+				<Route path="/corridor/:corridorSlug" element={<Suspense><CorridorPage /></Suspense>} />
 				<Route path="/login" element={<Suspense><LoginPage /></Suspense>} />
 				<Route path="/map" element={<Suspense><MapPage /></Suspense>} />
 				<Route path="/admin" element={<Suspense><AdminPage /></Suspense>} />

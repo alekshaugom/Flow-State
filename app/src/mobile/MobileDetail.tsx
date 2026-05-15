@@ -8,6 +8,7 @@ import { Icon } from '../components/Icon';
 import { SectionHead } from '../components/SectionHead';
 import { RangeGauge } from '../components/RangeGauge';
 import { ContextStrip } from '../components/ContextStrip';
+import { Breadcrumb } from '../components/Breadcrumb';
 import { MobileFlowChart } from './MobileFlowChart';
 import { MobileForecastPanel } from './MobileForecastPanel';
 import { MobileGaugePanel } from './MobileGaugePanel';
@@ -65,8 +66,14 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 				</div>
 			</div>
 
+			{detail.breadcrumb && detail.breadcrumb.length > 0 && (
+				<div style={{ padding: '14px 20px 0' }}>
+					<Breadcrumb segments={detail.breadcrumb} />
+				</div>
+			)}
+
 			{/* Hero */}
-			<section style={{ padding: '16px 20px 20px' }}>
+			<section style={{ padding: '12px 20px 20px' }}>
 				<div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 4 }}>
 					<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 					{detail.river} · {detail.classification}

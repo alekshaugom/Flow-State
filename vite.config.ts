@@ -24,8 +24,13 @@ export default defineConfig({
 		proxy: {
 			...proxyEntry('/Dashboard'),
 			...proxyEntry('/RiverDetail'),
+			...proxyEntry('/WatershedView'),
+			...proxyEntry('/CorridorView'),
+			...proxyEntry('/Watershed'),
+			...proxyEntry('/RiverCorridor'),
 			...proxyEntry('/River'),
 			...proxyEntry('/RiverSection'),
+			...proxyEntry('/FlowBand'),
 			...proxyEntry('/Gauge'),
 			...proxyEntry('/GaugeReading'),
 			...proxyEntry('/Reservoir'),

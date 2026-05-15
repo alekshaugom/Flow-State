@@ -15,6 +15,16 @@ export class section extends Resource {
 	get() { return serveApp(); }
 }
 
+export class watershed extends Resource {
+	allowRead() { return true; }
+	get() { return serveApp(); }
+}
+
+export class corridor extends Resource {
+	allowRead() { return true; }
+	get() { return serveApp(); }
+}
+
 export class map extends Resource {
 	allowRead() { return true; }
 	get() { return serveApp(); }
