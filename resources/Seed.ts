@@ -5,11 +5,106 @@ import { invalidateWatershedsCache } from '../lib/watersheds.ts';
 import { invalidateCorridorsCache } from '../lib/corridors.ts';
 import { invalidateDashboardCache } from './Dashboard.ts';
 
+const AUTO_SEED_FLAG = '__flowStateAutoSeedStarted';
+// L004: empty-conditions scan can transiently return 0 rows immediately after
+// a rolling restart. Wait a beat before deciding whether tables need seeding.
+const AUTO_SEED_STARTUP_DELAY_MS = 10_000;
+
 async function count(table: any): Promise<number> {
 	let n = 0;
 	for await (const _ of table.search({ conditions: [] })) n++;
 	return n;
 }
+
+async function fullSeed(): Promise<Record<string, number>> {
+	for (const w of WATERSHEDS) await tables.Watershed.put(w.id, w);
+	for (const c of CORRIDORS) await tables.RiverCorridor.put(c.id, c);
+	for (const r of RIVERS) await tables.River.put(r.id, r);
+	for (const s of SECTIONS) await tables.RiverSection.put(s.id, s);
+	for (const g of GAUGES) await tables.Gauge.put(g.id, g);
+	for (const r of RESERVOIRS) await tables.Reservoir.put(r.id, r);
+	for (const b of SNOWPACK_BASINS) await tables.SnowpackBasin.put(b.id, b);
+	for (const d of DATA_SOURCES) await tables.DataSource.put(d.id, d);
+	for (const b of FLOW_BANDS) await tables.FlowBand.put(b.id, b);
+	return {
+		watersheds: WATERSHEDS.length,
+		corridors: CORRIDORS.length,
+		rivers: RIVERS.length,
+		sections: SECTIONS.length,
+		gauges: GAUGES.length,
+		reservoirs: RESERVOIRS.length,
+		basins: SNOWPACK_BASINS.length,
+		sources: DATA_SOURCES.length,
+		flowBands: FLOW_BANDS.length,
+	};
+}
+
+/**
+ * Idempotent backfill: walks each reference table and seeds only the empty ones.
+ * Used by both `POST /Seed` (manual trigger) and the auto-seed-at-startup tick
+ * so new tables added in future slices auto-populate on the next Fabric deploy.
+ */
+async function backfillMissingSeeds(): Promise<{ backfilled: Record<string, number>; alreadySeeded: boolean }> {
+	const riverCount = await count(tables.River);
+	const backfilled: Record<string, number> = {};
+
+	if (riverCount === 0) {
+		Object.assign(backfilled, await fullSeed());
+	} else {
+		if ((await count(tables.FlowBand)) === 0) {
+			for (const b of FLOW_BANDS) await tables.FlowBand.put(b.id, b);
+			backfilled.flowBands = FLOW_BANDS.length;
+		}
+		if ((await count(tables.Watershed)) === 0) {
+			for (const w of WATERSHEDS) await tables.Watershed.put(w.id, w);
+			backfilled.watersheds = WATERSHEDS.length;
+		}
+		if ((await count(tables.RiverCorridor)) === 0) {
+			for (const c of CORRIDORS) await tables.RiverCorridor.put(c.id, c);
+			backfilled.corridors = CORRIDORS.length;
+		}
+		// Re-upsert rivers/sections so newly-added denormalized fields
+		// (watershedId, corridorId, driver) land on existing rows.
+		if (backfilled.watersheds || backfilled.corridors) {
+			for (const r of RIVERS) await tables.River.put(r.id, r);
+			for (const s of SECTIONS) await tables.RiverSection.put(s.id, s);
+			backfilled.rivers = RIVERS.length;
+			backfilled.sections = SECTIONS.length;
+		}
+	}
+
+	if (Object.keys(backfilled).length === 0) {
+		return { backfilled, alreadySeeded: true };
+	}
+	invalidateWatershedsCache();
+	invalidateCorridorsCache();
+	invalidateFlowBandsCache();
+	invalidateDashboardCache();
+	return { backfilled, alreadySeeded: false };
+}
+
+async function autoSeedAtStartup(): Promise<void> {
+	await new Promise(r => setTimeout(r, AUTO_SEED_STARTUP_DELAY_MS));
+	try {
+		const { backfilled, alreadySeeded } = await backfillMissingSeeds();
+		if (alreadySeeded) {
+			console.log('[seed] startup: all tables populated, skipping');
+		} else {
+			console.log(`[seed] startup: backfilled ${JSON.stringify(backfilled)}`);
+		}
+	} catch (err) {
+		console.warn('[seed] startup auto-seed failed:', (err as Error).message);
+	}
+}
+
+function startAutoSeed() {
+	const g = globalThis as any;
+	if (g[AUTO_SEED_FLAG]) return;
+	g[AUTO_SEED_FLAG] = true;
+	autoSeedAtStartup();
+}
+
+startAutoSeed();
 
 export class Seed extends Resource {
 	async get() {
@@ -38,8 +133,9 @@ export class Seed extends Resource {
 		}
 
 		if (action === 'hierarchy') {
-			// Idempotent re-seed of the watershed/corridor hierarchy plus the
-			// new watershedId / corridorId / driver fields on rivers and sections.
+			// Forced idempotent re-seed of the watershed/corridor hierarchy plus
+			// the denormalized watershedId / corridorId / driver fields on rivers
+			// and sections.
 			for (const w of WATERSHEDS) await tables.Watershed.put(w.id, w);
 			for (const c of CORRIDORS) await tables.RiverCorridor.put(c.id, c);
 			for (const r of RIVERS) await tables.River.put(r.id, r);
@@ -57,70 +153,10 @@ export class Seed extends Resource {
 			};
 		}
 
-		const existing = await count(tables.River);
-		if (existing > 0) {
-			const flowBandsExisting = await count(tables.FlowBand);
-			const watershedsExisting = await count(tables.Watershed);
-			const corridorsExisting = await count(tables.RiverCorridor);
-			const backfilled: Record<string, number> = {};
-
-			if (flowBandsExisting === 0) {
-				for (const b of FLOW_BANDS) await tables.FlowBand.put(b.id, b);
-				invalidateFlowBandsCache();
-				backfilled.flowBands = FLOW_BANDS.length;
-			}
-			if (watershedsExisting === 0) {
-				for (const w of WATERSHEDS) await tables.Watershed.put(w.id, w);
-				invalidateWatershedsCache();
-				backfilled.watersheds = WATERSHEDS.length;
-			}
-			if (corridorsExisting === 0) {
-				for (const c of CORRIDORS) await tables.RiverCorridor.put(c.id, c);
-				invalidateCorridorsCache();
-				backfilled.corridors = CORRIDORS.length;
-			}
-			// Re-upsert rivers and sections so newly-added watershedId / corridorId
-			// / driver fields land on existing rows.
-			if (backfilled.watersheds || backfilled.corridors) {
-				for (const r of RIVERS) await tables.River.put(r.id, r);
-				for (const s of SECTIONS) await tables.RiverSection.put(s.id, s);
-				backfilled.rivers = RIVERS.length;
-				backfilled.sections = SECTIONS.length;
-			}
-
-			if (Object.keys(backfilled).length > 0) {
-				invalidateDashboardCache();
-				return { ok: true, message: 'Backfilled missing tables', backfilled };
-			}
+		const { backfilled, alreadySeeded } = await backfillMissingSeeds();
+		if (alreadySeeded) {
 			return { ok: true, message: 'Already seeded', skipped: true };
 		}
-
-		for (const w of WATERSHEDS) await tables.Watershed.put(w.id, w);
-		for (const c of CORRIDORS) await tables.RiverCorridor.put(c.id, c);
-		for (const r of RIVERS) await tables.River.put(r.id, r);
-		for (const s of SECTIONS) await tables.RiverSection.put(s.id, s);
-		for (const g of GAUGES) await tables.Gauge.put(g.id, g);
-		for (const r of RESERVOIRS) await tables.Reservoir.put(r.id, r);
-		for (const b of SNOWPACK_BASINS) await tables.SnowpackBasin.put(b.id, b);
-		for (const d of DATA_SOURCES) await tables.DataSource.put(d.id, d);
-		for (const b of FLOW_BANDS) await tables.FlowBand.put(b.id, b);
-
-		invalidateWatershedsCache();
-		invalidateCorridorsCache();
-		invalidateFlowBandsCache();
-		invalidateDashboardCache();
-
-		return {
-			ok: true,
-			watersheds: WATERSHEDS.length,
-			corridors: CORRIDORS.length,
-			rivers: RIVERS.length,
-			sections: SECTIONS.length,
-			gauges: GAUGES.length,
-			reservoirs: RESERVOIRS.length,
-			basins: SNOWPACK_BASINS.length,
-			sources: DATA_SOURCES.length,
-			flowBands: FLOW_BANDS.length,
-		};
+		return { ok: true, message: 'Backfilled missing tables', backfilled };
 	}
 }
