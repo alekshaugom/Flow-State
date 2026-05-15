@@ -135,16 +135,6 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 					</div>
 					<div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>Where this section runs at its best.</div>
 				</div>
-				<div style={{ ...statCard, minWidth: 0 }}>
-					<div style={statLabel}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Snowpack</div>
-					<div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
-						<span style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: (detail.snowpackPct ?? 0) >= 100 ? 'var(--ideal-solid)' : 'var(--low-solid)', letterSpacing: '-0.02em' }}>
-							{detail.snowpackPct !== null ? `${detail.snowpackPct}%` : '—'}
-						</span>
-						{detail.snowpackPct !== null && <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>of normal</span>}
-					</div>
-					<div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>Basin SWE · SNOTEL avg.</div>
-				</div>
 			</div>
 
 			{/* Chart */}
