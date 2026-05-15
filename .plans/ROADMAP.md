@@ -2,7 +2,7 @@
 
 Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
-**Last updated:** 2026-05-14
+**Last updated:** 2026-05-15
 **Active slice:** [03b-forecast-snapshot-infra](slices/03b-forecast-snapshot-infra/plan.md)
 
 ## Active
@@ -15,7 +15,8 @@ Single source of truth for what ships next. Sorted by value × confidence ÷ eff
 
 | # | Slice | Value | Effort | Depends | Goal |
 |---|---|---|---|---|---|
-| 04 | [driver-conditioned-forecaster](slices/04-driver-conditioned-forecaster/plan.md) | 8 | M | 03b | Driver-conditioned heuristic forecaster using snowpack + weather + dam releases per section's `driver` field |
+| 03c | [historical-backfill](slices/03c-historical-backfill/plan.md) | 8 | M | 03b | Backfill ~13 months of flow + snowpack + weather observations + dam releases; adds `WeatherObservation` schema + Open-Meteo Archive adapter |
+| 04 | [driver-conditioned-forecaster](slices/04-driver-conditioned-forecaster/plan.md) | 8 | M | 03b, 03c | Driver-conditioned heuristic forecaster using snowpack + weather + dam releases per section's `driver` field |
 
 ## Queued — lighter plans
 

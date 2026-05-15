@@ -5,7 +5,7 @@ value: 8
 confidence: 9
 effort: M
 depends_on: []
-unlocks: [05-history-forecast-chart, 10-admin-editorial-ui]
+unlocks: [03c-historical-backfill, 05-history-forecast-chart, 10-admin-editorial-ui]
 opened: 2026-05-13
 closed: null
 ---

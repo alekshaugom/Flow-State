@@ -4,7 +4,7 @@ status: queued
 value: 8
 confidence: 9
 effort: M
-depends_on: [03a-data-integrity-sweep, 03b-forecast-snapshot-infra]
+depends_on: [03b-forecast-snapshot-infra, 03c-historical-backfill]
 unlocks: [05-history-forecast-chart, 07-drivers-and-context-ui]
 opened: 2026-05-13
 closed: null
