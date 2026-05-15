@@ -28,13 +28,17 @@ const _snowCache: Cache<any> = { rows: [], loadedAt: 0 };
 const _weatherCache: Cache<any> = { rows: [], loadedAt: 0 };
 
 async function loadAllCached(cache: Cache<any>, table: any): Promise<any[]> {
-	if (cache.loadedAt && (Date.now() - cache.loadedAt) < CACHE_TTL_MS) {
+	if (cache.loadedAt && cache.rows.length > 0 && (Date.now() - cache.loadedAt) < CACHE_TTL_MS) {
 		return cache.rows;
 	}
 	const out: any[] = [];
 	for await (const r of table.search({ conditions: [] })) out.push(r);
-	cache.rows = out;
-	cache.loadedAt = Date.now();
+	// Never cache an empty result — on Fabric post-restart, the first scan can
+	// transiently return 0 rows. Caching that for 60s would lock us out until TTL.
+	if (out.length > 0) {
+		cache.rows = out;
+		cache.loadedAt = Date.now();
+	}
 	return out;
 }
 
