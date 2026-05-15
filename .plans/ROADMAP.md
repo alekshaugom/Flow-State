@@ -15,6 +15,7 @@ Single source of truth for what ships next. Sorted by value × confidence ÷ eff
 
 | # | Slice | Value | Effort | Depends | Goal |
 |---|---|---|---|---|---|
+| 03d | [snowpack-confidence-and-audit](slices/03d-snowpack-confidence-and-audit/plan.md) | 8 | M | — | Audit all 12 Colorado basins (fix bad station triplets); enrich snowpack tile with current + historic SWE side-by-side, 30-day sparkline, freshness badge, per-station expand |
 | 04 | [driver-conditioned-forecaster](slices/04-driver-conditioned-forecaster/plan.md) | 8 | M | 03b, 03c | Driver-conditioned heuristic forecaster using snowpack + weather + dam releases per section's `driver` field |
 
 ## Queued — lighter plans
