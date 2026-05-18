@@ -1,9 +1,10 @@
 # Roadmap
 
-Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
+Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies and explicit user priority. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
-**Last updated:** 2026-05-15
+**Last updated:** 2026-05-17
 **Active slice:** [03b-forecast-snapshot-infra](slices/03b-forecast-snapshot-infra/plan.md)
+**Next initiative:** River log series (12 → 12b → 12c) before pivoting back to forecast (03d, 04).
 
 ## Active
 
@@ -15,13 +16,16 @@ Single source of truth for what ships next. Sorted by value × confidence ÷ eff
 
 | # | Slice | Value | Effort | Depends | Goal |
 |---|---|---|---|---|---|
-| 03d | [snowpack-confidence-and-audit](slices/03d-snowpack-confidence-and-audit/plan.md) | 8 | M | — | Audit all 12 Colorado basins (fix bad station triplets); enrich snowpack tile with current + historic SWE side-by-side, 30-day sparkline, freshness badge, per-station expand |
-| 04 | [driver-conditioned-forecaster](slices/04-driver-conditioned-forecaster/plan.md) | 8 | M | 03b, 03c | Driver-conditioned heuristic forecaster using snowpack + weather + dam releases per section's `driver` field |
+| 12 | [river-log-core](slices/12-river-log-core/plan.md) | 9 | M | 02b | **NEXT** — Trip-logging foundation. `RiverLog` + `UserProfile` schemas, `/log/new` form, `<PastTripsStrip>` on section detail, `/section/:id/logs` page, home-card corner badge, `/profile` setup. Logs are private-only this slice. Opens the past-trips axis of the product |
 
 ## Queued — lighter plans
 
 | # | Slice | Value | Effort | Depends | Goal |
 |---|---|---|---|---|---|
+| 12b | [river-log-watershed-browse](slices/12b-river-log-watershed-browse/plan.md) | 8 | M | 12 | `/logs` watershed-grouped filing system mirroring the watershed accordion. Filter by craft / conditions / watershed. Year-view toggle. Surfaces "where have I been" across the app |
+| 12c | [river-log-sharing](slices/12c-river-log-sharing/intent.md) | 7 | M | 12, 12b | *(intent.md — promote to lighter plan when 12b ships)* Per-log invite links + opt-in bidirectional friendships. Logs become shareable to specific people; never fully public. Privacy invariant: no `"public"` visibility value ever exists in the schema |
+| 03d | [snowpack-confidence-and-audit](slices/03d-snowpack-confidence-and-audit/plan.md) | 8 | M | — | Audit all 12 Colorado basins (fix bad station triplets); enrich snowpack tile with current + historic SWE side-by-side, 30-day sparkline, freshness badge, per-station expand |
+| 04 | [driver-conditioned-forecaster](slices/04-driver-conditioned-forecaster/plan.md) | 8 | M | 03b, 03c | Driver-conditioned heuristic forecaster using snowpack + weather + dam releases per section's `driver` field |
 | 05 | [history-forecast-chart](slices/05-history-forecast-chart/plan.md) | 9 | M | 03a, 03b, 04 | Single chart with history + present + forecast + weather strip + band-crossing interpretation |
 | 06 | [map-layering](slices/06-map-layering/plan.md) | 7 | M | 02 | Tile providers, zoom-adaptive layers, watershed/corridor focus deep-links |
 
@@ -58,6 +62,6 @@ Single source of truth for what ships next. Sorted by value × confidence ÷ eff
 
 **Effort**: S = under a week, M = 1–2 weeks, L = 2–4 weeks, XL = 4+ weeks. Anything XL should be broken down.
 
-**Order**: highest-value, dependency-free slice goes first. Where ties exist, prefer the slice that *unlocks* more downstream slices.
+**Order**: highest-value, dependency-free slice goes first. Where ties exist, prefer the slice that *unlocks* more downstream slices. Explicit user direction can override the formula for a multi-slice initiative — e.g. when the user wants a coherent feature thread shipped together before pivoting away.
 
 **Promoting an intent to a plan**: when an intent reaches the top of the queue and is about to become active, expand it into a `plan.md` **in the context of the actual codebase as it stands then**. Don't lock down details from this side of the dependency wall.
