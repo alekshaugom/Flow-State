@@ -4,6 +4,7 @@ import { StatusPill } from '../components/StatusPill';
 import { TrendChip } from '../components/TrendChip';
 import { Sparkline } from '../components/Sparkline';
 import { Icon } from '../components/Icon';
+import { HomeCardLoggedBadge } from '../components/HomeCardLoggedBadge';
 import type { DashboardSection } from '../types';
 
 interface RiverCardProps {
@@ -37,6 +38,8 @@ export function RiverCard({ section: s, onClick, sparkDays = 30 }: RiverCardProp
 				position: 'absolute', left: 0, top: 12, bottom: 12, width: 3,
 				background: c.solid, borderRadius: '0 3px 3px 0',
 			}} />
+
+			<HomeCardLoggedBadge count={s.myTripCount} />
 
 			<div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, paddingLeft: 8 }}>
 				<div style={{ minWidth: 0, flex: 1 }}>

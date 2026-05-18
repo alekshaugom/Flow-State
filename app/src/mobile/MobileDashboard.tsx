@@ -138,7 +138,11 @@ export function MobileDashboard() {
 					</div>
 					<div style={{ display: 'flex', gap: 8 }}>
 						<button style={iconBtn} onClick={() => navigate('/map')}><Icon name="map" size={18} color="white" /></button>
-						<button style={iconBtn}><Icon name="search" size={18} color="white" /></button>
+						{auth.isAuthenticated && (
+							<button style={iconBtn} onClick={() => navigate('/logs')} aria-label="My Logs">
+								<Icon name="star" size={18} color="white" />
+							</button>
+						)}
 						<button style={iconBtn} onClick={() => navigate('/login')}><Icon name="user" size={18} color="white" /></button>
 					</div>
 				</div>

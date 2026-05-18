@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { STATUS_COLORS } from '../constants';
 import { BigCFS } from '../components/BigCFS';
 import { StatusPill } from '../components/StatusPill';
@@ -10,8 +11,10 @@ import { ForecastBand } from '../components/ForecastBand';
 import { ContextStrip } from '../components/ContextStrip';
 import { WeatherStrip } from '../components/WeatherStrip';
 import { Breadcrumb } from '../components/Breadcrumb';
+import { PastTripsStrip } from '../components/PastTripsStrip';
 import { DesktopFlowChart } from './DesktopFlowChart';
 import { useRiverDetail } from '../hooks/useRiverDetail';
+import { useAuth } from '../hooks/useAuth';
 
 const detailBtn: React.CSSProperties = {
 	display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -35,6 +38,7 @@ interface DesktopDetailProps {
 
 export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 	const { data: detail, isLoading } = useRiverDetail(sectionId);
+	const { isAuthenticated } = useAuth();
 	const [range, setRange] = useState(30);
 
 	if (isLoading || !detail) {
@@ -78,6 +82,18 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 						{detail.section}
 					</h1>
 					<div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+						{isAuthenticated && (
+							<Link
+								to={`/log/new?sectionId=${encodeURIComponent(sectionId)}`}
+								style={{
+									...detailBtn,
+									textDecoration: 'none',
+									border: '1px solid var(--river-700)',
+									background: 'var(--river-700)',
+									color: '#fff',
+								}}
+							>+ Log a trip</Link>
+						)}
 						<button style={detailBtn}><Icon name="star" size={16} />Save</button>
 						<button style={detailBtn}><Icon name="bell" size={16} />Alerts</button>
 					</div>
@@ -246,6 +262,17 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 					</div>
 				</div>
 			</div>
+
+			{/* Past trips (auth-only, last) */}
+			{isAuthenticated && (
+				<PastTripsStrip
+					sectionId={sectionId}
+					logs={detail.myLogs}
+					totalCount={detail.myLogTotalCount}
+					profile={detail.myProfile}
+					sectionThresholds={detail.flowThresholds}
+				/>
+			)}
 
 		</div>
 	);

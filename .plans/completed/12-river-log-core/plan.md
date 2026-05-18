@@ -1,13 +1,13 @@
 ---
 slice: 12-river-log-core
-status: queued
+status: done
 value: 9
 confidence: 8
 effort: M
 depends_on: [02b-watershed-corridor-refinements]
 unlocks: [12b-river-log-watershed-browse, 12c-river-log-sharing]
 opened: 2026-05-17
-closed: null
+closed: 2026-05-18
 ---
 
 # Slice 12 — River log: core
@@ -91,7 +91,7 @@ type UserProfile @table @export {
 - Denormalize `watershedId` + `corridorId` on the log row. Avoids join walks on watershed-browse queries (slice 12b) and home-card per-section counts. Section.corridor.watershed lookup happens once at write time, never again.
 - `craftType` mirrors `CraftSkillControl` enum exactly. Auto-populate from current selection so the boater doesn't double-pick.
 - `conditionsTags` is JSON-stored string for write-flex; surfaced as chip multi-select with a curated suggestion set (`tons-of-rock`, `frequent-highsides`, `precision-oar-required`, `advanced-maneuvers`, `mellow-float`, `cold-water`, `crowded`, `pristine`, `wind`, `swam`) but accepts arbitrary user-added strings.
-- `flowAtTripCfs` resolution is lazy: on write, attempt resolve from `DailyGaugeRollup(section.primaryGaugeId, trip.date)`; if null, retry up to 7 days post-trip on read. This handles the case where the rollup nightly job hasn't caught up yet (slice 03b dependency — must ship first).
+- `flowAtTripCfs` resolution is lazy: on write, attempt resolve from `DailyGaugeRollup(section.primaryGaugeId, trip.date)`; if null, retry up to 7 days post-trip on read. This handles the case where the rollup nightly job hasn't run yet (03b now ships *after* 12c; the resolver must also tolerate the table being absent — see Risks).
 - `preExistingTripCountsJson` on UserProfile captures the "200 trips down this river before the app existed" claim without retroactively fabricating log rows. Surfaces in the log card footer as `+ 200 prior trips`.
 - Single `visibility` column. Only `"private"` accepted on write this slice; rejected otherwise. 12c extends the allowed values.
 
@@ -176,7 +176,7 @@ type UserProfile @table @export {
 ## Risks / edge cases
 
 - **Flow-at-trip null at write.** Common when a log is created on the day of the trip and `DailyGaugeRollup` hasn't run yet. The resolver retries on read up to 7 days; after that, leaves it null and the card shows `ran at — cfs`. Document this in the form's helper text.
-- **DailyGaugeRollup dependency.** Slice 12 ships *after* 03b so the rollup table exists. If 03b slips, slice 12 can still ship — the field is nullable from day one and the form / cards handle null gracefully.
+- **DailyGaugeRollup not yet present.** Slice 12 now ships *before* 03b. The rollup table won't exist when logs are first written; `lib/log/flow-resolver.ts` must guard against `tables.DailyGaugeRollup` being absent (try/catch, or check existence) and return null on either miss. UI shows `ran at — cfs`. When 03b lands, the rollup populates and the read-retry picks up the value for logs <7 days old; older logs stay null.
 - **L004 (Harper static-import + empty-scan caching).** All three new resources use `import { tables } from 'harper'` statically. None cache empty result sets. Add a regression test that restarts Harper between writes and reads.
 - **L005 (Resource class name collisions).** Resources named `RiverLogResource`, `UserProfileResource`, `SectionLogsView` — never bare `RiverLog`. Verify with `grep "@export" schemas/` for collisions before merge.
 - **Composite ID stability.** `compositeId([userId, sectionId, date, createdAtMillis])` includes millis to allow multiple logs per section per date (e.g. morning + afternoon runs).
@@ -208,7 +208,7 @@ type UserProfile @table @export {
 - Existing compact row: [app/src/components/SectionRow.tsx](../../../app/src/components/SectionRow.tsx)
 - Section detail backend to extend: [resources/RiverDetail.ts](../../../resources/RiverDetail.ts)
 - Dashboard backend to extend: [resources/Dashboard.ts](../../../resources/Dashboard.ts)
-- Daily rollup dependency (must ship first): slice [03b](../03b-forecast-snapshot-infra/plan.md) — `DailyGaugeRollup` table
+- Daily rollup substrate (ships *after* 12c, optional input for `flowAtTripCfs`): slice [03b](../03b-forecast-snapshot-infra/plan.md) — `DailyGaugeRollup` table
 - Vision to amend: [vision/product-vision.md](../../vision/product-vision.md) "Not social" line + new "Past trips: second axis" section; [vision/ux-direction.md](../../vision/ux-direction.md) route hierarchy + new primitives
 - Composite ID helper: [lib/utils.ts](../../../lib/utils.ts) — `compositeId()`
 - Lesson L004: [L004-harper-static-import-and-search-after-restart.md](../../lessons/L004-harper-static-import-and-search-after-restart.md) — static-import + empty-scan caching

@@ -1,0 +1,32 @@
+type RiverLog @table @export {
+	id: ID @primaryKey
+	userId: ID @indexed
+	user: WaitlistUser @relationship(from: "userId")
+	sectionId: ID @indexed
+	section: RiverSection @relationship(from: "sectionId")
+	watershedId: ID @indexed
+	corridorId: ID @indexed
+
+	date: String @indexed
+	endDate: String @indexed
+	campingJson: String
+	tripNights: Int
+	craftId: ID @indexed
+	craftType: String
+	craftSize: String
+	craftName: String
+	crewSize: Int
+	durationHours: Float
+	putIn: String
+	takeOut: String
+	notes: String
+	conditionsTags: String
+
+	flowAtTripCfs: Float
+	flowSourceGaugeId: ID
+	flowResolvedAt: String
+
+	visibility: String @indexed
+	createdAt: String @indexed
+	updatedAt: String
+}

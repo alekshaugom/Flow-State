@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Sparkline } from './Sparkline';
+import { HomeCardLoggedBadge } from './HomeCardLoggedBadge';
 import { STATUS_COLORS, mapStatusToDesign, STATUS_LABEL } from '../constants';
 
 interface SectionShape {
@@ -13,6 +14,7 @@ interface SectionShape {
 	sparkline?: number[] | null;
 	putIn?: string | null;
 	takeOut?: string | null;
+	myTripCount?: number;
 }
 
 interface SectionRowProps {
@@ -43,7 +45,8 @@ export function SectionRow({ section, density = 'desktop' }: SectionRowProps) {
 	const flowSize = density === 'mobile' ? 18 : 20;
 
 	return (
-		<Link to={`/section/${section.id}`} style={cardStyle}>
+		<Link to={`/section/${section.id}`} style={{ ...cardStyle, position: 'relative' }}>
+			<HomeCardLoggedBadge count={section.myTripCount ?? 0} />
 			<div style={{ display: 'flex', flexDirection: 'column', gap: density === 'mobile' ? 4 : 6, minWidth: 0 }}>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
 					<span style={{

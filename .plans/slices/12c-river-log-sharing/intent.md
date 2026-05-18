@@ -1,11 +1,11 @@
 ---
 slice: 12c-river-log-sharing
-status: queued
+status: active
 value: 7
 confidence: 6
 effort: M
-depends_on: [12-river-log-core, 12b-river-log-watershed-browse]
-unlocks: []
+depends_on: [12-river-log-core, 12b-river-log-watershed-browse, 12d-email-auth]
+unlocks: [12f-trip-photos]
 opened: 2026-05-17
 closed: null
 ---

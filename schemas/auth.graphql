@@ -2,6 +2,8 @@ type WaitlistUser @table @export {
 	id: ID @primaryKey
 	email: String @indexed
 	name: String
+	firstName: String
+	lastName: String
 	avatarUrl: String
 	provider: String
 	status: String @indexed

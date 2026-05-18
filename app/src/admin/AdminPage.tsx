@@ -5,7 +5,7 @@ import { api } from '../api';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
 import { AppHeader } from '../components/AppHeader';
-import { WaitlistPanel } from './WaitlistPanel';
+import { AdminUsersPanel } from './AdminUsersPanel';
 
 const card: React.CSSProperties = {
 	background: 'var(--bg-card)', border: '1px solid var(--rule)',
@@ -28,7 +28,7 @@ const btnOutline: React.CSSProperties = {
 	border: '1px solid var(--rule)',
 };
 
-type AdminTab = 'data' | 'waitlist';
+type AdminTab = 'data' | 'users';
 
 export function AdminPage() {
 	const navigate = useNavigate();
@@ -87,7 +87,7 @@ export function AdminPage() {
 
 				{/* Tabs */}
 				<div style={{ display: 'flex', gap: 4, marginBottom: 24 }}>
-					{(['data', 'waitlist'] as AdminTab[]).map(t => (
+					{(['data', 'users'] as AdminTab[]).map(t => (
 						<button key={t} onClick={() => setTab(t)} style={{
 							padding: '8px 16px', borderRadius: 'var(--r-md)',
 							fontSize: 13, fontWeight: 600, cursor: 'pointer',
@@ -95,12 +95,12 @@ export function AdminPage() {
 							color: tab === t ? 'var(--ink-0)' : 'var(--ink-3)',
 							border: tab === t ? '1px solid var(--rule)' : '1px solid transparent',
 						}}>
-							{t === 'data' ? 'Data' : 'Waitlist'}
+							{t === 'data' ? 'Data' : 'Users'}
 						</button>
 					))}
 				</div>
 
-				{!auth.isLoading && !auth.isApproved && tab === 'waitlist' ? (
+				{!auth.isLoading && !auth.isApproved && tab === 'users' ? (
 					<div style={{
 						...card, textAlign: 'center', padding: 40,
 					}}>
@@ -115,8 +115,8 @@ export function AdminPage() {
 							<button onClick={() => navigate('/login')} style={btn}>Sign in</button>
 						)}
 					</div>
-				) : tab === 'waitlist' ? (
-					<WaitlistPanel />
+				) : tab === 'users' ? (
+					<AdminUsersPanel />
 				) : (
 					<>
 						{message && (

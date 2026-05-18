@@ -1,0 +1,13 @@
+type UserCraft @table @export {
+	id: ID @primaryKey
+	userId: ID @indexed
+	user: WaitlistUser @relationship(from: "userId")
+	name: String
+	craftType: String @indexed
+	craftSize: String
+	notes: String
+	isDefault: Boolean @indexed
+	archivedAt: String @indexed
+	createdAt: String @indexed
+	updatedAt: String
+}

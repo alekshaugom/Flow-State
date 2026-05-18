@@ -19,11 +19,32 @@ export function invalidateDashboardCache() {
 	cacheTimestamp = 0;
 }
 
+async function getMyLogCounts(userId: string | null): Promise<Map<string, { count: number; lastLoggedAt: string | null }>> {
+	const out = new Map<string, { count: number; lastLoggedAt: string | null }>();
+	if (!userId) return out;
+	for await (const log of tables.RiverLog.search({
+		conditions: [{ attribute: 'userId', value: userId, comparator: 'equals' as const }],
+	})) {
+		const sid = (log as any).sectionId;
+		if (!sid) continue;
+		const existing = out.get(sid) || { count: 0, lastLoggedAt: null };
+		existing.count += 1;
+		const d = (log as any).date as string | null;
+		if (d && (existing.lastLoggedAt == null || d > existing.lastLoggedAt)) existing.lastLoggedAt = d;
+		out.set(sid, existing);
+	}
+	return out;
+}
+
 export class Dashboard extends Resource {
 	allowRead() { return true; }
 	async get() {
+		const userId = (this.getContext() as any)?.session?.user || null;
+
 		const now = Date.now();
-		if (cachedResult && (now - cacheTimestamp) < CACHE_TTL_MS) {
+		// Public dashboard is cacheable; auth-scoped log counts are not.
+		const usePublicCache = !userId && cachedResult && (now - cacheTimestamp) < CACHE_TTL_MS;
+		if (usePublicCache) {
 			return new Response(JSON.stringify(cachedResult), {
 				headers: {
 					'Content-Type': 'application/json',
@@ -32,13 +53,14 @@ export class Dashboard extends Resource {
 			});
 		}
 
-		const [rivers, sections, snapshots, allBands, watersheds, corridors] = await Promise.all([
+		const [rivers, sections, snapshots, allBands, watersheds, corridors, myLogCounts] = await Promise.all([
 			collect(tables.River.search({ conditions: [] })),
 			collect(tables.RiverSection.search({ conditions: [] })),
 			collect(tables.GaugeSnapshot.search({ conditions: [] })),
 			collect(tables.FlowBand.search({ conditions: [] })),
 			listWatersheds(),
 			listCorridors(),
+			getMyLogCounts(userId),
 		]);
 
 		const snapshotMap = new Map<string, any>();
@@ -98,6 +120,7 @@ export class Dashboard extends Resource {
 					|| null;
 				const watershed = watershedSlug ? watershedMap.get(watershedSlug) : null;
 
+				const logCount = myLogCounts.get(section.id);
 				sectionData.push({
 					id: section.id,
 					name: section.name,
@@ -126,6 +149,8 @@ export class Dashboard extends Resource {
 					corridorSortIndex: corridor?.sortIndex ?? 999,
 					sortIndex: section.sortIndex ?? 999,
 					driver: section.driver || corridor?.driver || null,
+					myTripCount: logCount?.count ?? 0,
+					lastLoggedAt: logCount?.lastLoggedAt ?? null,
 					thresholds: {
 						flowLow: section.flowLow,
 						flowRunnable: section.flowRunnable,
@@ -185,14 +210,15 @@ export class Dashboard extends Resource {
 		// scan (rivers/watersheds/corridors) came back empty due to post-restart
 		// lag, the dashboard would render with the "Other 36 sections" fallback;
 		// caching that locks the bad view in for the full TTL.
-		if (dashboard.length > 0 && watersheds.length > 0 && corridors.length > 0) {
+		// Only the anonymous (no userId) variant is cacheable; per-user log counts must not bleed.
+		if (!userId && dashboard.length > 0 && watersheds.length > 0 && corridors.length > 0) {
 			cachedResult = result;
 			cacheTimestamp = Date.now();
 		}
 		return new Response(JSON.stringify(result), {
 			headers: {
 				'Content-Type': 'application/json',
-				'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+				'Cache-Control': userId ? 'private, max-age=0, must-revalidate' : 'public, max-age=60, stale-while-revalidate=300',
 			},
 		});
 	}

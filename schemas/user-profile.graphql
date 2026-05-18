@@ -1,0 +1,12 @@
+type UserProfile @table @export {
+	id: ID @primaryKey
+	userId: ID @indexed
+	user: WaitlistUser @relationship(from: "userId")
+	skillLevel: String
+	yearsBoating: Int
+	background: String
+	homeWatershedId: ID
+	preExistingTripCountsJson: String
+	createdAt: String
+	updatedAt: String
+}

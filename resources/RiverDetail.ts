@@ -3,6 +3,8 @@ import { getFlowStatus, daysAgo, isoNow } from '../lib/utils.ts';
 import { loadBandsForSection, resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
 import { getCorridorById } from '../lib/corridors.ts';
 import { getWatershedById } from '../lib/watersheds.ts';
+import { resolveFlowForTrip } from '../lib/log/flow-resolver.ts';
+import { shouldRetryFlowResolution } from '../lib/log/flow-resolver-pure.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -170,6 +172,35 @@ async function getLatestForecast(sectionId: string) {
 	return { run: runs[0], outputs };
 }
 
+async function getMyLogsForSection(userId: string | null, sectionId: string): Promise<{ myLogs: any[]; myLogTotalCount: number }> {
+	if (!userId) return { myLogs: [], myLogTotalCount: 0 };
+	const rows: any[] = [];
+	// Spread out of Harper's read-only proxy so we can patch the in-memory shape after
+	// a lazy flow-resolve without hitting "cannot assign to read-only property".
+	for await (const r of tables.RiverLog.search({
+		conditions: [
+			{ attribute: 'userId', value: userId, comparator: 'equals' as const },
+			{ attribute: 'sectionId', value: sectionId, comparator: 'equals' as const },
+		],
+	})) rows.push({ ...(r as any) });
+
+	for (const r of rows) {
+		if (r.flowAtTripCfs == null && shouldRetryFlowResolution(r.date)) {
+			const flow = await resolveFlowForTrip(sectionId, r.date);
+			if (flow) {
+				const patch = { flowAtTripCfs: flow.cfs, flowSourceGaugeId: flow.gaugeId, flowResolvedAt: isoNow() };
+				await tables.RiverLog.patch(r.id, patch);
+				r.flowAtTripCfs = patch.flowAtTripCfs;
+				r.flowSourceGaugeId = patch.flowSourceGaugeId;
+				r.flowResolvedAt = patch.flowResolvedAt;
+			}
+		}
+	}
+
+	rows.sort((a: any, b: any) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+	return { myLogs: rows.slice(0, 3), myLogTotalCount: rows.length };
+}
+
 export class RiverDetail extends Resource {
 	allowRead() { return true; }
 	async get(target?: any) {
@@ -178,6 +209,8 @@ export class RiverDetail extends Resource {
 
 		const section = await tables.RiverSection.get(sectionId);
 		if (!section) return new Response('Section not found', { status: 404 });
+
+		const userId = (this.getContext() as any)?.session?.user || null;
 
 		const river = await tables.River.get(section.riverId);
 		const corridor = section.corridorId ? await getCorridorById(section.corridorId) : null;
@@ -188,13 +221,15 @@ export class RiverDetail extends Resource {
 		const reservoirIds = splitIds(section.reservoirIds);
 		const basinIds = splitIds(section.snowpackBasinIds);
 
-		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands] = await Promise.all([
+		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands, myLogsData, profile] = await Promise.all([
 			getFlowData(gaugeIds),
 			getDamReleases(reservoirIds),
 			getSnowpackData(basinIds),
 			getWeatherForecast(sectionId),
 			getLatestForecast(sectionId),
 			loadBandsForSection(sectionId),
+			getMyLogsForSection(userId, sectionId),
+			userId ? tables.UserProfile.get(userId) : Promise.resolve(null),
 		]);
 
 		const currentFlow = flowData.latest?.value ?? null;
@@ -255,11 +290,14 @@ export class RiverDetail extends Resource {
 			snowpack,
 			weatherForecast,
 			forecast,
+			myLogs: myLogsData.myLogs,
+			myLogTotalCount: myLogsData.myLogTotalCount,
+			myProfile: profile || null,
 		};
 		return new Response(JSON.stringify(result), {
 			headers: {
 				'Content-Type': 'application/json',
-				'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+				'Cache-Control': userId ? 'private, max-age=0, must-revalidate' : 'public, max-age=60, stale-while-revalidate=300',
 			},
 		});
 	}

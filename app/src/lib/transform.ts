@@ -53,6 +53,8 @@ export function transformDashboard(
 				corridorSortIndex: s.corridorSortIndex ?? null,
 				sortIndex: s.sortIndex ?? null,
 				driver: s.driver || null,
+				myTripCount: s.myTripCount ?? 0,
+				lastLoggedAt: s.lastLoggedAt ?? null,
 				legacyThresholds: s.thresholds || null,
 			});
 		}
@@ -65,7 +67,7 @@ export function transformDetail(
 	craft: CraftType = 'raft',
 	skill: SkillLevel = 'intermediate',
 ): DetailViewModel {
-	const { section, river, flow, charts, gauges, reservoirs, snowpack, weatherForecast, forecast, flowBands, resolvedBand: serverBand, breadcrumb } = data;
+	const { section, river, flow, charts, gauges, reservoirs, snowpack, weatherForecast, forecast, flowBands, resolvedBand: serverBand, breadcrumb, myLogs, myLogTotalCount, myProfile } = data;
 
 	// Re-resolve the band client-side based on the global craft/skill context.
 	// Falls back to the server-resolved band (default raft+intermediate or legacy).
@@ -124,6 +126,8 @@ export function transformDetail(
 		section: section.name,
 		classification: difficulty,
 		nearestTown: section.putIn || null,
+		putIn: section.putIn || null,
+		takeOut: section.takeOut || null,
 		miles: section.lengthMiles || null,
 		notes: section.notes || null,
 		breadcrumb: Array.isArray(breadcrumb) ? breadcrumb : [],
@@ -139,6 +143,15 @@ export function transformDetail(
 			idealHi: section.flowIdealMax || 0,
 			high: section.flowHigh || 0,
 		},
+		flowThresholds: section ? {
+			flowLow: section.flowLow ?? 0,
+			flowRunnable: section.flowRunnable ?? 0,
+			flowIdealMin: section.flowIdealMin ?? 0,
+			flowIdealMax: section.flowIdealMax ?? 0,
+			flowHigh: section.flowHigh ?? 0,
+			flowExpert: section.flowExpert ?? 0,
+			flowDangerous: section.flowDangerous ?? 0,
+		} : null,
 		history,
 		forecastBand,
 		forecastDirection,
@@ -151,5 +164,8 @@ export function transformDetail(
 		forecast: forecast || null,
 		flowBands: flowBands || [],
 		resolvedBand,
+		myLogs: myLogs || [],
+		myLogTotalCount: myLogTotalCount ?? 0,
+		myProfile: myProfile ?? null,
 	};
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { STATUS_COLORS } from '../constants';
 import { BigCFS } from '../components/BigCFS';
 import { StatusPill } from '../components/StatusPill';
@@ -10,10 +10,12 @@ import { RangeGauge } from '../components/RangeGauge';
 import { ContextStrip } from '../components/ContextStrip';
 import { WeatherStrip } from '../components/WeatherStrip';
 import { Breadcrumb } from '../components/Breadcrumb';
+import { PastTripsStrip } from '../components/PastTripsStrip';
 import { MobileFlowChart } from './MobileFlowChart';
 import { MobileForecastPanel } from './MobileForecastPanel';
 import { MobileGaugePanel } from './MobileGaugePanel';
 import { useRiverDetail } from '../hooks/useRiverDetail';
+import { useAuth } from '../hooks/useAuth';
 
 const topBtn: React.CSSProperties = {
 	width: 36, height: 36, borderRadius: 'var(--r-pill)',
@@ -29,6 +31,7 @@ interface MobileDetailProps {
 export function MobileDetail({ sectionId }: MobileDetailProps) {
 	const navigate = useNavigate();
 	const { data: detail, isLoading } = useRiverDetail(sectionId);
+	const { isAuthenticated } = useAuth();
 	const [range, setRange] = useState(30);
 
 	if (isLoading || !detail) {
@@ -97,9 +100,26 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 				}}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 						<BigCFS cfs={detail.now} size="detail" color={c.solid} />
-						<div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+						<div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
 							<StatusPill status={detail.status} label={detail.statusLabel} size="lg" />
 							<TrendChip trend={detail.trend} pct={detail.trendPct} size="lg" />
+							{isAuthenticated && (
+								<Link
+									to={`/log/new?sectionId=${encodeURIComponent(sectionId)}`}
+									style={{
+										padding: '7px 12px',
+										borderRadius: 'var(--r-pill)',
+										border: '1px solid var(--river-700)',
+										background: 'var(--river-700)',
+										color: '#fff',
+										textDecoration: 'none',
+										fontFamily: 'var(--font-mono)',
+										fontSize: 11,
+										fontWeight: 600,
+										letterSpacing: '0.04em',
+									}}
+								>+ Log a trip</Link>
+							)}
 						</div>
 					</div>
 				</div>
@@ -188,10 +208,23 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 			</section>
 
 			{/* Gauge */}
-			<section style={{ ...sectionStyle, paddingBottom: 24 }}>
+			<section style={sectionStyle}>
 				<SectionHead title="Source" eyebrow="Gauge" />
 				<MobileGaugePanel detail={detail} />
 			</section>
+
+			{/* Past trips (auth-only, last) */}
+			{isAuthenticated && (
+				<section style={{ ...sectionStyle, paddingBottom: 24 }}>
+					<PastTripsStrip
+						sectionId={sectionId}
+						logs={detail.myLogs}
+						totalCount={detail.myLogTotalCount}
+						profile={detail.myProfile}
+						sectionThresholds={detail.flowThresholds}
+					/>
+				</section>
+			)}
 		</div>
 	);
 }

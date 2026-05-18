@@ -29,6 +29,10 @@ Don't drift from these. New components should compose from the same tokens.
 - **Band chip** — large pill: color swatch + 1-line label + 2-line description. Same family as status pill.
 - **Breadcrumb** — monospaced, separator ` / ` in `--ink-4`
 - **ContextItem card** — severity-colored left border, kind icon, title/body, "Source: BOR · [link]"
+- **RiverLogCard** — mirrors `RiverCard.tsx` proportions. Eyebrow `// LOGGED · YYYY-MM-DD`. Craft chip + crew + duration line. Flow-at-trip chip (`ran at 396 cfs · runnable` or `ran at — cfs` when null). Conditions tag chips. 3-line notes preview, click-to-expand. Edit/delete in corner. Footer when profile present: `<background> · <skill> · <yrs> yrs · +<prior> prior trips`.
+- **HomeCardLoggedBadge** — top-right corner-of-card mono `// N TRIPS` in `--ink-3`. Corner badge only — no other change to home cards.
+- **Conditions tag chips** — chip multi-select with curated suggestions (`tons-of-rock`, `frequent-highsides`, `precision-oar-required`, `advanced-maneuvers`, `mellow-float`, `cold-water`, `crowded`, `pristine`, `wind`, `swam`) + free-form add. Same chip family as craft chip.
+- **PastTripsStrip** — section-detail strip. Eyebrow `// PAST TRIPS · N LOGGED` + up to 3 stacked `RiverLogCard`s + "See all N trips" link. If 0 logs: quiet `// LOG YOUR FIRST TRIP` CTA chip.
 
 ## Information hierarchy per route
 
@@ -39,6 +43,10 @@ Don't drift from these. New components should compose from the same tokens.
 | `/corridor/:slug` | Corridor map + section list ordered upstream→downstream | Weather strip | Access points |
 | `/section/:slug` | Hero stat strip | Combined history+forecast chart + weather strip | FlowBand interpretation w/ craft selector |
 | `/section/:slug/rapid/:rapidSlug` | Name + class + mile + satellite map | Description, line notes, hazards | Photos by flow (phase 2) |
+| `/section/:slug/logs` | Eyebrow + all-trips count | Vertical stack of user's `RiverLogCard`s, newest first | (no chrome) |
+| `/log/new` | Section name + date | Full-page form: craft / crew / duration / put-in / take-out / conditions / notes | Submit → section detail |
+| `/log/:id/edit` | Same as `/log/new` prefilled | — | — |
+| `/profile` | Eyebrow `// YOUR PROFILE` | Skill / years / background / home watershed form | — |
 | `/map` | Full-screen map with tile toggle + layer toggles | (no chrome) |
 
 ## Chart UX

@@ -16,7 +16,7 @@ function NavLink({ children, active, onClick }: { children: React.ReactNode; act
 	);
 }
 
-export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'admin' }) {
+export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'logs' | 'admin' }) {
 	const navigate = useNavigate();
 	const auth = useAuth();
 	const showAdmin = auth.isAuthenticated && auth.user && ADMIN_EMAILS.includes(auth.user.email);
@@ -43,6 +43,9 @@ export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'admi
 				<nav style={{ display: 'flex', gap: 4 }}>
 					<NavLink active={activePage === 'rivers'} onClick={() => navigate('/')}>Rivers</NavLink>
 					<NavLink active={activePage === 'map'} onClick={() => navigate('/map')}>Map</NavLink>
+					{auth.isAuthenticated && (
+						<NavLink active={activePage === 'logs'} onClick={() => navigate('/logs')}>Logs</NavLink>
+					)}
 					{showAdmin && (
 						<NavLink active={activePage === 'admin'} onClick={() => navigate('/admin')}>Admin</NavLink>
 					)}
@@ -61,15 +64,31 @@ export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'admi
 					</div>
 				)}
 				{auth.isAuthenticated ? (
-					<button onClick={auth.logout} style={{
-						display: 'flex', alignItems: 'center', gap: 6,
-						padding: '8px 14px', borderRadius: 'var(--r-pill)',
-						background: 'var(--bg-sunken)', border: '1px solid var(--rule)',
-						fontSize: 13, fontWeight: 600, color: 'var(--ink-1)', cursor: 'pointer',
-					}}>
-						<Icon name="user" size={14} color="var(--ink-2)" />
-						{auth.user?.name?.split(' ')[0] || 'Account'}
-					</button>
+					<>
+						<button onClick={() => navigate('/log/new')} style={{
+							display: 'flex', alignItems: 'center', gap: 4,
+							padding: '8px 12px', borderRadius: 'var(--r-pill)',
+							background: 'var(--river-700)', border: '1px solid var(--river-700)',
+							color: '#fff', fontSize: 12, fontWeight: 600,
+							fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', cursor: 'pointer',
+						}}>+ Log</button>
+						<button onClick={() => navigate('/profile')} style={{
+							display: 'flex', alignItems: 'center',
+							padding: '8px 12px', borderRadius: 'var(--r-pill)',
+							background: 'var(--bg-sunken)', border: '1px solid var(--rule)',
+							fontSize: 12, fontWeight: 600, color: 'var(--ink-2)',
+							fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', cursor: 'pointer',
+						}}>Profile</button>
+						<button onClick={auth.logout} style={{
+							display: 'flex', alignItems: 'center', gap: 6,
+							padding: '8px 14px', borderRadius: 'var(--r-pill)',
+							background: 'var(--bg-sunken)', border: '1px solid var(--rule)',
+							fontSize: 13, fontWeight: 600, color: 'var(--ink-1)', cursor: 'pointer',
+						}}>
+							<Icon name="user" size={14} color="var(--ink-2)" />
+							{auth.user?.name?.split(' ')[0] || 'Account'}
+						</button>
+					</>
 				) : (
 					<button onClick={() => navigate('/login')} style={{
 						display: 'flex', alignItems: 'center', gap: 6,

@@ -2,6 +2,7 @@ import { STATUS_COLORS } from '../constants';
 import { TrendChip } from '../components/TrendChip';
 import { Sparkline } from '../components/Sparkline';
 import { Icon } from '../components/Icon';
+import { HomeCardLoggedBadge } from '../components/HomeCardLoggedBadge';
 import type { DashboardSection } from '../types';
 
 interface DesktopRiverRowProps {
@@ -29,6 +30,7 @@ export function DesktopRiverRow({ section: s, selected, onClick, sparkDays = 30 
 				position: 'absolute', left: 0, top: 8, bottom: 8, width: 3,
 				background: c.solid, borderRadius: '0 2px 2px 0',
 			}} />
+			<HomeCardLoggedBadge count={s.myTripCount} />
 			<div style={{ flex: '0 0 auto', minWidth: 90, paddingLeft: 6 }}>
 				<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: 'var(--ink-0)', letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
 					{s.now !== null ? s.now.toLocaleString() : '—'}

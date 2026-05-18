@@ -1,6 +1,6 @@
 ---
 slice: 03b-forecast-snapshot-infra
-status: active
+status: queued
 value: 8
 confidence: 9
 effort: M

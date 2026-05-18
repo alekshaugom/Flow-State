@@ -1,0 +1,20 @@
+type UserCredential @table @export {
+	id: ID @primaryKey
+	userId: ID @indexed
+	user: WaitlistUser @relationship(from: "userId")
+	passwordHash: String
+	passwordSalt: String
+	algo: String
+	setBy: ID
+	setAt: String @indexed
+	updatedAt: String
+}
+
+type OneTimeLoginToken @table @export {
+	id: ID @primaryKey
+	userId: ID @indexed
+	createdBy: ID
+	expiresAt: String @indexed
+	usedAt: String
+	createdAt: String @indexed
+}

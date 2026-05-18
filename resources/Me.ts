@@ -9,15 +9,17 @@ export class Me extends Resource {
 		const context = this.getContext();
 		const session = context?.session;
 		if (!session?.user) {
-			return { authenticated: false, user: null };
+			return { authenticated: false, user: null, profile: null };
 		}
 
 		const userId = session.user;
 		const record = await tables.WaitlistUser.get(userId);
 
 		if (!record) {
-			return { authenticated: true, user: null, status: 'unknown' };
+			return { authenticated: true, user: null, status: 'unknown', profile: null };
 		}
+
+		const profile = await tables.UserProfile.get(userId);
 
 		return {
 			authenticated: true,
@@ -29,6 +31,7 @@ export class Me extends Resource {
 				status: record.status,
 				createdAt: record.createdAt,
 			},
+			profile: profile || null,
 		};
 	}
 }

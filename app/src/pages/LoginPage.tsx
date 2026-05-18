@@ -1,10 +1,55 @@
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
+import { api } from '../api';
 import { Icon } from '../components/Icon';
+import { EmailLoginForm } from '../components/EmailLoginForm';
+
+// Mirrors lib/auth/activation-pure.ts — kept inline to avoid a cross-root import
+// from Vite's perspective. If this logic grows, hoist it into app/src/lib/.
+function decideActivationRoute(state: { hasPassword?: boolean | null }): '/login/setup' | '/' {
+	return state?.hasPassword ? '/' : '/login/setup';
+}
 
 export function LoginPage() {
 	const navigate = useNavigate();
+	const qc = useQueryClient();
+	const [search, setSearch] = useSearchParams();
 	const { isAuthenticated, isApproved, isWaitlisted, user, login, isDev, devBypass } = useAuth();
+	const [tokenError, setTokenError] = useState<string | null>(null);
+	const [tokenConsuming, setTokenConsuming] = useState(false);
+
+	const tokenFromUrl = search.get('token');
+	const consume = useMutation({
+		mutationFn: (t: string) => api.consumeLoginLink(t),
+		onSuccess: (result) => {
+			qc.invalidateQueries({ queryKey: ['me'] });
+			const next = new URLSearchParams(search);
+			next.delete('token');
+			setSearch(next, { replace: true });
+			const target = decideActivationRoute({ hasPassword: result?.hasPassword });
+			navigate(target, { replace: true });
+		},
+		onError: (err: any) => {
+			setTokenError(err?.message || 'This login link is invalid or has expired');
+		},
+		onSettled: () => setTokenConsuming(false),
+	});
+
+	useEffect(() => {
+		// If a token is present, consume it unconditionally. The backend writes a
+		// fresh session via `session.update({user})` which overwrites whatever was
+		// there before, so this works both for stale/missing-user sessions and for
+		// "I'm already logged in but clicked a new link" cases. The cost of burning
+		// a token on a redundant click is negligible compared to the UX of nothing
+		// happening when a link is clicked.
+		if (tokenFromUrl && !tokenConsuming) {
+			setTokenConsuming(true);
+			consume.mutate(tokenFromUrl);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [tokenFromUrl]);
 
 	return (
 		<div style={{
@@ -53,6 +98,22 @@ export function LoginPage() {
 							favorite sections, trip planning tools, and personalized flow estimates.
 						</p>
 
+						{tokenConsuming && (
+							<div style={{ marginBottom: 16, fontSize: 13, color: 'var(--ink-3)' }}>
+								Signing you in with the link…
+							</div>
+						)}
+						{tokenError && (
+							<div style={{
+								marginBottom: 16,
+								padding: '8px 12px',
+								borderRadius: 'var(--r-md)',
+								background: '#fdecea',
+								color: '#a02323',
+								fontSize: 13,
+							}}>{tokenError}</div>
+						)}
+
 						<button onClick={login} style={{
 							display: 'inline-flex', alignItems: 'center', gap: 10,
 							padding: '12px 28px', borderRadius: 'var(--r-md)',
@@ -68,6 +129,22 @@ export function LoginPage() {
 							</svg>
 							Sign in with Google
 						</button>
+
+						<div style={{
+							display: 'flex', alignItems: 'center', gap: 10,
+							margin: '24px 0 18px',
+							color: 'var(--ink-4)',
+							fontFamily: 'var(--font-mono)',
+							fontSize: 10,
+							letterSpacing: '0.10em',
+							textTransform: 'uppercase',
+						}}>
+							<span style={{ flex: 1, height: 1, background: 'var(--rule)' }} />
+							or
+							<span style={{ flex: 1, height: 1, background: 'var(--rule)' }} />
+						</div>
+
+						<EmailLoginForm />
 
 						{isDev && (
 							<div style={{ marginTop: 20 }}>
