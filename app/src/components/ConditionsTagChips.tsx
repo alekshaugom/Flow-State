@@ -52,7 +52,7 @@ export function ConditionsTagChips({ value, onChange }: ConditionsTagChipsProps)
 				textTransform: 'uppercase',
 				color: 'var(--ink-3)',
 				padding: '0 6px',
-			}}>// CONDITIONS</legend>
+			}}>CONDITIONS</legend>
 
 			<div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
 				{CURATED_CONDITION_TAGS.map(tag => {

@@ -2,6 +2,8 @@ import { Resource, tables } from 'harper';
 import { resolveFlowForTrip } from '../lib/log/flow-resolver.ts';
 import { shouldRetryFlowResolution } from '../lib/log/flow-resolver-pure.ts';
 import { isoNow } from '../lib/utils.ts';
+import { canUserAccessTrip } from '../lib/log/participant-pure.ts';
+import { loadParticipantsForTrips } from '../lib/log/participants-loader.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -11,6 +13,20 @@ async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 
 function getUserId(ctx: any): string | null {
 	return ctx?.session?.user || null;
+}
+
+async function loadAccessibleLogsForSection(userId: string, sectionId: string): Promise<any[]> {
+	const out: any[] = [];
+	for await (const r of tables.TripParticipant.search({
+		conditions: [{ attribute: 'userId', value: userId, comparator: 'equals' as const }],
+	})) {
+		if (canUserAccessTrip(r) !== 'accepted') continue;
+		const log = await tables.RiverLog.get((r as any).tripId);
+		if (!log) continue;
+		if ((log as any).sectionId !== sectionId) continue;
+		out.push({ ...(log as any) });
+	}
+	return out;
 }
 
 async function tryLazyResolveFlow(log: any): Promise<any> {
@@ -37,24 +53,22 @@ export class SectionLogsView extends Resource {
 		const sectionId = target?.id;
 		if (!sectionId) return new Response('sectionId required in URL path', { status: 400 });
 
-		const rows = await collect(tables.RiverLog.search({
-			conditions: [
-				{ attribute: 'userId', value: userId, comparator: 'equals' as const },
-				{ attribute: 'sectionId', value: sectionId, comparator: 'equals' as const },
-			],
-		}));
+		const rows = await loadAccessibleLogsForSection(userId, sectionId);
 
 		const resolved = [];
 		for (const r of rows) resolved.push(await tryLazyResolveFlow(r));
 		resolved.sort((a: any, b: any) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
 
-		const profile = await tables.UserProfile.get(userId);
+		const participantsByTrip = await loadParticipantsForTrips(tables, resolved.map((l: any) => l.id), userId);
+		const logsWithParticipants = resolved.map((l: any) => ({
+			...l,
+			participants: participantsByTrip.get(l.id) || [],
+		}));
 
 		return {
 			sectionId,
-			logs: resolved,
-			total: resolved.length,
-			profile: profile || null,
+			logs: logsWithParticipants,
+			total: logsWithParticipants.length,
 		};
 	}
 }

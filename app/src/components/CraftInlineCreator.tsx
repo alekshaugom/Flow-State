@@ -80,7 +80,7 @@ export function CraftInlineCreator({ onCreated, onCancel, defaultCraftType = 'ra
 				letterSpacing: '0.10em',
 				textTransform: 'uppercase',
 				color: 'var(--river-800)',
-			}}>// NEW CRAFT</div>
+			}}>NEW CRAFT</div>
 
 			<div>
 				<label style={labelStyle} htmlFor="new-craft-name">Name</label>

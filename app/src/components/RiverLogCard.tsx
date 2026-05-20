@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { parseConditionTags } from './ConditionsTagChips';
 import { BigCFS } from './BigCFS';
 import { StatusPill } from './StatusPill';
+import { ParticipantList } from './ParticipantList';
 import { mapStatusToDesign } from '../constants';
-import type { CampingNight, RiverLogEntry, UserProfileEntry } from '../types';
+import type { CampingNight, RiverLogEntry } from '../types';
 
 function parseCampingFromJson(json: string | null | undefined): CampingNight[] {
 	if (!json) return [];
@@ -96,28 +97,15 @@ function getFlowStatus(value: number, t: RiverLogCardThresholds): string {
 
 interface RiverLogCardProps {
 	log: RiverLogEntry;
-	profile?: UserProfileEntry | null;
 	canEdit?: boolean;
 	sectionThresholds?: RiverLogCardThresholds | null;
 }
 
-function priorTripCount(profile: UserProfileEntry | null | undefined, sectionId: string): number {
-	if (!profile?.preExistingTripCountsJson) return 0;
-	try {
-		const parsed = JSON.parse(profile.preExistingTripCountsJson);
-		const n = parsed?.[sectionId];
-		return typeof n === 'number' && n > 0 ? n : 0;
-	} catch {
-		return 0;
-	}
-}
-
-export function RiverLogCard({ log, profile, canEdit = true, sectionThresholds }: RiverLogCardProps) {
+export function RiverLogCard({ log, canEdit = true, sectionThresholds }: RiverLogCardProps) {
 	const navigate = useNavigate();
 	const [expanded, setExpanded] = useState(false);
 	const tags = parseConditionTags(log.conditionsTags);
 	const camping = useMemo(() => parseCampingFromJson(log.campingJson), [log.campingJson]);
-	const prior = priorTripCount(profile, log.sectionId);
 	const dateView = formatTripDate(log.date, log.endDate, log.tripNights);
 	const flow = log.flowAtTripCfs != null ? Math.round(log.flowAtTripCfs) : null;
 	const designStatus = (flow != null && sectionThresholds)
@@ -210,7 +198,7 @@ export function RiverLogCard({ log, profile, canEdit = true, sectionThresholds }
 					color: 'var(--ink-3)',
 					lineHeight: 1.6,
 				}}>
-					<div style={{ color: 'var(--ink-4)' }}>// CAMPED AT</div>
+					<div style={{ color: 'var(--ink-4)' }}>CAMPED AT</div>
 					{camping.map(n => (
 						<div key={n.date} style={{ color: 'var(--ink-2)' }}>
 							{n.date} <span style={{ color: 'var(--ink-4)' }}>·</span> {n.location}
@@ -239,26 +227,7 @@ export function RiverLogCard({ log, profile, canEdit = true, sectionThresholds }
 				</div>
 			)}
 
-			{(profile || prior > 0) && (
-				<div style={{
-					marginTop: 4,
-					paddingTop: 8,
-					borderTop: '1px dashed var(--rule)',
-					fontFamily: 'var(--font-mono)',
-					fontSize: 10,
-					letterSpacing: '0.08em',
-					color: 'var(--ink-3)',
-					textTransform: 'uppercase',
-					display: 'flex',
-					flexWrap: 'wrap',
-					gap: 8,
-				}}>
-					{profile?.background && <span>{profile.background}</span>}
-					{profile?.skillLevel && <span>· {profile.skillLevel}</span>}
-					{typeof profile?.yearsBoating === 'number' && profile.yearsBoating > 0 && <span>· {profile.yearsBoating} yrs</span>}
-					{prior > 0 && <span>· +{prior} prior trips</span>}
-				</div>
-			)}
+			<ParticipantList tripId={log.id} participants={log.participants || []} />
 		</article>
 	);
 }

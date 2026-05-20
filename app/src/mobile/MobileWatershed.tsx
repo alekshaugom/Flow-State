@@ -73,7 +73,7 @@ export function MobileWatershed({ slug }: MobileWatershedProps) {
 						return (
 							<article key={c.id} style={corridorCard}>
 								<div style={mapHeaderPlaceholder}>
-									<span>{'// '}Map · soon</span>
+									<span>Map · soon</span>
 								</div>
 								<div style={corridorBody}>
 									<div>

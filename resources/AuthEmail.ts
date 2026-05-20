@@ -4,6 +4,7 @@ import { verifyPassword, constantTimeDummyHash } from '../lib/auth/password.ts';
 import { normalizeEmail, validatePasswordRules } from '../lib/auth/password-pure.ts';
 import { isExpired, isConsumed } from '../lib/auth/token-pure.ts';
 import { writeUserCredential, userHasPassword } from '../lib/auth/credential.ts';
+import { joinFirstLast } from '../lib/auth/user-name-pure.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -39,6 +40,7 @@ export class EmailLoginResource extends Resource {
 		const action = (target?.id || data?.action || '').toString();
 		if (action === 'consume') return this.consume(data);
 		if (action === 'set-my-password') return this.setMyPassword(data);
+		if (action === 'set-my-name') return this.setMyName(data);
 		// Default: treat as a login attempt.
 		return this.login(data);
 	}
@@ -139,5 +141,37 @@ export class EmailLoginResource extends Resource {
 
 		await writeUserCredential(userId, password, userId);
 		return { ok: true };
+	}
+
+	async setMyName(data: any) {
+		const ctx = this.getContext();
+		const userId = (ctx as any)?.session?.user || null;
+		if (!userId) return new Response('Auth required', { status: 401 });
+
+		const user = await tables.WaitlistUser.get(userId);
+		if (!user) return new Response('Auth required', { status: 401 });
+		if ((user as any).status !== 'approved') return new Response('Account is not approved', { status: 403 });
+
+		const firstName = typeof data?.firstName === 'string' ? data.firstName.trim() : '';
+		const lastName = typeof data?.lastName === 'string' ? data.lastName.trim() : '';
+		if (!firstName) return new Response('firstName is required', { status: 400 });
+		if (firstName.length > 80) return new Response('firstName too long (80 max)', { status: 400 });
+		if (lastName.length > 80) return new Response('lastName too long (80 max)', { status: 400 });
+
+		const name = joinFirstLast(firstName, lastName);
+		await tables.WaitlistUser.patch(userId, { firstName, lastName, name });
+		const updated = await tables.WaitlistUser.get(userId);
+		return {
+			ok: true,
+			user: {
+				id: (updated as any).id,
+				email: (updated as any).email,
+				name: (updated as any).name,
+				firstName: (updated as any).firstName,
+				lastName: (updated as any).lastName,
+				avatarUrl: (updated as any).avatarUrl,
+				status: (updated as any).status,
+			},
+		};
 	}
 }

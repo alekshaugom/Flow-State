@@ -143,7 +143,7 @@ export function MultiDayDateField({ date, endDate, camping, onChange }: MultiDay
 						alignItems: 'center',
 						gap: 10,
 					}}>
-						<span style={labelStyle}>// {nights} {nights === 1 ? 'NIGHT' : 'NIGHTS'} CAMPED</span>
+						<span style={labelStyle}>{nights} {nights === 1 ? 'NIGHT' : 'NIGHTS'} CAMPED</span>
 						<button
 							type="button"
 							onClick={() => onChange({ endDate: '', camping: [] })}

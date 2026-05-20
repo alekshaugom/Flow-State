@@ -7,6 +7,7 @@ import { useLogMutations } from '../hooks/useLogMutations';
 import { CraftPicker } from '../components/CraftPicker';
 import { ConditionsTagChips, parseConditionTags, stringifyConditionTags } from '../components/ConditionsTagChips';
 import { MultiDayDateField } from '../components/MultiDayDateField';
+import { InviteParticipantField } from '../components/InviteParticipantField';
 import { useMyCrafts } from '../hooks/useCrafts';
 import type { CampingNight, UserCraftEntry } from '../types';
 
@@ -165,11 +166,14 @@ export function LogTripPage({ mode = 'new' }: LogTripPageProps) {
 		try {
 			if (mode === 'edit' && logId) {
 				await mutations.update.mutateAsync({ id: logId, patch: input });
+				setDirty(false);
+				navigate(`/section/${encodeURIComponent(sectionId)}`);
 			} else {
-				await mutations.create.mutateAsync(input);
+				const created = await mutations.create.mutateAsync(input);
+				setDirty(false);
+				// Land on edit mode so the user can immediately invite participants.
+				navigate(`/log/${encodeURIComponent((created as any).id)}/edit`, { replace: true });
 			}
-			setDirty(false);
-			navigate(`/section/${encodeURIComponent(sectionId)}`);
 		} catch (err: any) {
 			setSubmitError(err?.message || 'Failed to save log');
 		}
@@ -209,7 +213,7 @@ export function LogTripPage({ mode = 'new' }: LogTripPageProps) {
 					textTransform: 'uppercase',
 					color: 'var(--ink-3)',
 				}}>
-					{mode === 'edit' ? '// EDIT LOG' : '// LOG A TRIP'}
+					{mode === 'edit' ? 'EDIT LOG' : 'LOG A TRIP'}
 				</div>
 				<h1 style={{
 					fontSize: 22, fontWeight: 700, margin: '4px 0 2px', color: 'var(--ink-0)',
@@ -269,7 +273,7 @@ export function LogTripPage({ mode = 'new' }: LogTripPageProps) {
 						letterSpacing: '0.10em',
 						textTransform: 'uppercase',
 						color: 'var(--ink-3)',
-					}}>// SAVED CRAFT</div>
+					}}>SAVED CRAFT</div>
 					<CraftPicker selectedCraftId={craftId} onChange={onCraftPicked} />
 				</div>
 
@@ -308,6 +312,10 @@ export function LogTripPage({ mode = 'new' }: LogTripPageProps) {
 						onChange={e => setNotes(e.target.value)}
 					/>
 				</div>
+
+				{mode === 'edit' && logId && (
+					<InviteParticipantField tripId={logId} />
+				)}
 
 				{submitError && (
 					<div style={{
@@ -376,7 +384,7 @@ function NoSectionFallback() {
 			<div style={{
 				fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.12em',
 				textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 8,
-			}}>// LOG A TRIP</div>
+			}}>LOG A TRIP</div>
 			<p style={{ fontSize: 14, color: 'var(--ink-2)' }}>
 				Open a section from the home page and tap <strong>+ Log a trip</strong> on its detail page to log a run there.
 			</p>

@@ -10,7 +10,6 @@ export function Eyebrow({ children, color }: EyebrowProps) {
 			textTransform: 'uppercase', color: color || 'var(--river-600)',
 			fontWeight: 500,
 		}}>
-			<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 			{children}
 		</div>
 	);

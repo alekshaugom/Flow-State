@@ -80,7 +80,7 @@ export function AccountSetupPage() {
 					fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.12em',
 					textTransform: 'uppercase', color: 'var(--river-700)', fontWeight: 600,
 					marginBottom: 6,
-				}}>// ONE LAST STEP</div>
+				}}>ONE LAST STEP</div>
 				<h1 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 700, color: 'var(--ink-0)' }}>
 					Set your password
 				</h1>

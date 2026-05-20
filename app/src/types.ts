@@ -114,7 +114,6 @@ export interface DetailViewModel {
 
 	myLogs: RiverLogEntry[];
 	myLogTotalCount: number;
-	myProfile: UserProfileEntry | null;
 
 	flowThresholds: {
 		flowLow: number; flowRunnable: number;
@@ -167,9 +166,21 @@ export interface CampingNight {
 	location: string;
 }
 
+export interface ParticipantView {
+	userId: string;
+	name: string | null;
+	avatarUrl: string | null;
+	notes: string | null;
+	notesPrivate: boolean;
+	craftSequenceJson: string | null;
+	acceptedAt: string | null;
+	isSelf: boolean;
+}
+
 export interface RiverLogEntry {
 	id: string;
 	userId: string;
+	createdByUserId?: string | null;
 	sectionId: string;
 	watershedId: string | null;
 	corridorId: string | null;
@@ -190,9 +201,47 @@ export interface RiverLogEntry {
 	flowAtTripCfs: number | null;
 	flowSourceGaugeId: string | null;
 	flowResolvedAt: string | null;
-	visibility: 'private';
+	visibility: 'private' | 'participants';
 	createdAt: string;
 	updatedAt: string;
+	participants?: ParticipantView[];
+}
+
+export interface MyConnection {
+	userId: string;
+	name: string | null;
+	email: string | null;
+	avatarUrl: string | null;
+	lastTripDate: string | null;
+	tripsTogetherCount: number;
+}
+
+export interface MyConnectionsResponse {
+	connections: MyConnection[];
+	total: number;
+}
+
+export interface MintShareResult {
+	ok: true;
+	token: string;
+	url: string;
+	expiresAt: string;
+	inviteeEmail: string;
+}
+
+export interface SharePreviewResult {
+	ok: true;
+	share: { tripId: string; inviteeEmail: string; expiresAt: string };
+	trip: { id: string; date: string; endDate: string | null; sectionName: string | null; sectionId: string };
+	inviter: { id: string; name: string | null; avatarUrl: string | null } | null;
+}
+
+export interface ShareConsumeResult {
+	ok: true;
+	tripId: string;
+	userId: string;
+	needsPasswordSetup: boolean;
+	user: { id: string; email: string; name: string; avatarUrl: string | null; status: string };
 }
 
 export interface RiverLogInput {
@@ -348,36 +397,26 @@ export interface MyLogsAggregateResponse {
 	watersheds: MyLogsWatershed[];
 	yearGroups: MyLogsYearGroup[];
 	logs: RiverLogEntry[];
-	homeWatershedId: string | null;
-	profile: UserProfileEntry | null;
 	generatedAt: string;
 }
 
-export interface UserProfileEntry {
-	id: string;
-	userId: string;
-	skillLevel: 'novice' | 'intermediate' | 'advanced' | 'expert' | 'guide' | string | null;
-	yearsBoating: number | null;
-	background: string | null;
-	homeWatershedId: string | null;
-	preExistingTripCountsJson: string | null;
-	createdAt: string;
-	updatedAt: string;
-}
-
-export interface UserProfileInput {
-	skillLevel?: string | null;
-	yearsBoating?: number | null;
-	background?: string | null;
-	homeWatershedId?: string | null;
-	preExistingTripCountsJson?: string | null;
+export interface SetMyNameResult {
+	ok: true;
+	user: {
+		id: string;
+		email: string;
+		name: string;
+		firstName: string | null;
+		lastName: string | null;
+		avatarUrl: string | null;
+		status: string;
+	};
 }
 
 export interface SectionLogsResponse {
 	sectionId: string;
 	logs: RiverLogEntry[];
 	total: number;
-	profile: UserProfileEntry | null;
 }
 
 export interface MyLogsResponse {

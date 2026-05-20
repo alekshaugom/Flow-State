@@ -5,6 +5,8 @@ import { getCorridorById } from '../lib/corridors.ts';
 import { getWatershedById } from '../lib/watersheds.ts';
 import { resolveFlowForTrip } from '../lib/log/flow-resolver.ts';
 import { shouldRetryFlowResolution } from '../lib/log/flow-resolver-pure.ts';
+import { canUserAccessTrip } from '../lib/log/participant-pure.ts';
+import { loadParticipantsForTrips } from '../lib/log/participants-loader.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -177,12 +179,15 @@ async function getMyLogsForSection(userId: string | null, sectionId: string): Pr
 	const rows: any[] = [];
 	// Spread out of Harper's read-only proxy so we can patch the in-memory shape after
 	// a lazy flow-resolve without hitting "cannot assign to read-only property".
-	for await (const r of tables.RiverLog.search({
-		conditions: [
-			{ attribute: 'userId', value: userId, comparator: 'equals' as const },
-			{ attribute: 'sectionId', value: sectionId, comparator: 'equals' as const },
-		],
-	})) rows.push({ ...(r as any) });
+	for await (const p of tables.TripParticipant.search({
+		conditions: [{ attribute: 'userId', value: userId, comparator: 'equals' as const }],
+	})) {
+		if (canUserAccessTrip(p) !== 'accepted') continue;
+		const log = await tables.RiverLog.get((p as any).tripId);
+		if (!log) continue;
+		if ((log as any).sectionId !== sectionId) continue;
+		rows.push({ ...(log as any) });
+	}
 
 	for (const r of rows) {
 		if (r.flowAtTripCfs == null && shouldRetryFlowResolution(r.date)) {
@@ -198,7 +203,13 @@ async function getMyLogsForSection(userId: string | null, sectionId: string): Pr
 	}
 
 	rows.sort((a: any, b: any) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
-	return { myLogs: rows.slice(0, 3), myLogTotalCount: rows.length };
+	const top = rows.slice(0, 3);
+	const participantsByTrip = await loadParticipantsForTrips(tables, top.map((r: any) => r.id), userId);
+	const myLogs = top.map((r: any) => ({
+		...r,
+		participants: participantsByTrip.get(r.id) || [],
+	}));
+	return { myLogs, myLogTotalCount: rows.length };
 }
 
 export class RiverDetail extends Resource {
@@ -221,7 +232,7 @@ export class RiverDetail extends Resource {
 		const reservoirIds = splitIds(section.reservoirIds);
 		const basinIds = splitIds(section.snowpackBasinIds);
 
-		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands, myLogsData, profile] = await Promise.all([
+		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands, myLogsData] = await Promise.all([
 			getFlowData(gaugeIds),
 			getDamReleases(reservoirIds),
 			getSnowpackData(basinIds),
@@ -229,7 +240,6 @@ export class RiverDetail extends Resource {
 			getLatestForecast(sectionId),
 			loadBandsForSection(sectionId),
 			getMyLogsForSection(userId, sectionId),
-			userId ? tables.UserProfile.get(userId) : Promise.resolve(null),
 		]);
 
 		const currentFlow = flowData.latest?.value ?? null;
@@ -292,7 +302,6 @@ export class RiverDetail extends Resource {
 			forecast,
 			myLogs: myLogsData.myLogs,
 			myLogTotalCount: myLogsData.myLogTotalCount,
-			myProfile: profile || null,
 		};
 		return new Response(JSON.stringify(result), {
 			headers: {

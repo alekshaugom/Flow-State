@@ -338,7 +338,7 @@ function InviteUserForm({ onClose, onCreated }: { onClose: () => void; onCreated
 				<div style={{
 					fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.10em',
 					textTransform: 'uppercase', color: 'var(--river-800)',
-				}}>// USER INVITED</div>
+				}}>USER INVITED</div>
 				<div style={{ fontSize: 14, color: 'var(--ink-0)' }}>
 					<strong>{result.user.name}</strong> · <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>{result.user.email}</span>
 				</div>
@@ -370,7 +370,7 @@ function InviteUserForm({ onClose, onCreated }: { onClose: () => void; onCreated
 				<div style={{
 					fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.10em',
 					textTransform: 'uppercase', color: 'var(--ink-3)', fontWeight: 500,
-				}}>// INVITE NEW USER</div>
+				}}>INVITE NEW USER</div>
 				<button type="button" onClick={onClose} style={{
 					background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-3)', fontSize: 18, padding: 0,
 				}}>×</button>
@@ -490,7 +490,7 @@ function UserCredentialControls({ userId, onChange }: { userId: string; onChange
 			display: 'flex', flexDirection: 'column', gap: 14,
 		}}>
 			<form onSubmit={onSetPassword} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-				<div style={labelStyle}>// SET PASSWORD</div>
+				<div style={labelStyle}>SET PASSWORD</div>
 				<div style={{ display: 'flex', gap: 8 }}>
 					<input
 						type="password"
@@ -509,7 +509,7 @@ function UserCredentialControls({ userId, onChange }: { userId: string; onChange
 			</form>
 
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-				<div style={labelStyle}>// ONE-TIME LOGIN LINK</div>
+				<div style={labelStyle}>ONE-TIME LOGIN LINK</div>
 				{linkResult ? (
 					<div style={{
 						padding: '10px 12px',
@@ -550,7 +550,7 @@ function UserCredentialControls({ userId, onChange }: { userId: string; onChange
 						<div style={{
 							fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em',
 							color: 'var(--ink-3)', textTransform: 'uppercase', marginBottom: 4,
-						}}>// {activeTokens.length} active</div>
+						}}>{activeTokens.length} active</div>
 						{activeTokens.map(t => (
 							<div key={t.id} style={{
 								display: 'flex',

@@ -34,7 +34,7 @@ export function CraftPicker({ selectedCraftId, onChange }: CraftPickerProps) {
 				color: 'var(--ink-3)',
 				fontSize: 12,
 				fontFamily: 'var(--font-mono)',
-			}}>// LOADING CRAFTS</div>
+			}}>LOADING CRAFTS</div>
 		);
 	}
 

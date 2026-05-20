@@ -15,6 +15,6 @@ export function HomeCardLoggedBadge({ count }: HomeCardLoggedBadgeProps) {
 			color: 'var(--ink-3)',
 			textTransform: 'uppercase',
 			pointerEvents: 'none',
-		}}>// {count} {count === 1 ? 'TRIP' : 'TRIPS'}</span>
+		}}>{count} {count === 1 ? 'TRIP' : 'TRIPS'}</span>
 	);
 }

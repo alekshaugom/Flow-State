@@ -4,10 +4,11 @@ import { resolveFlowForTrip } from '../lib/log/flow-resolver.ts';
 import { shouldRetryFlowResolution } from '../lib/log/flow-resolver-pure.ts';
 import {
 	pickWritable,
-	validateVisibility,
-	validateOwnership,
 	buildNewLogRow,
 } from '../lib/log/river-log-pure.ts';
+import { validateVisibility } from '../lib/log/visibility-pure.ts';
+import { canUserAccessTrip } from '../lib/log/participant-pure.ts';
+import { loadParticipantsForTrips } from '../lib/log/participants-loader.ts';
 import {
 	validateDateRange,
 	validateCampingAgainstRange,
@@ -49,6 +50,27 @@ async function tryLazyResolveFlow(log: any): Promise<{ flowAtTripCfs: number; fl
 	return patch;
 }
 
+type AccessCheck = { ok: true } | { ok: false; status: number };
+
+async function tripAccessCheck(tripId: string, userId: string): Promise<AccessCheck> {
+	const row = await tables.TripParticipant.get(compositeId([tripId, userId]));
+	const state = canUserAccessTrip(row);
+	if (state === 'accepted') return { ok: true };
+	if (state === 'not-found') return { ok: false, status: 404 };
+	return { ok: false, status: 403 };
+}
+
+async function listTripIdsForUser(userId: string): Promise<Set<string>> {
+	const ids = new Set<string>();
+	for await (const r of tables.TripParticipant.search({
+		conditions: [{ attribute: 'userId', value: userId, comparator: 'equals' as const }],
+	})) {
+		if (canUserAccessTrip(r) !== 'accepted') continue;
+		ids.add((r as any).tripId);
+	}
+	return ids;
+}
+
 export class RiverLogResource extends Resource {
 	allowRead() { return true; }
 	allowCreate() { return true; }
@@ -61,20 +83,27 @@ export class RiverLogResource extends Resource {
 
 		if (target?.id) {
 			const row = await tables.RiverLog.get(target.id);
-			const check = validateOwnership(row, userId);
-			if (check === 'not-found') return new Response('Not found', { status: 404 });
-			if (check === 'forbidden') return new Response('Forbidden', { status: 403 });
+			if (!row) return new Response('Not found', { status: 404 });
+			const access = await tripAccessCheck(target.id, userId);
+			if (!access.ok) return new Response(access.status === 404 ? 'Not found' : 'Forbidden', { status: access.status });
 			const patched = await tryLazyResolveFlow(row);
-			return patched ? { ...row, ...patched } : row;
+			const base = patched ? { ...row, ...patched } : { ...(row as any) };
+			const participantsByTrip = await loadParticipantsForTrips(tables, [target.id], userId);
+			(base as any).participants = participantsByTrip.get(target.id) || [];
+			return base;
 		}
 
-		const sectionFilter = target?.sectionId;
-		const conditions: any[] = [{ attribute: 'userId', value: userId, comparator: 'equals' as const }];
-		if (sectionFilter) conditions.push({ attribute: 'sectionId', value: sectionFilter, comparator: 'equals' as const });
+		const tripIds = await listTripIdsForUser(userId);
+		if (tripIds.size === 0) return { logs: [], total: 0 };
 
-		// Spread out of Harper's read-only proxy so we can fold lazy-resolve patches in.
-		const rowProxies = await collect(tables.RiverLog.search({ conditions }));
-		const rows: any[] = rowProxies.map(r => ({ ...(r as any) }));
+		const sectionFilter = target?.sectionId;
+		const rows: any[] = [];
+		for (const id of tripIds) {
+			const row = await tables.RiverLog.get(id);
+			if (!row) continue;
+			if (sectionFilter && (row as any).sectionId !== sectionFilter) continue;
+			rows.push({ ...(row as any) });
+		}
 		for (const r of rows) {
 			const patch = await tryLazyResolveFlow(r);
 			if (patch) Object.assign(r, patch);
@@ -135,8 +164,41 @@ export class RiverLogResource extends Resource {
 			},
 			{ section, corridor, flow, id, now },
 		);
+		(log as any).createdByUserId = userId;
+		if (data.visibility === 'participants') (log as any).visibility = 'participants';
 
 		await tables.RiverLog.put(log);
+
+		// Self-participant row — this user is now an accepted participant on their own trip.
+		// craftSequenceJson + notes mirror the legacy denormalized fields. As participants
+		// invite others (LogShareResource.consume) or direct-add (TripParticipantResource.post),
+		// additional rows land in the same shape.
+		const participantId = compositeId([id, userId]);
+		const craftSequence = (log as any).craftId
+			? [{
+				craftId: (log as any).craftId,
+				craftType: (log as any).craftType,
+				craftSize: (log as any).craftSize,
+				craftName: (log as any).craftName,
+			}]
+			: [];
+		await tables.TripParticipant.put({
+			id: participantId,
+			tripId: id,
+			userId,
+			addedBy: userId,
+			invitedAt: now,
+			acceptedAt: now,
+			declinedAt: null,
+			removedAt: null,
+			notes: (log as any).notes || '',
+			notesPrivate: false,
+			craftSequenceJson: craftSequence.length ? JSON.stringify(craftSequence) : null,
+			craftIds: craftSequence.length ? [craftSequence[0].craftId] : [],
+			createdAt: now,
+			updatedAt: now,
+		});
+
 		return log;
 	}
 
@@ -148,9 +210,9 @@ export class RiverLogResource extends Resource {
 		if (!id) return new Response('id required', { status: 400 });
 
 		const existing = await tables.RiverLog.get(id);
-		const check = validateOwnership(existing, userId);
-		if (check === 'not-found') return new Response('Not found', { status: 404 });
-		if (check === 'forbidden') return new Response('Forbidden', { status: 403 });
+		if (!existing) return new Response('Not found', { status: 404 });
+		const access = await tripAccessCheck(id, userId);
+		if (!access.ok) return new Response(access.status === 404 ? 'Not found' : 'Forbidden', { status: access.status });
 
 		const visError = validateVisibility(data.visibility);
 		if (visError) return new Response(visError.error, { status: visError.status });
@@ -180,7 +242,6 @@ export class RiverLogResource extends Resource {
 			if (campingErr) return new Response(campingErr.error, { status: campingErr.status });
 			(allowed as any).campingJson = stringifyCamping(camping);
 		} else if ('endDate' in allowed && (effectiveEndDate == null || effectiveEndDate === effectiveDate)) {
-			// Collapsing to single-day; clear any stale camping the row may carry.
 			(allowed as any).campingJson = null;
 		}
 
@@ -207,6 +268,10 @@ export class RiverLogResource extends Resource {
 			}
 		}
 
+		if (data.visibility !== undefined) {
+			(allowed as any).visibility = data.visibility ?? 'private';
+		}
+
 		(allowed as any).updatedAt = isoNow();
 		await tables.RiverLog.patch(id, allowed);
 		return await tables.RiverLog.get(id);
@@ -220,9 +285,23 @@ export class RiverLogResource extends Resource {
 		if (!id) return new Response('id required', { status: 400 });
 
 		const existing = await tables.RiverLog.get(id);
-		const check = validateOwnership(existing, userId);
-		if (check === 'not-found') return new Response('Not found', { status: 404 });
-		if (check === 'forbidden') return new Response('Forbidden', { status: 403 });
+		if (!existing) return new Response('Not found', { status: 404 });
+		// Only the trip's creator can delete it outright; other participants
+		// remove themselves via TripParticipant.
+		const creator = (existing as any).createdByUserId || (existing as any).userId;
+		if (creator !== userId) return new Response('Forbidden', { status: 403 });
+
+		// Cascade: delete all TripParticipant rows + LogShare rows for this trip.
+		for await (const p of tables.TripParticipant.search({
+			conditions: [{ attribute: 'tripId', value: id, comparator: 'equals' as const }],
+		})) {
+			await tables.TripParticipant.delete((p as any).id);
+		}
+		for await (const s of tables.LogShare.search({
+			conditions: [{ attribute: 'tripId', value: id, comparator: 'equals' as const }],
+		})) {
+			await tables.LogShare.delete((s as any).id);
+		}
 
 		await tables.RiverLog.delete(id);
 		return { ok: true, id };

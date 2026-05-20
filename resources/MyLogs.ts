@@ -1,6 +1,8 @@
 import { Resource, tables } from 'harper';
 import { listWatersheds } from '../lib/watersheds.ts';
 import { listCorridors } from '../lib/corridors.ts';
+import { canUserAccessTrip } from '../lib/log/participant-pure.ts';
+import { loadParticipantsForTrips } from '../lib/log/participants-loader.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -10,6 +12,22 @@ async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 
 function getUserId(ctx: any): string | null {
 	return ctx?.session?.user || null;
+}
+
+async function loadAccessibleLogs(userId: string): Promise<any[]> {
+	const tripIds: string[] = [];
+	for await (const r of tables.TripParticipant.search({
+		conditions: [{ attribute: 'userId', value: userId, comparator: 'equals' as const }],
+	})) {
+		if (canUserAccessTrip(r) !== 'accepted') continue;
+		tripIds.push((r as any).tripId);
+	}
+	const out: any[] = [];
+	for (const id of tripIds) {
+		const log = await tables.RiverLog.get(id);
+		if (log) out.push(log);
+	}
+	return out;
 }
 
 function yearOf(dateStr: string | null | undefined): number | null {
@@ -25,14 +43,11 @@ export class MyLogsView extends Resource {
 		const userId = getUserId(this.getContext());
 		if (!userId) return new Response('Auth required', { status: 401 });
 
-		const [logs, sections, watersheds, corridors, profile] = await Promise.all([
-			collect(tables.RiverLog.search({
-				conditions: [{ attribute: 'userId', value: userId, comparator: 'equals' as const }],
-			})),
+		const [logs, sections, watersheds, corridors] = await Promise.all([
+			loadAccessibleLogs(userId),
 			collect(tables.RiverSection.search({ conditions: [] })),
 			listWatersheds(),
 			listCorridors(),
-			tables.UserProfile.get(userId),
 		]);
 
 		const sectionMap = new Map<string, any>();
@@ -47,6 +62,17 @@ export class MyLogsView extends Resource {
 			(b.date || '').localeCompare(a.date || '') ||
 			(b.createdAt || '').localeCompare(a.createdAt || ''),
 		);
+
+		// Hydrate participants for each accessible trip.
+		const participantsByTrip = await loadParticipantsForTrips(
+			tables,
+			logs.map((l: any) => l.id),
+			userId,
+		);
+		const logsWithParticipants = logs.map((l: any) => ({
+			...l,
+			participants: participantsByTrip.get(l.id) || [],
+		}));
 
 		// Build watershed → corridor → section group structure.
 		type SectionAgg = { sectionId: string; name: string; tripCount: number; lastTripAt: string | null };
@@ -122,7 +148,7 @@ export class MyLogsView extends Resource {
 
 		// Year groups: flat lists per year, newest-first.
 		const yearAggs = new Map<number, { year: number; tripCount: number; logs: any[] }>();
-		for (const log of logs) {
+		for (const log of logsWithParticipants) {
 			const y = yearOf((log as any).date);
 			if (y == null) continue;
 			let yAgg = yearAggs.get(y);
@@ -140,9 +166,7 @@ export class MyLogsView extends Resource {
 		return {
 			watersheds: watershedsOut,
 			yearGroups,
-			logs,
-			homeWatershedId: (profile as any)?.homeWatershedId || null,
-			profile: profile || null,
+			logs: logsWithParticipants,
 			generatedAt: new Date().toISOString(),
 		};
 	}

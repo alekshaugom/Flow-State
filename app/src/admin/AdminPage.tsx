@@ -78,7 +78,6 @@ export function AdminPage() {
 					fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--river-600)',
 					letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 500,
 				}}>
-					<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 					System controls
 				</div>
 				<h1 style={{ margin: '4px 0 16px', fontSize: 32, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--ink-0)' }}>
@@ -132,7 +131,7 @@ export function AdminPage() {
 						<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 							{/* Seed */}
 							<div style={card}>
-								<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Database</div>
+								<div style={label}>Database</div>
 								<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 8px' }}>Seed Data</h3>
 								{seedStatus.data && (
 									<div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 12 }}>
@@ -151,7 +150,7 @@ export function AdminPage() {
 
 							{/* Ingestion */}
 							<div style={card}>
-								<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Ingestion</div>
+								<div style={label}>Ingestion</div>
 								<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 8px' }}>Fetch Data</h3>
 								{ingestion.data && (
 									<div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 12, lineHeight: 1.6 }}>
@@ -170,7 +169,7 @@ export function AdminPage() {
 
 							{/* Data Health */}
 							<div style={{ ...card, gridColumn: '1 / -1' }}>
-								<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Health</div>
+								<div style={label}>Health</div>
 								<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 12px' }}>Data Source Health</h3>
 								{health.data ? (
 									<div style={{ overflowX: 'auto' }}>
@@ -257,7 +256,7 @@ export function AdminPage() {
 
 							{/* Logs */}
 							<div style={{ ...card, gridColumn: '1 / -1' }}>
-								<div style={label}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>History</div>
+								<div style={label}>History</div>
 								<h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink-0)', margin: '0 0 12px' }}>Recent Ingestion Logs</h3>
 								{logs.data && Array.isArray(logs.data) && logs.data.length > 0 ? (
 									<div style={{ overflowX: 'auto' }}>

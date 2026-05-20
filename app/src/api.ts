@@ -1,4 +1,4 @@
-import type { RiverLogEntry, RiverLogInput, UserProfileEntry, UserProfileInput, SectionLogsResponse, MyLogsResponse, MyLogsAggregateResponse, UserCraftEntry, UserCraftInput, MyCraftsResponse, EmailLoginResult, AdminLoginLinkResult, AdminLoginTokenList, AdminInviteUserInput, AdminInviteUserResult, AdminDeleteUserResult, SetMyPasswordResult } from './types';
+import type { RiverLogEntry, RiverLogInput, SectionLogsResponse, MyLogsResponse, MyLogsAggregateResponse, UserCraftEntry, UserCraftInput, MyCraftsResponse, EmailLoginResult, AdminLoginLinkResult, AdminLoginTokenList, AdminInviteUserInput, AdminInviteUserResult, AdminDeleteUserResult, SetMyPasswordResult, SetMyNameResult, MyConnectionsResponse, MintShareResult, SharePreviewResult, ShareConsumeResult, ParticipantView } from './types';
 
 async function json<T>(res: Response): Promise<T> {
 	if (!res.ok) {
@@ -101,17 +101,6 @@ export const api = {
 	myLogsAggregate: () =>
 		fetch('/MyLogsView').then(json<MyLogsAggregateResponse>),
 
-	// --- Profile ---
-	profile: (userId: string) =>
-		fetch(`/UserProfileResource/${encodeURIComponent(userId)}`).then(json<UserProfileEntry | null>),
-
-	updateProfile: (userId: string, patch: UserProfileInput) =>
-		fetch(`/UserProfileResource/${encodeURIComponent(userId)}`, {
-			method: 'PUT',
-			headers: JSON_HEADERS,
-			body: JSON.stringify(patch),
-		}).then(json<UserProfileEntry>),
-
 	// --- Saved crafts ---
 	myCrafts: () =>
 		fetch('/UserCraftResource/').then(json<MyCraftsResponse>),
@@ -157,6 +146,13 @@ export const api = {
 			body: JSON.stringify({ action: 'set-my-password', password }),
 		}).then(json<SetMyPasswordResult>),
 
+	setMyName: (firstName: string, lastName: string) =>
+		fetch('/EmailLoginResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'set-my-name', firstName, lastName }),
+		}).then(json<SetMyNameResult>),
+
 	adminSetPassword: (userId: string, password: string) =>
 		fetch('/AdminAuthResource', {
 			method: 'POST',
@@ -198,4 +194,50 @@ export const api = {
 			headers: JSON_HEADERS,
 			body: JSON.stringify({ action: 'delete-user', userId }),
 		}).then(json<AdminDeleteUserResult>),
+
+	// --- Share + participant primitives (slice 12c) ---
+	mintShare: (tripId: string, inviteeEmail: string) =>
+		fetch('/LogShareResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'mint', tripId, inviteeEmail }),
+		}).then(json<MintShareResult>),
+
+	previewShare: (token: string) =>
+		fetch('/LogShareResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'preview', token }),
+		}).then(json<SharePreviewResult>),
+
+	consumeShare: (token: string) =>
+		fetch('/LogShareResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'consume', token }),
+		}).then(json<ShareConsumeResult>),
+
+	revokeShare: (token: string) =>
+		fetch('/LogShareResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'revoke', token }),
+		}).then(json<{ ok: true; token: string; alreadyUsed?: boolean }>),
+
+	myConnections: () =>
+		fetch('/MyConnectionsView').then(json<MyConnectionsResponse>),
+
+	addParticipant: (tripId: string, userId: string) =>
+		fetch('/TripParticipantResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ tripId, userId }),
+		}).then(json<ParticipantView>),
+
+	patchParticipant: (participantId: string, patch: { notes?: string; notesPrivate?: boolean }) =>
+		fetch(`/TripParticipantResource/${encodeURIComponent(participantId)}`, {
+			method: 'PATCH',
+			headers: JSON_HEADERS,
+			body: JSON.stringify(patch),
+		}).then(json<ParticipantView>),
 };

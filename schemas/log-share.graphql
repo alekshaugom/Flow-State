@@ -1,0 +1,10 @@
+type LogShare @table @export {
+	id: ID @primaryKey
+	tripId: ID @indexed
+	inviterUserId: ID @indexed
+	inviteeEmail: String @indexed
+	expiresAt: String @indexed
+	usedAt: String
+	usedBy: ID
+	createdAt: String @indexed
+}

@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
-import { useProfile, useUpdateProfile } from '../hooks/useProfile';
-import { useDashboard } from '../hooks/useDashboard';
-
-const SKILL_OPTIONS = ['novice', 'intermediate', 'advanced', 'expert', 'guide'] as const;
+import { api } from '../api';
+import type { MyCraftsResponse, MyLogsAggregateResponse } from '../types';
 
 const labelStyle: React.CSSProperties = {
 	fontFamily: 'var(--font-mono)',
@@ -29,53 +28,80 @@ const inputStyle: React.CSSProperties = {
 	boxSizing: 'border-box',
 };
 
+const sectionStyle: React.CSSProperties = {
+	marginTop: 24,
+	paddingTop: 18,
+	borderTop: '1px dashed var(--rule)',
+};
+
+const sectionLabelStyle: React.CSSProperties = {
+	fontFamily: 'var(--font-mono)',
+	fontSize: 10,
+	letterSpacing: '0.10em',
+	textTransform: 'uppercase',
+	color: 'var(--ink-3)',
+	marginBottom: 8,
+};
+
 export function ProfileSetupPage() {
-	const { isAuthenticated, isLoading } = useAuth();
+	const { isAuthenticated, isLoading, user } = useAuth();
 	const navigate = useNavigate();
-	const profile = useProfile();
-	const updateProfile = useUpdateProfile();
-	const dashboard = useDashboard();
+	const qc = useQueryClient();
 
 	useEffect(() => {
 		if (!isLoading && !isAuthenticated) navigate('/login', { replace: true });
 	}, [isLoading, isAuthenticated, navigate]);
 
-	const [skillLevel, setSkillLevel] = useState<string>('intermediate');
-	const [yearsBoating, setYearsBoating] = useState<number | ''>('');
-	const [background, setBackground] = useState('');
-	const [homeWatershedId, setHomeWatershedId] = useState<string>('');
+	const [firstName, setFirstName] = useState('');
+	const [lastName, setLastName] = useState('');
 	const [hydrated, setHydrated] = useState(false);
 	const [savedJustNow, setSavedJustNow] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
-		if (hydrated || !profile.data) return;
-		const p = profile.data;
-		setSkillLevel(p.skillLevel || 'intermediate');
-		setYearsBoating(typeof p.yearsBoating === 'number' ? p.yearsBoating : '');
-		setBackground(p.background || '');
-		setHomeWatershedId(p.homeWatershedId || '');
+		if (hydrated || !user) return;
+		setFirstName((user as any).firstName || '');
+		setLastName((user as any).lastName || '');
 		setHydrated(true);
-	}, [hydrated, profile.data]);
+	}, [hydrated, user]);
 
-	useEffect(() => {
-		if (!profile.isLoading && !profile.data && !hydrated) setHydrated(true);
-	}, [profile.isLoading, profile.data, hydrated]);
+	const crafts = useQuery<MyCraftsResponse>({
+		queryKey: ['my-crafts'],
+		queryFn: () => api.myCrafts(),
+		enabled: isAuthenticated,
+	});
 
-	const watersheds = (dashboard.data as any)?.watersheds || [];
+	const logs = useQuery<MyLogsAggregateResponse>({
+		queryKey: ['my-logs-aggregate'],
+		queryFn: () => api.myLogsAggregate(),
+		enabled: isAuthenticated,
+	});
 
-	const onSubmit = async (e: React.FormEvent) => {
+	const saveName = useMutation({
+		mutationFn: () => api.setMyName(firstName.trim(), lastName.trim()),
+		onSuccess: () => {
+			setSavedJustNow(true);
+			setError(null);
+			qc.invalidateQueries({ queryKey: ['me'] });
+		},
+		onError: (err: any) => setError(err?.message || 'Could not save name'),
+	});
+
+	const onSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		setSavedJustNow(false);
-		await updateProfile.mutateAsync({
-			skillLevel,
-			yearsBoating: yearsBoating === '' ? null : Number(yearsBoating),
-			background: background || null,
-			homeWatershedId: homeWatershedId || null,
-		});
-		setSavedJustNow(true);
+		if (!firstName.trim()) {
+			setError('First name is required');
+			return;
+		}
+		saveName.mutate();
 	};
 
-	if (!isAuthenticated) return null;
+	if (!isAuthenticated || !user) return null;
+
+	const totalCrafts = (crafts.data?.crafts || []).filter(c => !c.archivedAt).length;
+	const totalTrips = logs.data?.logs?.length ?? 0;
+	const lastTrip = logs.data?.watersheds?.[0]?.lastTripAt ?? null;
 
 	return (
 		<div style={{ maxWidth: 560, margin: '0 auto', padding: 'max(env(safe-area-inset-top), 16px) 16px 80px' }}>
@@ -85,91 +111,59 @@ export function ProfileSetupPage() {
 				letterSpacing: '0.12em',
 				textTransform: 'uppercase',
 				color: 'var(--ink-3)',
-			}}>// YOUR PROFILE</div>
-			<h1 style={{ margin: '4px 0 14px', fontSize: 22, fontWeight: 700, color: 'var(--ink-0)' }}>
-				Tell your logs who you are
+			}}>YOUR ACCOUNT</div>
+			<h1 style={{ margin: '4px 0 18px', fontSize: 22, fontWeight: 700, color: 'var(--ink-0)' }}>
+				Profile
 			</h1>
-			<p style={{ color: 'var(--ink-3)', fontSize: 13, marginBottom: 18 }}>
-				This shows up at the bottom of your log cards. Skip anything you don't want to share.
-			</p>
 
 			<form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-				<div>
-					<label style={labelStyle} htmlFor="skill">Skill</label>
-					<div role="radiogroup" style={{
-						display: 'inline-flex', gap: 2, padding: 3,
-						background: 'var(--bg-sunken)', borderRadius: 'var(--r-pill)', width: '100%',
-					}}>
-						{SKILL_OPTIONS.map(opt => {
-							const sel = skillLevel === opt;
-							return (
-								<button
-									key={opt}
-									type="button"
-									role="radio"
-									aria-checked={sel}
-									onClick={() => setSkillLevel(opt)}
-									style={{
-										flex: 1,
-										padding: '7px 8px',
-										borderRadius: 'var(--r-pill)',
-										background: sel ? 'var(--bg-card)' : 'transparent',
-										color: sel ? 'var(--ink-0)' : 'var(--ink-3)',
-										border: sel ? '1px solid var(--rule)' : '1px solid transparent',
-										fontSize: 12,
-										fontWeight: sel ? 600 : 500,
-										textTransform: 'capitalize',
-										cursor: 'pointer',
-									}}
-								>{opt}</button>
-							);
-						})}
-					</div>
-				</div>
-
 				<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
 					<div>
-						<label style={labelStyle} htmlFor="years">Years boating</label>
+						<label style={labelStyle} htmlFor="first-name">First name</label>
 						<input
-							id="years"
-							type="number"
-							min={0}
-							max={80}
+							id="first-name"
 							style={inputStyle}
-							value={yearsBoating}
-							onChange={e => setYearsBoating(e.target.value === '' ? '' : Number(e.target.value))}
+							value={firstName}
+							onChange={e => { setFirstName(e.target.value); setSavedJustNow(false); }}
+							maxLength={80}
+							autoComplete="given-name"
 						/>
 					</div>
 					<div>
-						<label style={labelStyle} htmlFor="home">Home watershed</label>
-						<select
-							id="home"
-							style={{ ...inputStyle, padding: '9px 10px' }}
-							value={homeWatershedId}
-							onChange={e => setHomeWatershedId(e.target.value)}
-						>
-							<option value="">— pick one —</option>
-							{watersheds.map((w: any) => (
-								<option key={w.id} value={w.id}>{w.name}</option>
-							))}
-						</select>
+						<label style={labelStyle} htmlFor="last-name">Last name</label>
+						<input
+							id="last-name"
+							style={inputStyle}
+							value={lastName}
+							onChange={e => { setLastName(e.target.value); setSavedJustNow(false); }}
+							maxLength={80}
+							autoComplete="family-name"
+						/>
 					</div>
 				</div>
 
 				<div>
-					<label style={labelStyle} htmlFor="background">Background</label>
+					<label style={labelStyle} htmlFor="email">Email</label>
 					<input
-						id="background"
-						style={inputStyle}
-						placeholder='e.g. "Former raft guide, AW Class V"'
-						value={background}
-						maxLength={140}
-						onChange={e => setBackground(e.target.value)}
+						id="email"
+						style={{ ...inputStyle, background: 'var(--bg-sunken)', color: 'var(--ink-2)', cursor: 'not-allowed' }}
+						value={user.email}
+						readOnly
 					/>
 					<div style={{ marginTop: 4, color: 'var(--ink-4)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
-						{background.length}/140
+						Contact an admin to change your email.
 					</div>
 				</div>
+
+				{error && (
+					<div style={{
+						padding: '8px 12px',
+						borderRadius: 'var(--r-md)',
+						background: '#fdecea',
+						color: '#a02323',
+						fontSize: 13,
+					}}>{error}</div>
+				)}
 
 				{savedJustNow && (
 					<div style={{
@@ -181,13 +175,13 @@ export function ProfileSetupPage() {
 						fontFamily: 'var(--font-mono)',
 						letterSpacing: '0.08em',
 						textTransform: 'uppercase',
-					}}>// SAVED</div>
+					}}>SAVED</div>
 				)}
 
 				<div style={{ display: 'flex', gap: 10 }}>
 					<button
 						type="submit"
-						disabled={updateProfile.isPending}
+						disabled={saveName.isPending}
 						style={{
 							padding: '11px 20px',
 							borderRadius: 'var(--r-md)',
@@ -196,10 +190,10 @@ export function ProfileSetupPage() {
 							color: '#fff',
 							fontWeight: 600,
 							fontSize: 14,
-							cursor: updateProfile.isPending ? 'wait' : 'pointer',
-							opacity: updateProfile.isPending ? 0.6 : 1,
+							cursor: saveName.isPending ? 'wait' : 'pointer',
+							opacity: saveName.isPending ? 0.6 : 1,
 						}}
-					>Save profile</button>
+					>Save</button>
 					<button
 						type="button"
 						onClick={() => navigate('/')}
@@ -216,21 +210,36 @@ export function ProfileSetupPage() {
 				</div>
 			</form>
 
-			<div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px dashed var(--rule)' }}>
-				<div style={{
-					fontFamily: 'var(--font-mono)',
-					fontSize: 10,
-					letterSpacing: '0.10em',
-					textTransform: 'uppercase',
-					color: 'var(--ink-3)',
-					marginBottom: 6,
-				}}>// CRAFTS</div>
-				<p style={{ fontSize: 13, color: 'var(--ink-2)', margin: '0 0 10px' }}>
-					Save the boats you boat with so you can pick from a list on every log instead of re-typing the details.
-				</p>
-				<Link to="/logs/crafts" style={{ color: 'var(--river-700)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
-					Manage your crafts →
-				</Link>
+			<div style={sectionStyle}>
+				<div style={sectionLabelStyle}>SAVED BOATS</div>
+				<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+					<div style={{ fontSize: 13, color: 'var(--ink-2)' }}>
+						{crafts.isLoading
+							? 'Loading…'
+							: totalCrafts === 0
+								? 'No boats saved yet.'
+								: `${totalCrafts} ${totalCrafts === 1 ? 'boat' : 'boats'} saved.`}
+					</div>
+					<Link to="/logs/crafts" style={{ color: 'var(--river-700)', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+						Manage →
+					</Link>
+				</div>
+			</div>
+
+			<div style={sectionStyle}>
+				<div style={sectionLabelStyle}>TRIP HISTORY</div>
+				<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+					<div style={{ fontSize: 13, color: 'var(--ink-2)' }}>
+						{logs.isLoading
+							? 'Loading…'
+							: totalTrips === 0
+								? 'No trips logged yet.'
+								: `${totalTrips} ${totalTrips === 1 ? 'trip' : 'trips'}${lastTrip ? ` · last ${lastTrip}` : ''}`}
+					</div>
+					<Link to="/logs" style={{ color: 'var(--river-700)', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+						View →
+					</Link>
+				</div>
 			</div>
 		</div>
 	);

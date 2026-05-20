@@ -1,0 +1,16 @@
+type TripParticipant @table @export {
+	id: ID @primaryKey
+	tripId: ID @indexed
+	userId: ID @indexed
+	addedBy: ID
+	invitedAt: String @indexed
+	acceptedAt: String
+	declinedAt: String
+	removedAt: String
+	notes: String
+	notesPrivate: Boolean
+	craftSequenceJson: String
+	craftIds: [ID] @indexed
+	createdAt: String
+	updatedAt: String
+}

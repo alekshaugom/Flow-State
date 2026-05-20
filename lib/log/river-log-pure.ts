@@ -97,19 +97,3 @@ export function buildNewLogRow(input: BuildLogInput, ctx: BuildLogContext): any 
 	};
 }
 
-export function isOwnUserRequest(requestedUserId: string | null | undefined, currentUserId: string | null): boolean {
-	if (!currentUserId) return false;
-	const requested = requestedUserId || currentUserId;
-	return requested === currentUserId;
-}
-
-export const USER_PROFILE_WRITABLE_FIELDS = ['skillLevel', 'yearsBoating', 'background', 'homeWatershedId', 'preExistingTripCountsJson'] as const;
-
-export function pickUserProfileWritable(data: any): Record<string, any> {
-	const out: Record<string, any> = {};
-	if (!data || typeof data !== 'object') return out;
-	for (const k of USER_PROFILE_WRITABLE_FIELDS) {
-		if (data[k] !== undefined) out[k] = data[k];
-	}
-	return out;
-}

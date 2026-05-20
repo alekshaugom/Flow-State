@@ -187,9 +187,11 @@ export class AdminAuthResource extends Resource {
 			user: 0,
 			credential: 0,
 			tokens: 0,
-			profile: 0,
 			crafts: 0,
 			logs: 0,
+			participants: 0,
+			sharesInvited: 0,
+			sharesAccepted: 0,
 		};
 
 		// Order: dependents first, then the WaitlistUser row itself. If a downstream
@@ -210,12 +212,6 @@ export class AdminAuthResource extends Resource {
 			deleted.tokens += 1;
 		}
 
-		// UserProfile keyed by userId.
-		if (await tables.UserProfile.get(targetUserId)) {
-			await tables.UserProfile.delete(targetUserId);
-			deleted.profile = 1;
-		}
-
 		// UserCraft: many per user.
 		for await (const c of tables.UserCraft.search({
 			conditions: [{ attribute: 'userId', value: targetUserId, comparator: 'equals' as const }],
@@ -224,11 +220,51 @@ export class AdminAuthResource extends Resource {
 			deleted.crafts += 1;
 		}
 
-		// RiverLog: many per user.
+		// TripParticipant: scrub the user's rows on every trip they were on.
+		// We do this BEFORE deleting their RiverLog rows so a trip the deleted
+		// user created (and is the only participant on) still has its participant
+		// row found and cleaned up here.
+		for await (const p of tables.TripParticipant.search({
+			conditions: [{ attribute: 'userId', value: targetUserId, comparator: 'equals' as const }],
+		})) {
+			await tables.TripParticipant.delete((p as any).id);
+			deleted.participants += 1;
+		}
+
+		// LogShare: tokens this user minted as inviter.
+		for await (const s of tables.LogShare.search({
+			conditions: [{ attribute: 'inviterUserId', value: targetUserId, comparator: 'equals' as const }],
+		})) {
+			await tables.LogShare.delete((s as any).id);
+			deleted.sharesInvited += 1;
+		}
+		// LogShare: tokens this user consumed (rare — but keep clean).
+		for await (const s of tables.LogShare.search({
+			conditions: [{ attribute: 'usedBy', value: targetUserId, comparator: 'equals' as const }],
+		})) {
+			await tables.LogShare.delete((s as any).id);
+			deleted.sharesAccepted += 1;
+		}
+
+		// RiverLog: trips the user created. Cascade their participant rows + shares
+		// for those trips too (loop catches our own user-keyed rows separately above).
 		for await (const l of tables.RiverLog.search({
 			conditions: [{ attribute: 'userId', value: targetUserId, comparator: 'equals' as const }],
 		})) {
-			await tables.RiverLog.delete((l as any).id);
+			const tripId = (l as any).id;
+			for await (const p of tables.TripParticipant.search({
+				conditions: [{ attribute: 'tripId', value: tripId, comparator: 'equals' as const }],
+			})) {
+				await tables.TripParticipant.delete((p as any).id);
+				deleted.participants += 1;
+			}
+			for await (const s of tables.LogShare.search({
+				conditions: [{ attribute: 'tripId', value: tripId, comparator: 'equals' as const }],
+			})) {
+				await tables.LogShare.delete((s as any).id);
+				deleted.sharesInvited += 1;
+			}
+			await tables.RiverLog.delete(tripId);
 			deleted.logs += 1;
 		}
 

@@ -13,7 +13,6 @@ import type {
 	MyLogsAggregateResponse,
 	MyLogsWatershed,
 	RiverLogEntry,
-	UserProfileEntry,
 } from '../types';
 
 type ViewMode = 'watershed' | 'year';
@@ -188,14 +187,12 @@ export function MyLogsPage() {
 	const [expandedWatersheds, setExpandedWatersheds] = useState<Set<string>>(new Set());
 	useEffect(() => {
 		if (!data) return;
-		const home = data.homeWatershedId;
-		if (home && !expandedWatersheds.has(home)) {
-			setExpandedWatersheds(new Set([home]));
-		} else if (!home && data.watersheds.length === 1) {
+		// Default-expand the only watershed when there's exactly one.
+		if (data.watersheds.length === 1) {
 			setExpandedWatersheds(new Set([data.watersheds[0].watershedId]));
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [data?.homeWatershedId, data?.watersheds.length]);
+	}, [data?.watersheds.length]);
 
 	const updateFilters = (patch: Partial<{ craft: string | null; tag: string | null; watershedId: string | null; view: ViewMode }>) => {
 		const next = new URLSearchParams(search);
@@ -215,7 +212,7 @@ export function MyLogsPage() {
 		const watersheds = filteredWatersheds.length;
 		const sections = new Set(filteredLogs.map(l => l.sectionId)).size;
 		const lastDate = filteredLogs[0]?.date;
-		return `// ${total} TRIPS · ${sections} SECTIONS · ${watersheds} WATERSHEDS${lastDate ? ` · LAST ${lastDate}` : ''}`;
+		return `${total} TRIPS · ${sections} SECTIONS · ${watersheds} WATERSHEDS${lastDate ? ` · LAST ${lastDate}` : ''}`;
 	})();
 
 	if (!isAuthenticated) return null;
@@ -265,13 +262,12 @@ export function MyLogsPage() {
 	}
 
 	const hasAnyLogs = data.logs.length > 0;
-	const profile = data.profile;
 
 	return renderChrome(
 		<>
 			<div style={{ marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
 				<div>
-					<div style={eyebrowStyle}>// MY LOGS</div>
+					<div style={eyebrowStyle}>MY LOGS</div>
 					<h1 style={{ margin: '4px 0 4px', fontSize: 24, fontWeight: 700, color: 'var(--ink-0)' }}>
 						{hasAnyLogs ? 'Where you have been' : 'No trips yet'}
 					</h1>
@@ -324,7 +320,7 @@ export function MyLogsPage() {
 							}}
 						/>
 					) : (
-						<YearView yearGroups={filteredYearGroups} profile={profile || null} />
+						<YearView yearGroups={filteredYearGroups} />
 					)}
 				</>
 			)}
@@ -413,7 +409,7 @@ function WatershedView({ watersheds, expanded, onToggle }: {
 									marginTop: 2,
 									textTransform: 'uppercase',
 								}}>
-									// {w.tripCount} TRIPS · {w.sectionCount} SECTIONS{w.lastTripAt ? ` · LAST ${w.lastTripAt}` : ''}
+									{w.tripCount} TRIPS · {w.sectionCount} SECTIONS{w.lastTripAt ? ` · LAST ${w.lastTripAt}` : ''}
 								</div>
 							</div>
 							<span style={{
@@ -472,7 +468,7 @@ function WatershedView({ watersheds, expanded, onToggle }: {
 	);
 }
 
-function YearView({ yearGroups, profile }: { yearGroups: { year: number; tripCount: number; logs: RiverLogEntry[] }[]; profile: UserProfileEntry | null }) {
+function YearView({ yearGroups }: { yearGroups: { year: number; tripCount: number; logs: RiverLogEntry[] }[] }) {
 	if (!yearGroups.length) {
 		return (
 			<div style={{ color: 'var(--ink-3)', fontSize: 13, padding: 20, textAlign: 'center' }}>
@@ -490,9 +486,9 @@ function YearView({ yearGroups, profile }: { yearGroups: { year: number; tripCou
 						letterSpacing: '0.10em',
 						textTransform: 'uppercase',
 						color: 'var(--ink-3)',
-					}}>// {g.year} · {g.tripCount} {g.tripCount === 1 ? 'trip' : 'trips'}</div>
+					}}>{g.year} · {g.tripCount} {g.tripCount === 1 ? 'trip' : 'trips'}</div>
 					{g.logs.map(log => (
-						<RiverLogCard key={log.id} log={log} profile={profile} />
+						<RiverLogCard key={log.id} log={log} />
 					))}
 				</section>
 			))}

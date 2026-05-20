@@ -3,6 +3,7 @@ import { getFlowStatus } from '../lib/utils.ts';
 import { resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
 import { listWatersheds } from '../lib/watersheds.ts';
 import { listCorridors } from '../lib/corridors.ts';
+import { canUserAccessTrip } from '../lib/log/participant-pure.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -22,9 +23,12 @@ export function invalidateDashboardCache() {
 async function getMyLogCounts(userId: string | null): Promise<Map<string, { count: number; lastLoggedAt: string | null }>> {
 	const out = new Map<string, { count: number; lastLoggedAt: string | null }>();
 	if (!userId) return out;
-	for await (const log of tables.RiverLog.search({
+	for await (const p of tables.TripParticipant.search({
 		conditions: [{ attribute: 'userId', value: userId, comparator: 'equals' as const }],
 	})) {
+		if (canUserAccessTrip(p) !== 'accepted') continue;
+		const log = await tables.RiverLog.get((p as any).tripId);
+		if (!log) continue;
 		const sid = (log as any).sectionId;
 		if (!sid) continue;
 		const existing = out.get(sid) || { count: 0, lastLoggedAt: null };

@@ -121,7 +121,6 @@ export function DesktopShell() {
 						fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--river-600)',
 						letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 500,
 					}}>
-						<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 						Colorado · {dateStr}
 					</div>
 					<h1 style={{ margin: '4px 0 0', fontSize: 32, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--ink-0)' }}>

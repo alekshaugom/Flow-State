@@ -2,6 +2,7 @@ type RiverLog @table @export {
 	id: ID @primaryKey
 	userId: ID @indexed
 	user: WaitlistUser @relationship(from: "userId")
+	createdByUserId: ID @indexed
 	sectionId: ID @indexed
 	section: RiverSection @relationship(from: "sectionId")
 	watershedId: ID @indexed

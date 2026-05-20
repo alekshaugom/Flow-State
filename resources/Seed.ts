@@ -4,6 +4,7 @@ import { invalidateFlowBandsCache } from '../lib/flow-bands.ts';
 import { invalidateWatershedsCache } from '../lib/watersheds.ts';
 import { invalidateCorridorsCache } from '../lib/corridors.ts';
 import { invalidateDashboardCache } from './Dashboard.ts';
+import { compositeId } from '../lib/utils.ts';
 
 const AUTO_SEED_FLAG = '__flowStateAutoSeedStarted';
 // L004: empty-conditions scan can transiently return 0 rows immediately after
@@ -83,6 +84,63 @@ async function backfillMissingSeeds(): Promise<{ backfilled: Record<string, numb
 	return { backfilled, alreadySeeded: false };
 }
 
+/**
+ * Slice 12c migration: every existing RiverLog gets a self-TripParticipant row,
+ * and createdByUserId is backfilled from userId. Idempotent — skips logs that
+ * already have a participant row. Safe to run on every startup.
+ */
+async function migrateRiverLogsToParticipants(): Promise<{ logsScanned: number; participantsCreated: number; createdByBackfilled: number }> {
+	let logsScanned = 0;
+	let participantsCreated = 0;
+	let createdByBackfilled = 0;
+
+	for await (const logProxy of tables.RiverLog.search({ conditions: [] })) {
+		logsScanned += 1;
+		const log = { ...(logProxy as any) };
+		const tripId = log.id;
+		const userId = log.userId;
+		if (!tripId || !userId) continue;
+
+		const participantId = compositeId([tripId, userId]);
+		const existing = await tables.TripParticipant.get(participantId);
+		if (!existing) {
+			const now = log.createdAt || new Date().toISOString();
+			const craftSequence = log.craftId
+				? [{
+					craftId: log.craftId,
+					craftType: log.craftType || null,
+					craftSize: log.craftSize || null,
+					craftName: log.craftName || null,
+				}]
+				: [];
+			await tables.TripParticipant.put({
+				id: participantId,
+				tripId,
+				userId,
+				addedBy: userId,
+				invitedAt: now,
+				acceptedAt: now,
+				declinedAt: null,
+				removedAt: null,
+				notes: log.notes || '',
+				notesPrivate: false,
+				craftSequenceJson: craftSequence.length ? JSON.stringify(craftSequence) : null,
+				craftIds: craftSequence.length ? [craftSequence[0].craftId] : [],
+				createdAt: now,
+				updatedAt: now,
+			});
+			participantsCreated += 1;
+		}
+
+		if (!log.createdByUserId) {
+			await tables.RiverLog.patch(tripId, { createdByUserId: userId });
+			createdByBackfilled += 1;
+		}
+	}
+
+	return { logsScanned, participantsCreated, createdByBackfilled };
+}
+
 async function autoSeedAtStartup(): Promise<void> {
 	await new Promise(r => setTimeout(r, AUTO_SEED_STARTUP_DELAY_MS));
 	try {
@@ -91,6 +149,10 @@ async function autoSeedAtStartup(): Promise<void> {
 			console.log('[seed] startup: all tables populated, skipping');
 		} else {
 			console.log(`[seed] startup: backfilled ${JSON.stringify(backfilled)}`);
+		}
+		const migration = await migrateRiverLogsToParticipants();
+		if (migration.participantsCreated > 0 || migration.createdByBackfilled > 0) {
+			console.log(`[seed] startup: 12c migration ${JSON.stringify(migration)}`);
 		}
 	} catch (err) {
 		console.warn('[seed] startup auto-seed failed:', (err as Error).message);

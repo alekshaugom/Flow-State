@@ -123,7 +123,6 @@
   color: var(--river-600);
   font-weight: 500;
 }
-.eyebrow::before { content: '// '; color: var(--ink-4); }
 
 .mono {
   font-family: var(--font-mono);

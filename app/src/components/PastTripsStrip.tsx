@@ -1,17 +1,16 @@
 import { Link } from 'react-router-dom';
 import { RiverLogCard, type RiverLogCardThresholds } from './RiverLogCard';
-import type { RiverLogEntry, UserProfileEntry } from '../types';
+import type { RiverLogEntry } from '../types';
 
 interface PastTripsStripProps {
 	sectionId: string;
 	logs: RiverLogEntry[];
 	totalCount: number;
-	profile: UserProfileEntry | null;
 	sectionThresholds?: RiverLogCardThresholds | null;
 }
 
-export function PastTripsStrip({ sectionId, logs, totalCount, profile, sectionThresholds }: PastTripsStripProps) {
-	const eyebrowText = totalCount > 0 ? `// PAST TRIPS · ${totalCount} LOGGED` : '// LOG YOUR FIRST TRIP';
+export function PastTripsStrip({ sectionId, logs, totalCount, sectionThresholds }: PastTripsStripProps) {
+	const eyebrowText = totalCount > 0 ? `PAST TRIPS · ${totalCount} LOGGED` : 'LOG YOUR FIRST TRIP';
 
 	return (
 		<section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -48,7 +47,7 @@ export function PastTripsStrip({ sectionId, logs, totalCount, profile, sectionTh
 			{logs.length > 0 ? (
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 					{logs.map(log => (
-						<RiverLogCard key={log.id} log={log} profile={profile} sectionThresholds={sectionThresholds} />
+						<RiverLogCard key={log.id} log={log} sectionThresholds={sectionThresholds} />
 					))}
 					{totalCount > logs.length && (
 						<Link

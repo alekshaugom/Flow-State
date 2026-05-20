@@ -74,7 +74,6 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 			{/* Hero */}
 			<div>
 				<div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--river-600)', fontWeight: 500 }}>
-					<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 					{detail.river} · {detail.classification}{detail.miles ? ` · ${detail.miles} mi` : ''}
 				</div>
 				<div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginTop: 4, flexWrap: 'wrap' }}>
@@ -119,7 +118,7 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 					position: 'relative', overflow: 'hidden',
 				}}>
 					<div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.fg, fontWeight: 600 }}>
-						<span style={{ opacity: 0.6 }}>{'// '}</span>Current flow
+						Current flow
 					</div>
 					<div style={{
 						marginTop: 8,
@@ -144,7 +143,7 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 					)}
 				</div>
 				<div style={{ ...statCard, minWidth: 0 }}>
-					<div style={statLabel}><span style={{ color: 'var(--ink-4)' }}>{'// '}</span>Ideal band</div>
+					<div style={statLabel}>Ideal band</div>
 					<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: 'var(--ink-0)', letterSpacing: '-0.02em', marginTop: 6 }}>
 						{detail.thresholds.idealLo.toLocaleString()}–{detail.thresholds.idealHi.toLocaleString()}
 						<span style={{ fontSize: 12, color: 'var(--ink-3)', marginLeft: 4 }}>cfs</span>
@@ -233,7 +232,6 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 									fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em',
 									textTransform: 'uppercase', color: 'var(--ink-3)', fontWeight: 500,
 								}}>
-									<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 									Weather · Open-Meteo · {detail.weatherForecast.length}-day
 								</div>
 								<WeatherStrip weather={detail.weatherForecast} />
@@ -269,7 +267,6 @@ export function DesktopDetail({ sectionId }: DesktopDetailProps) {
 					sectionId={sectionId}
 					logs={detail.myLogs}
 					totalCount={detail.myLogTotalCount}
-					profile={detail.myProfile}
 					sectionThresholds={detail.flowThresholds}
 				/>
 			)}

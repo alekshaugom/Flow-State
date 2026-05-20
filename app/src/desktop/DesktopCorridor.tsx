@@ -41,7 +41,6 @@ export function DesktopCorridor({ slug }: DesktopCorridorProps) {
 
 			<div style={{ padding: '0 28px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
 				<div style={eyebrow}>
-					<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 					Corridor · {corridor?.driver || 'mixed'}
 				</div>
 				<h1 style={{ margin: 0, fontSize: 32, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--ink-0)' }}>

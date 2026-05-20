@@ -66,7 +66,6 @@ export function DesktopWatershed({ slug }: DesktopWatershedProps) {
 
 			<div style={{ padding: '0 28px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
 				<div style={eyebrow}>
-					<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 					Watershed
 				</div>
 				<h1 style={{ margin: 0, fontSize: 32, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--ink-0)' }}>
@@ -97,7 +96,7 @@ export function DesktopWatershed({ slug }: DesktopWatershedProps) {
 						return (
 							<article key={c.id} style={corridorCard}>
 								<div style={mapHeaderPlaceholder}>
-									<span>{'// '}Map · coming soon</span>
+									<span>Map · coming soon</span>
 								</div>
 								<div style={corridorBody}>
 									<div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>

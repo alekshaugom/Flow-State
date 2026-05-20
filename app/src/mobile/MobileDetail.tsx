@@ -79,7 +79,6 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 			{/* Hero */}
 			<section style={{ padding: '12px 20px 20px' }}>
 				<div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 4 }}>
-					<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 					{detail.river} · {detail.classification}
 				</div>
 				<h1 style={{
@@ -174,7 +173,6 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 								fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em',
 								textTransform: 'uppercase', color: 'var(--ink-3)', fontWeight: 500,
 							}}>
-								<span style={{ color: 'var(--ink-4)' }}>{'// '}</span>
 								Weather · Open-Meteo · {detail.weatherForecast.length}-day
 							</div>
 							<WeatherStrip weather={detail.weatherForecast} />
@@ -220,7 +218,6 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 						sectionId={sectionId}
 						logs={detail.myLogs}
 						totalCount={detail.myLogTotalCount}
-						profile={detail.myProfile}
 						sectionThresholds={detail.flowThresholds}
 					/>
 				</section>

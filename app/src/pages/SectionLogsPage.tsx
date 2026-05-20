@@ -23,7 +23,6 @@ export function SectionLogsPage() {
 	const sectionName = detail.data?.section || sectionId;
 	const logs = sectionLogs.data?.logs || [];
 	const total = sectionLogs.data?.total ?? 0;
-	const profile = sectionLogs.data?.profile || null;
 
 	return (
 		<div style={{ maxWidth: 720, margin: '0 auto', padding: 'max(env(safe-area-inset-top), 16px) 16px 80px' }}>
@@ -45,7 +44,7 @@ export function SectionLogsPage() {
 					textTransform: 'uppercase',
 					color: 'var(--ink-3)',
 					marginTop: 4,
-				}}>// ALL TRIPS · {total} LOGGED</div>
+				}}>ALL TRIPS · {total} LOGGED</div>
 				<h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--ink-0)' }}>
 					{sectionName}
 				</h1>
@@ -67,7 +66,7 @@ export function SectionLogsPage() {
 			) : (
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 					{logs.map(log => (
-						<RiverLogCard key={log.id} log={log} profile={profile} />
+						<RiverLogCard key={log.id} log={log} />
 					))}
 				</div>
 			)}

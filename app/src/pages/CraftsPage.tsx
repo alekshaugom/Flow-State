@@ -92,7 +92,7 @@ export function CraftsPage() {
 	return renderChrome(
 		<>
 			<div style={{ marginBottom: 14 }}>
-				<div style={eyebrowStyle}>// YOUR CRAFTS</div>
+				<div style={eyebrowStyle}>YOUR CRAFTS</div>
 				<h1 style={{ margin: '4px 0 6px', fontSize: 22, fontWeight: 700, color: 'var(--ink-0)' }}>
 					The boats you boat with
 				</h1>
@@ -154,7 +154,7 @@ export function CraftsPage() {
 
 					{archived.length > 0 && (
 						<div style={{ marginTop: 28 }}>
-							<div style={{ ...eyebrowStyle, marginBottom: 8 }}>// ARCHIVED · {archived.length}</div>
+							<div style={{ ...eyebrowStyle, marginBottom: 8 }}>ARCHIVED · {archived.length}</div>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 								{archived.map(craft => (
 									<div key={craft.id} style={{
@@ -250,7 +250,7 @@ function CraftRow({ craft, editing, onEdit, onCancelEdit }: {
 				flexDirection: 'column',
 				gap: 10,
 			}}>
-				<div style={{ ...eyebrowStyle, color: 'var(--river-800)' }}>// EDIT CRAFT</div>
+				<div style={{ ...eyebrowStyle, color: 'var(--river-800)' }}>EDIT CRAFT</div>
 				<div>
 					<label style={labelStyle}>Name</label>
 					<input style={inputStyle} value={name} onChange={e => setName(e.target.value)} />
