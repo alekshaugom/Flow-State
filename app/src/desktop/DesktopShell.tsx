@@ -10,6 +10,7 @@ import { SummaryStat } from './SummaryStat';
 import { DesktopFilter } from './DesktopFilter';
 import { DesktopRiverRow } from './DesktopRiverRow';
 import { DesktopDetail } from './DesktopDetail';
+import { SearchHero } from '../components/SearchHero';
 
 export function DesktopShell() {
 	const { sectionId: urlSectionId } = useParams<{ sectionId?: string }>();
@@ -110,9 +111,16 @@ export function DesktopShell() {
 		}}>
 			<AppHeader activePage="rivers" />
 
+			{/* Search hero — Colorado-first global search */}
+			<div style={{ padding: '20px 28px 4px' }}>
+				<div style={{ maxWidth: 820 }}>
+					<SearchHero variant="desktop" />
+				</div>
+			</div>
+
 			{/* Page heading */}
 			<div style={{
-				padding: '24px 28px 16px', display: 'flex',
+				padding: '16px 28px 16px', display: 'flex',
 				alignItems: 'flex-end', justifyContent: 'space-between',
 				gap: 20, flexWrap: 'wrap',
 			}}>

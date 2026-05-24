@@ -39,3 +39,8 @@ export class admin extends Resource {
 	allowRead() { return true; }
 	get() { return serveApp(); }
 }
+
+export class river extends Resource {
+	allowRead() { return true; }
+	get() { return serveApp(); }
+}

@@ -9,6 +9,7 @@ import { WatershedGroupHeader, type SparkRange } from '../components/WatershedGr
 import { CraftSkillControl } from '../components/CraftSkillControl';
 import { FilterChip } from './FilterChip';
 import { RiverCard } from './RiverCard';
+import { SearchHero } from '../components/SearchHero';
 
 const iconBtn: React.CSSProperties = {
 	width: 36, height: 36, borderRadius: 'var(--r-pill)',
@@ -173,6 +174,11 @@ export function MobileDashboard() {
 					<CraftSkillControl variant="mobile" />
 				</div>
 			</header>
+
+			{/* Search hero — Colorado-first global search */}
+			<div style={{ padding: '14px 16px 0', position: 'relative', zIndex: 10 }}>
+				<SearchHero variant="mobile" />
+			</div>
 
 			{/* Filter chips */}
 			<div style={{

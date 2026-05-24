@@ -1,0 +1,23 @@
+type WorldRiver @table @export {
+	id: ID @primaryKey
+	name: String @indexed
+	nameLower: String @indexed
+	alternateNamesJson: String
+	country: String @indexed
+	isoCountry: String @indexed
+	region: String @indexed
+	continent: String @indexed
+	sourceLat: Float
+	sourceLon: Float
+	mouthLat: Float
+	mouthLon: Float
+	centerLat: Float
+	centerLon: Float
+	difficulty: String
+	sections: String
+	note: String
+	learnMoreUrl: String
+	wikidataId: String
+	hasFlowData: Boolean @indexed
+	source: String @indexed
+}

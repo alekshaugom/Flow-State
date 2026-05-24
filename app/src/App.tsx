@@ -18,6 +18,7 @@ const ProfileSetupPage = lazy(() => import('./pages/ProfileSetupPage').then(m =>
 const MyLogsPage = lazy(() => import('./pages/MyLogsPage').then(m => ({ default: m.MyLogsPage })));
 const CraftsPage = lazy(() => import('./pages/CraftsPage').then(m => ({ default: m.CraftsPage })));
 const AcceptInvitePage = lazy(() => import('./pages/AcceptInvitePage').then(m => ({ default: m.AcceptInvitePage })));
+const WorldRiverPage = lazy(() => import('./pages/WorldRiverPage').then(m => ({ default: m.WorldRiverPage })));
 
 function ResponsiveHome() {
 	const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -49,6 +50,7 @@ export function App() {
 				<Route path="/login/setup" element={<Suspense><AccountSetupPage /></Suspense>} />
 				<Route path="/share/:token" element={<Suspense><AcceptInvitePage /></Suspense>} />
 				<Route path="/map" element={<Suspense><MapPage /></Suspense>} />
+				<Route path="/river/:slug" element={<Suspense><WorldRiverPage /></Suspense>} />
 				<Route path="/admin" element={<Suspense><AdminPage /></Suspense>} />
 			</Routes>
 		</BrowserRouter>

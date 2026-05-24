@@ -149,5 +149,8 @@ vite.config.ts.timestamp-*
 # Build output
 web/
 
+# Rivers data pipeline cache (raw HTTP responses)
+data/cache/
+
 # Claude Code
 .claude/

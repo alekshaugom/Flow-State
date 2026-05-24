@@ -240,4 +240,85 @@ export const api = {
 			headers: JSON_HEADERS,
 			body: JSON.stringify(patch),
 		}).then(json<ParticipantView>),
+
+	// --- Search + world rivers ---
+	searchRivers: (q: string, limit = 12) =>
+		fetch(`/RiverSearch?q=${encodeURIComponent(q)}&limit=${limit}`).then(json<SearchResults>),
+
+	worldRiver: (slug: string) =>
+		fetch(`/WorldRiverView/${encodeURIComponent(slug)}`).then(json<WorldRiverEntry>),
+
+	requestRiver: (worldRiverId: string, note?: string) =>
+		fetch('/RiverRequestResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ worldRiverId, note }),
+		}).then(json<{ ok: true; id: string; alreadyExisted: boolean }>),
+
+	myRiverRequests: () =>
+		fetch('/RiverRequestResource').then(json<{ authenticated: boolean; requests: any[] }>),
+
+	adminRiverRequests: () =>
+		fetch('/AdminRiverRequests').then(json<AdminRiverRequestsResponse>),
 };
+
+export interface SearchHit {
+	kind: 'section' | 'river' | 'watershed' | 'corridor' | 'world-river';
+	id: string;
+	name: string;
+	subtitle: string;
+	href: string;
+	rank: number;
+	flowStatus?: string | null;
+	country?: string;
+}
+
+export interface SearchResults {
+	colorado: SearchHit[];
+	world: SearchHit[];
+	query: string;
+	limits: { colorado: number; world: number };
+}
+
+export interface WorldRiverEntry {
+	id: string;
+	name: string;
+	alternateNamesJson: string;
+	country: string;
+	isoCountry: string;
+	region: string | null;
+	continent: string;
+	sourceLat: number | null;
+	sourceLon: number | null;
+	mouthLat: number | null;
+	mouthLon: number | null;
+	centerLat: number | null;
+	centerLon: number | null;
+	difficulty: string | null;
+	sections: string;
+	note: string;
+	learnMoreUrl: string;
+	wikidataId: string | null;
+	hasFlowData: boolean;
+	source: string;
+}
+
+export interface AdminRiverRequestRow {
+	worldRiverId: string;
+	name: string;
+	country: string;
+	region: string | null;
+	continent: string;
+	difficulty: string | null;
+	learnMoreUrl: string;
+	count: number;
+	distinctUsers: number;
+	lastRequestedAt: string;
+	firstRequestedAt: string;
+	latestNote: string;
+}
+
+export interface AdminRiverRequestsResponse {
+	requests: AdminRiverRequestRow[];
+	total: number;
+}

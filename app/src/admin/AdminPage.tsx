@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
 import { AppHeader } from '../components/AppHeader';
 import { AdminUsersPanel } from './AdminUsersPanel';
+import { AdminRequestsPanel } from './AdminRequestsPanel';
 
 const card: React.CSSProperties = {
 	background: 'var(--bg-card)', border: '1px solid var(--rule)',
@@ -28,7 +29,7 @@ const btnOutline: React.CSSProperties = {
 	border: '1px solid var(--rule)',
 };
 
-type AdminTab = 'data' | 'users';
+type AdminTab = 'data' | 'users' | 'requests';
 
 export function AdminPage() {
 	const navigate = useNavigate();
@@ -86,7 +87,7 @@ export function AdminPage() {
 
 				{/* Tabs */}
 				<div style={{ display: 'flex', gap: 4, marginBottom: 24 }}>
-					{(['data', 'users'] as AdminTab[]).map(t => (
+					{(['data', 'users', 'requests'] as AdminTab[]).map(t => (
 						<button key={t} onClick={() => setTab(t)} style={{
 							padding: '8px 16px', borderRadius: 'var(--r-md)',
 							fontSize: 13, fontWeight: 600, cursor: 'pointer',
@@ -94,12 +95,12 @@ export function AdminPage() {
 							color: tab === t ? 'var(--ink-0)' : 'var(--ink-3)',
 							border: tab === t ? '1px solid var(--rule)' : '1px solid transparent',
 						}}>
-							{t === 'data' ? 'Data' : 'Users'}
+							{t === 'data' ? 'Data' : t === 'users' ? 'Users' : 'Requests'}
 						</button>
 					))}
 				</div>
 
-				{!auth.isLoading && !auth.isApproved && tab === 'users' ? (
+				{!auth.isLoading && !auth.isApproved && (tab === 'users' || tab === 'requests') ? (
 					<div style={{
 						...card, textAlign: 'center', padding: 40,
 					}}>
@@ -116,6 +117,8 @@ export function AdminPage() {
 					</div>
 				) : tab === 'users' ? (
 					<AdminUsersPanel />
+				) : tab === 'requests' ? (
+					<AdminRequestsPanel />
 				) : (
 					<>
 						{message && (

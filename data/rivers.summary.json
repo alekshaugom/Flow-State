@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-05-24T21:22:51.393Z",
+  "total": 4766,
+  "raw_bytes": 3727075,
+  "by_source": {
+    "wikidata": 1528,
+    "curated": 82,
+    "american-whitewater": 3156
+  },
+  "by_continent": {
+    "Africa": 166,
+    "Asia": 413,
+    "Europe": 471,
+    "North America": 3430,
+    "Oceania": 80,
+    "South America": 206
+  },
+  "by_country_top15": [
+    {
+      "country": "United States",
+      "count": 3307
+    },
+    {
+      "country": "Russia",
+      "count": 328
+    },
+    {
+      "country": "Indonesia",
+      "count": 104
+    },
+    {
+      "country": "Canada",
+      "count": 96
+    },
+    {
+      "country": "People's Republic of China",
+      "count": 95
+    },
+    {
+      "country": "Brazil",
+      "count": 80
+    },
+    {
+      "country": "Australia",
+      "count": 66
+    },
+    {
+      "country": "India",
+      "count": 39
+    },
+    {
+      "country": "Colombia",
+      "count": 27
+    },
+    {
+      "country": "Kazakhstan",
+      "count": 25
+    },
+    {
+      "country": "Bolivia",
+      "count": 25
+    },
+    {
+      "country": "Argentina",
+      "count": 22
+    },
+    {
+      "country": "Democratic Republic of the Congo",
+      "count": 19
+    },
+    {
+      "country": "Germany",
+      "count": 17
+    },
+    {
+      "country": "Ukraine",
+      "count": 17
+    }
+  ]
+}

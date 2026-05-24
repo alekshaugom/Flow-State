@@ -15,6 +15,7 @@
 		"ui:dev": "vite",
 		"ui:build": "vite build",
 		"generate:geometries": "npx tsx scripts/generate-geometries.ts",
+		"build:rivers": "npx tsx scripts/build-rivers/index.ts",
 		"predeploy": "find .claude/worktrees -name web -type d -exec rm -rf {} + 2>/dev/null; echo 'Cleaned worktree build artifacts'",
 		"deploy": "dotenv -- npm run deploy:component",
 		"deploy:component": "harper deploy_component . restart=rolling replicated=true"
