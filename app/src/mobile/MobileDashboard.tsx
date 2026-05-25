@@ -175,10 +175,8 @@ export function MobileDashboard() {
 				</div>
 			</header>
 
-			{/* Search hero — Colorado-first global search */}
-			<div style={{ padding: '14px 16px 0', position: 'relative', zIndex: 10 }}>
-				<SearchHero variant="mobile" />
-			</div>
+			{/* Hero — image + glass search box */}
+			<SearchHero />
 
 			{/* Filter chips */}
 			<div style={{

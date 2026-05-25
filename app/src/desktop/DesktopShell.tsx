@@ -111,16 +111,12 @@ export function DesktopShell() {
 		}}>
 			<AppHeader activePage="rivers" />
 
-			{/* Search hero — Colorado-first global search */}
-			<div style={{ padding: '20px 28px 4px' }}>
-				<div style={{ maxWidth: 820 }}>
-					<SearchHero variant="desktop" />
-				</div>
-			</div>
+			{/* Hero — image + glass search box, Colorado-first global search */}
+			<SearchHero />
 
 			{/* Page heading */}
 			<div style={{
-				padding: '16px 28px 16px', display: 'flex',
+				padding: '24px 28px 16px', display: 'flex',
 				alignItems: 'flex-end', justifyContent: 'space-between',
 				gap: 20, flexWrap: 'wrap',
 			}}>

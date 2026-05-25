@@ -271,13 +271,16 @@ export interface SearchHit {
 	rank: number;
 	flowStatus?: string | null;
 	country?: string;
+	isoCountry?: string;
+	region?: string | null;
 }
 
 export interface SearchResults {
 	colorado: SearchHit[];
-	world: SearchHit[];
+	america: SearchHit[];
+	worldwide: SearchHit[];
 	query: string;
-	limits: { colorado: number; world: number };
+	limits: { colorado: number; america: number; worldwide: number };
 }
 
 export interface WorldRiverEntry {

@@ -15,6 +15,8 @@ interface SearchHit {
 	rank: number;
 	flowStatus?: string | null;
 	country?: string;
+	isoCountry?: string;
+	region?: string | null;
 }
 
 function rankMatch(needle: string, haystack: string | null | undefined): number | null {
@@ -123,36 +125,44 @@ export class RiverSearch extends Resource {
 		const colorado = coloradoHits.slice(0, limit);
 
 		// World — search WorldRiver by nameLower, region, country.
+		// Then split into America (US-only) and Worldwide (everything else).
 		const worldHits: SearchHit[] = [];
 		const seenIds = new Set<string>();
+
+		function pushFromRow(r: any, rank: number) {
+			if (seenIds.has(r.id)) return;
+			seenIds.add(r.id);
+			worldHits.push({
+				kind: 'world-river',
+				id: r.id,
+				name: r.name,
+				subtitle: subtitleForWorldRiver(r),
+				href: `/river/${encodeURIComponent(r.id)}`,
+				rank,
+				country: r.country,
+				isoCountry: r.isoCountry,
+				region: r.region || null,
+			});
+		}
 
 		// Pass 1: prefix on nameLower (fast indexed search).
 		try {
 			for await (const w of tables.WorldRiver.search({
 				conditions: [{ attribute: 'nameLower', value: q, comparator: 'starts_with' as const }],
-				limit: 200,
+				limit: 400,
 			})) {
 				const r = w as any;
-				if (seenIds.has(r.id)) continue;
-				seenIds.add(r.id);
 				const rank = rankMatch(q, r.nameLower);
 				if (rank === null) continue;
-				worldHits.push({
-					kind: 'world-river',
-					id: r.id,
-					name: r.name,
-					subtitle: subtitleForWorldRiver(r),
-					href: `/river/${encodeURIComponent(r.id)}`,
-					rank,
-					country: r.country,
-				});
+				pushFromRow(r, rank);
 			}
 		} catch (err) {
 			// starts_with may not be supported on all indexes — fall through to scan.
 		}
 
 		// Pass 2: contains scan, capped for performance.
-		if (worldHits.length < limit) {
+		const totalWorldNeeded = limit * 2; // we'll split US vs non-US after ranking
+		if (worldHits.length < totalWorldNeeded) {
 			let scanned = 0;
 			for await (const w of tables.WorldRiver.search({ conditions: [], limit: 6000 })) {
 				if (++scanned > 6000) break;
@@ -163,24 +173,24 @@ export class RiverSearch extends Resource {
 				})();
 				const rank = bestRankAcross(q, [r.nameLower, ...altNames.map(n => n.toLowerCase()), (r.country || '').toLowerCase(), (r.region || '').toLowerCase(), (r.sections || '').toLowerCase()]);
 				if (rank === null) continue;
-				seenIds.add(r.id);
-				worldHits.push({
-					kind: 'world-river',
-					id: r.id,
-					name: r.name,
-					subtitle: subtitleForWorldRiver(r),
-					href: `/river/${encodeURIComponent(r.id)}`,
-					rank,
-					country: r.country,
-				});
-				if (worldHits.length >= 200) break;
+				pushFromRow(r, rank);
+				if (worldHits.length >= 400) break;
 			}
 		}
 
 		worldHits.sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name));
-		const world = worldHits.slice(0, limit);
 
-		return { colorado, world, query: q, limits: { colorado: colorado.length, world: world.length } };
+		// Split: America = US rivers; Worldwide = everything else.
+		const america = worldHits.filter(h => h.isoCountry === 'US').slice(0, limit);
+		const worldwide = worldHits.filter(h => h.isoCountry !== 'US').slice(0, limit);
+
+		return {
+			colorado,
+			america,
+			worldwide,
+			query: q,
+			limits: { colorado: colorado.length, america: america.length, worldwide: worldwide.length },
+		};
 	}
 }
 
