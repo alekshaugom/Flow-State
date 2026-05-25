@@ -6,9 +6,15 @@ import { Icon } from './Icon';
 interface CraftSkillControlProps {
 	variant?: 'desktop' | 'mobile';
 	layout?: 'chip' | 'stacked';
+	/** 0–1: crossfade between stacked card (0) and a one-line "Oar-Raft / Inter." chip (1). */
+	collapseProgress?: number;
 }
 
-export function CraftSkillControl({ variant = 'desktop', layout = 'chip' }: CraftSkillControlProps) {
+function lerp(a: number, b: number, t: number): number {
+	return a + (b - a) * t;
+}
+
+export function CraftSkillControl({ variant = 'desktop', layout = 'chip', collapseProgress = 0 }: CraftSkillControlProps) {
 	const { craft, skill, setCraft, setSkill } = useCraftSkill();
 	const [open, setOpen] = useState(false);
 	const wrapRef = useRef<HTMLDivElement>(null);
@@ -79,32 +85,84 @@ export function CraftSkillControl({ variant = 'desktop', layout = 'chip' }: Craf
 		</button>
 	);
 
+	// Stacked card cross-fades into a single-line chip as the title-bar
+	// shrinks above. Both layouts are absolutely positioned in the same
+	// container; opacity + height interpolate from progress = 0 → 1.
+	const stackedHeight = lerp(82, 32, collapseProgress);
+	const stackedOpacity = Math.max(0, 1 - collapseProgress * 1.6);
+	const compactOpacity = Math.max(0, (collapseProgress - 0.35) * 1.55);
+
 	const triggerStacked = (
-		<button
-			type="button"
-			onClick={() => setOpen(o => !o)}
-			aria-expanded={open}
+		<div
 			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				justifyContent: 'center',
-				gap: 8,
-				padding: '12px 16px',
-				borderRadius: 'var(--r-lg)',
-				background: open ? bgHover : bgIdle,
-				border,
-				color: baseFg,
-				cursor: 'pointer',
-				boxShadow: isMobile ? 'none' : 'var(--shadow-card)',
-				fontFamily: 'var(--font-sans)',
-				minWidth: 200,
-				textAlign: 'left',
+				position: 'relative',
+				minWidth: lerp(200, 168, collapseProgress),
+				height: stackedHeight,
 			}}
 		>
-			<StackedRow label="Boat" value={craftLabel} isMobile={isMobile} />
-			<div style={{ height: 1, background: isMobile ? 'rgba(255,255,255,0.14)' : 'var(--rule)' }} />
-			<StackedRow label="Skill" value={skillLabel} isMobile={isMobile} showChevron />
-		</button>
+			<button
+				type="button"
+				onClick={() => setOpen(o => !o)}
+				aria-expanded={open}
+				aria-label="Set boat and skill"
+				style={{
+					position: 'absolute',
+					inset: 0,
+					display: 'flex',
+					flexDirection: 'column',
+					justifyContent: 'center',
+					gap: 8,
+					padding: '12px 16px',
+					borderRadius: 'var(--r-lg)',
+					background: open ? bgHover : bgIdle,
+					border,
+					color: baseFg,
+					cursor: 'pointer',
+					boxShadow: isMobile ? 'none' : 'var(--shadow-card)',
+					fontFamily: 'var(--font-sans)',
+					textAlign: 'left',
+					opacity: stackedOpacity,
+					pointerEvents: collapseProgress > 0.5 ? 'none' : 'auto',
+				}}
+			>
+				<StackedRow label="Boat" value={craftLabel} isMobile={isMobile} />
+				<div style={{ height: 1, background: isMobile ? 'rgba(255,255,255,0.14)' : 'var(--rule)' }} />
+				<StackedRow label="Skill" value={skillLabel} isMobile={isMobile} showChevron />
+			</button>
+
+			<button
+				type="button"
+				onClick={() => setOpen(o => !o)}
+				aria-expanded={open}
+				aria-label="Set boat and skill"
+				style={{
+					position: 'absolute',
+					inset: 0,
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					gap: 8,
+					padding: '0 14px',
+					borderRadius: 'var(--r-pill)',
+					background: open ? bgHover : bgIdle,
+					border,
+					color: baseFg,
+					cursor: 'pointer',
+					boxShadow: isMobile ? 'none' : 'var(--shadow-card)',
+					fontFamily: 'var(--font-sans)',
+					fontSize: 13,
+					fontWeight: 600,
+					whiteSpace: 'nowrap',
+					opacity: compactOpacity,
+					pointerEvents: collapseProgress > 0.5 ? 'auto' : 'none',
+				}}
+			>
+				<span>{craftLabel}</span>
+				<span style={{ color: isMobile ? 'rgba(255,255,255,0.35)' : 'var(--ink-3)' }}>/</span>
+				<span>{skillLabel}</span>
+				<Icon name="chevron-right" size={12} color={isMobile ? 'rgba(255,255,255,0.6)' : 'var(--ink-3)'} />
+			</button>
+		</div>
 	);
 
 	return (

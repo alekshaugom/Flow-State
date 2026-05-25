@@ -169,16 +169,16 @@ export function DesktopShell() {
 							<>{[1,2,3,4,5].map(i => <Skeleton key={i} width={96} height={80} borderRadius="var(--r-lg)" />)}</>
 						) : (
 							<>
-								<SummaryStat label="All"     value={totalCount}   active={filter === 'all'}     onClick={() => setFilter('all')} />
-								<SummaryStat label="Running" value={runningCount} active={filter === 'running'} onClick={() => setFilter('running')} />
-								<SummaryStat label="Ideal"   value={idealCount}   color="var(--ideal-solid)" active={filter === 'ideal'}   onClick={() => setFilter('ideal')} />
-								<SummaryStat label="Rising"  value={risingCount}  color="var(--trend-up)"     trendIcon="up" active={filter === 'rising'}  onClick={() => setFilter('rising')} />
-								<SummaryStat label="Low"     value={lowCount}     color="var(--low-solid)"    active={filter === 'low'}     onClick={() => setFilter('low')} />
+								<SummaryStat label="All"     value={totalCount}   progress={titleProgress} active={filter === 'all'}     onClick={() => setFilter('all')} />
+								<SummaryStat label="Running" value={runningCount} progress={titleProgress} active={filter === 'running'} onClick={() => setFilter('running')} />
+								<SummaryStat label="Ideal"   value={idealCount}   progress={titleProgress} color="var(--ideal-solid)" active={filter === 'ideal'}   onClick={() => setFilter('ideal')} />
+								<SummaryStat label="Rising"  value={risingCount}  progress={titleProgress} color="var(--trend-up)"     trendIcon="up" active={filter === 'rising'}  onClick={() => setFilter('rising')} />
+								<SummaryStat label="Low"     value={lowCount}     progress={titleProgress} color="var(--low-solid)"    active={filter === 'low'}     onClick={() => setFilter('low')} />
 							</>
 						)}
 					</div>
 					<div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'stretch' }}>
-						<CraftSkillControl variant="desktop" layout="stacked" />
+						<CraftSkillControl variant="desktop" layout="stacked" collapseProgress={titleProgress} />
 					</div>
 				</div>
 			</div>

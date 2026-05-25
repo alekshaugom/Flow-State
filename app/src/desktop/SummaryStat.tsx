@@ -7,12 +7,25 @@ interface SummaryStatProps {
 	trendIcon?: 'up' | 'down';
 	active?: boolean;
 	onClick?: () => void;
+	/** 0–1: shrink amount. 0 = full, 1 = compact (used while title is stuck). */
+	progress?: number;
 }
 
-export function SummaryStat({ label, value, color, trendIcon, active, onClick }: SummaryStatProps) {
+function lerp(a: number, b: number, t: number): number {
+	return a + (b - a) * t;
+}
+
+export function SummaryStat({ label, value, color, trendIcon, active, onClick, progress = 0 }: SummaryStatProps) {
 	const clickable = !!onClick;
 	const valueColor = active ? '#fff' : (color || 'var(--ink-0)');
 	const labelColor = active ? 'rgba(255,255,255,0.7)' : 'var(--ink-3)';
+
+	const padV = lerp(12, 6, progress);
+	const padH = lerp(18, 12, progress);
+	const minWidth = lerp(96, 78, progress);
+	const valueSize = lerp(26, 18, progress);
+	const labelSize = lerp(10, 9, progress);
+	const gap = lerp(4, 2, progress);
 
 	return (
 		<button
@@ -21,23 +34,25 @@ export function SummaryStat({ label, value, color, trendIcon, active, onClick }:
 			disabled={!clickable}
 			aria-pressed={clickable ? !!active : undefined}
 			style={{
-				padding: '12px 18px',
+				paddingTop: padV,
+				paddingBottom: padV,
+				paddingLeft: padH,
+				paddingRight: padH,
 				borderRadius: 'var(--r-lg)',
 				background: active ? 'var(--river-700)' : 'var(--bg-card)',
 				border: active ? '1px solid var(--river-700)' : '1px solid var(--rule)',
 				boxShadow: active ? '0 6px 20px rgba(31,81,124,0.30)' : 'var(--shadow-card)',
 				display: 'flex',
 				flexDirection: 'column',
-				gap: 4,
-				minWidth: 96,
+				gap,
+				minWidth,
 				cursor: clickable ? 'pointer' : 'default',
-				transition: 'background 120ms, box-shadow 120ms, border-color 120ms',
 				textAlign: 'left',
 				fontFamily: 'var(--font-sans)',
 			}}
 		>
 			<div style={{
-				fontSize: 10,
+				fontSize: labelSize,
 				letterSpacing: '0.10em',
 				textTransform: 'uppercase',
 				color: labelColor,
@@ -47,17 +62,18 @@ export function SummaryStat({ label, value, color, trendIcon, active, onClick }:
 			<div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
 				<span style={{
 					fontFamily: 'var(--font-mono)',
-					fontSize: 26,
+					fontSize: valueSize,
 					fontWeight: 500,
 					letterSpacing: '-0.02em',
 					color: valueColor,
+					lineHeight: 1,
 				}}>
 					{value}
 				</span>
 				{trendIcon && (
 					<Icon
 						name={trendIcon === 'up' ? 'arrow-up' : 'arrow-down'}
-						size={14}
+						size={lerp(14, 11, progress)}
 						color={valueColor}
 						strokeWidth={2.5}
 					/>
