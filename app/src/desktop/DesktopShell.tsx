@@ -126,30 +126,22 @@ export function DesktopShell() {
 			{/* Hero — image + glass search box, Colorado-first global search */}
 			<SearchHero />
 
-			{/* Page heading */}
-			<div style={{
-				padding: '24px 28px 16px', display: 'flex',
-				alignItems: 'flex-end', justifyContent: 'space-between',
-				gap: 20, flexWrap: 'wrap',
-			}}>
-				<div style={{ minWidth: 0 }}>
-					<div style={{
-						fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--river-600)',
-						letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 500,
-					}}>
-						Colorado · {dateStr}
-					</div>
-					<h1 style={{ margin: '4px 0 0', fontSize: 32, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--ink-0)' }}>
-						Rivers running today
-					</h1>
-				</div>
+			{/* Page heading + controls */}
+			<div style={{ padding: '24px 28px 16px' }}>
+				<h1 style={{
+					margin: '0 0 16px', fontSize: 32, fontWeight: 700,
+					letterSpacing: '-0.025em', color: 'var(--ink-0)',
+				}}>
+					Colorado · {dateStr}
+				</h1>
 				<div style={{
-					display: 'flex', alignItems: 'flex-end',
-					gap: 16, flexWrap: 'wrap',
+					display: 'flex', alignItems: 'stretch',
+					justifyContent: 'space-between',
+					gap: 20, flexWrap: 'wrap',
 				}}>
 					<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
 						{isLoading ? (
-							<>{[1,2,3,4,5].map(i => <Skeleton key={i} width={96} height={70} borderRadius="var(--r-lg)" />)}</>
+							<>{[1,2,3,4,5].map(i => <Skeleton key={i} width={96} height={80} borderRadius="var(--r-lg)" />)}</>
 						) : (
 							<>
 								<SummaryStat label="All"     value={totalCount}   active={filter === 'all'}     onClick={() => setFilter('all')} />
@@ -160,7 +152,9 @@ export function DesktopShell() {
 							</>
 						)}
 					</div>
-					<CraftSkillControl variant="desktop" />
+					<div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'stretch' }}>
+						<CraftSkillControl variant="desktop" layout="stacked" />
+					</div>
 				</div>
 			</div>
 

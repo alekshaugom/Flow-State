@@ -5,13 +5,15 @@ import { Icon } from './Icon';
 
 interface CraftSkillControlProps {
 	variant?: 'desktop' | 'mobile';
+	layout?: 'chip' | 'stacked';
 }
 
-export function CraftSkillControl({ variant = 'desktop' }: CraftSkillControlProps) {
+export function CraftSkillControl({ variant = 'desktop', layout = 'chip' }: CraftSkillControlProps) {
 	const { craft, skill, setCraft, setSkill } = useCraftSkill();
 	const [open, setOpen] = useState(false);
 	const wrapRef = useRef<HTMLDivElement>(null);
 	const isMobile = variant === 'mobile';
+	const stacked = layout === 'stacked';
 
 	useEffect(() => {
 		if (!open) return;
@@ -30,52 +32,84 @@ export function CraftSkillControl({ variant = 'desktop' }: CraftSkillControlProp
 	const bgHover = isMobile ? 'rgba(255,255,255,0.16)' : 'var(--bg-sunken)';
 	const border = isMobile ? '1px solid rgba(255,255,255,0.18)' : '1px solid var(--rule)';
 
+	const triggerInline = (
+		<button
+			type="button"
+			onClick={() => setOpen(o => !o)}
+			aria-expanded={open}
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: 8,
+				padding: '8px 12px 8px 14px',
+				borderRadius: 'var(--r-pill)',
+				background: open ? bgHover : bgIdle,
+				border,
+				color: baseFg,
+				fontSize: 12,
+				fontWeight: 600,
+				fontFamily: 'var(--font-sans)',
+				cursor: 'pointer',
+				whiteSpace: 'nowrap',
+				boxShadow: isMobile ? 'none' : 'var(--shadow-card)',
+			}}
+		>
+			<span style={{
+				fontFamily: 'var(--font-mono)',
+				fontSize: 9,
+				letterSpacing: '0.10em',
+				textTransform: 'uppercase',
+				color: isMobile ? 'rgba(255,255,255,0.55)' : 'var(--ink-3)',
+				fontWeight: 500,
+			}}>Boat</span>
+			<span>{craftLabel}</span>
+			<span style={{
+				width: 1, height: 14, background: isMobile ? 'rgba(255,255,255,0.20)' : 'var(--rule)',
+			}} />
+			<span style={{
+				fontFamily: 'var(--font-mono)',
+				fontSize: 9,
+				letterSpacing: '0.10em',
+				textTransform: 'uppercase',
+				color: isMobile ? 'rgba(255,255,255,0.55)' : 'var(--ink-3)',
+				fontWeight: 500,
+			}}>Skill</span>
+			<span>{skillLabel}</span>
+			<Icon name="chevron-right" size={12} color={isMobile ? 'rgba(255,255,255,0.6)' : 'var(--ink-3)'} />
+		</button>
+	);
+
+	const triggerStacked = (
+		<button
+			type="button"
+			onClick={() => setOpen(o => !o)}
+			aria-expanded={open}
+			style={{
+				display: 'flex',
+				flexDirection: 'column',
+				justifyContent: 'center',
+				gap: 8,
+				padding: '12px 16px',
+				borderRadius: 'var(--r-lg)',
+				background: open ? bgHover : bgIdle,
+				border,
+				color: baseFg,
+				cursor: 'pointer',
+				boxShadow: isMobile ? 'none' : 'var(--shadow-card)',
+				fontFamily: 'var(--font-sans)',
+				minWidth: 200,
+				textAlign: 'left',
+			}}
+		>
+			<StackedRow label="Boat" value={craftLabel} isMobile={isMobile} />
+			<div style={{ height: 1, background: isMobile ? 'rgba(255,255,255,0.14)' : 'var(--rule)' }} />
+			<StackedRow label="Skill" value={skillLabel} isMobile={isMobile} showChevron />
+		</button>
+	);
+
 	return (
 		<div ref={wrapRef} style={{ position: 'relative', display: 'inline-block' }}>
-			<button
-				type="button"
-				onClick={() => setOpen(o => !o)}
-				aria-expanded={open}
-				style={{
-					display: 'inline-flex',
-					alignItems: 'center',
-					gap: 8,
-					padding: '8px 12px 8px 14px',
-					borderRadius: 'var(--r-pill)',
-					background: open ? bgHover : bgIdle,
-					border,
-					color: baseFg,
-					fontSize: 12,
-					fontWeight: 600,
-					fontFamily: 'var(--font-sans)',
-					cursor: 'pointer',
-					whiteSpace: 'nowrap',
-					boxShadow: isMobile ? 'none' : 'var(--shadow-card)',
-				}}
-			>
-				<span style={{
-					fontFamily: 'var(--font-mono)',
-					fontSize: 9,
-					letterSpacing: '0.10em',
-					textTransform: 'uppercase',
-					color: isMobile ? 'rgba(255,255,255,0.55)' : 'var(--ink-3)',
-					fontWeight: 500,
-				}}>Boat</span>
-				<span>{craftLabel}</span>
-				<span style={{
-					width: 1, height: 14, background: isMobile ? 'rgba(255,255,255,0.20)' : 'var(--rule)',
-				}} />
-				<span style={{
-					fontFamily: 'var(--font-mono)',
-					fontSize: 9,
-					letterSpacing: '0.10em',
-					textTransform: 'uppercase',
-					color: isMobile ? 'rgba(255,255,255,0.55)' : 'var(--ink-3)',
-					fontWeight: 500,
-				}}>Skill</span>
-				<span>{skillLabel}</span>
-				<Icon name="chevron-right" size={12} color={isMobile ? 'rgba(255,255,255,0.6)' : 'var(--ink-3)'} />
-			</button>
+			{stacked ? triggerStacked : triggerInline}
 
 			{open && (
 				<div style={{
@@ -115,6 +149,27 @@ export function CraftSkillControl({ variant = 'desktop' }: CraftSkillControlProp
 
 function shortSkill(s: SkillLevel): string {
 	return s === 'intermediate' ? 'Inter.' : s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function StackedRow({ label, value, isMobile, showChevron }: { label: string; value: string; isMobile: boolean; showChevron?: boolean }) {
+	return (
+		<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+			<span style={{
+				fontFamily: 'var(--font-mono)',
+				fontSize: 10,
+				letterSpacing: '0.10em',
+				textTransform: 'uppercase',
+				color: isMobile ? 'rgba(255,255,255,0.6)' : 'var(--ink-3)',
+				fontWeight: 500,
+			}}>{label}</span>
+			<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+				<span style={{ fontSize: 13, fontWeight: 600 }}>{value}</span>
+				{showChevron && (
+					<Icon name="chevron-right" size={12} color={isMobile ? 'rgba(255,255,255,0.6)' : 'var(--ink-3)'} />
+				)}
+			</span>
+		</div>
+	);
 }
 
 function PickerRow({ label, children }: { label: string; children: React.ReactNode }) {
