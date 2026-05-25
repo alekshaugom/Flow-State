@@ -9,6 +9,7 @@ import { SummaryStat } from './SummaryStat';
 import { DesktopRiverRow } from './DesktopRiverRow';
 import { DesktopDetail } from './DesktopDetail';
 import { SearchHero } from '../components/SearchHero';
+import { useStuck } from '../hooks/useStuck';
 
 type DashboardFilter = 'all' | 'running' | 'ideal' | 'rising' | 'low';
 
@@ -29,6 +30,7 @@ export function DesktopShell() {
 	const [filter, setFilter] = useState<DashboardFilter>('all');
 	const [selectedId, setSelectedId] = useState<string | null>(urlSectionId || null);
 	const [sparkDays, setSparkDays] = useState<SparkRange>(14);
+	const { ref: titleRef, stuck: titleStuck } = useStuck<HTMLDivElement>();
 
 	const sections = data?.sections || [];
 	const [collapsedWatersheds, setCollapsedWatersheds] = useState<Set<string>>(new Set());
@@ -115,9 +117,8 @@ export function DesktopShell() {
 
 	return (
 		<div style={{
-			width: '100%', height: '100%', minHeight: 880,
+			width: '100%', minHeight: '100vh',
 			background: 'var(--bg-app)',
-			display: 'flex', flexDirection: 'column',
 			fontFamily: 'var(--font-sans)',
 			color: 'var(--ink-1)',
 		}}>
@@ -126,11 +127,33 @@ export function DesktopShell() {
 			{/* Hero — image + glass search box, Colorado-first global search */}
 			<SearchHero />
 
-			{/* Page heading + controls */}
-			<div style={{ padding: '24px 28px 16px' }}>
+			{/* Page heading + controls — sticky below the AppHeader, shrinks when
+			    the SearchHero has scrolled past. */}
+			<div
+				ref={titleRef}
+				style={{
+					position: 'sticky',
+					top: 64,            // height of the AppHeader
+					zIndex: 20,
+					background: titleStuck
+						? 'rgba(255,255,255,0.92)'
+						: 'var(--bg-app)',
+					backdropFilter: titleStuck ? 'blur(12px) saturate(180%)' : undefined,
+					WebkitBackdropFilter: titleStuck ? 'blur(12px) saturate(180%)' : undefined,
+					borderBottom: titleStuck ? '1px solid var(--rule)' : '1px solid transparent',
+					padding: titleStuck ? '10px 28px 12px' : '24px 28px 16px',
+					transition: 'padding 180ms, background 180ms, border-color 180ms',
+				}}
+			>
 				<h1 style={{
-					margin: '0 0 16px', fontSize: 32, fontWeight: 700,
-					letterSpacing: '-0.025em', color: 'var(--ink-0)',
+					margin: titleStuck ? '0 0 8px' : '0 0 16px',
+					fontFamily: titleStuck ? 'var(--font-mono)' : 'var(--font-sans)',
+					fontSize: titleStuck ? 12 : 32,
+					fontWeight: titleStuck ? 600 : 700,
+					letterSpacing: titleStuck ? '0.14em' : '-0.025em',
+					textTransform: titleStuck ? 'uppercase' : 'none',
+					color: titleStuck ? 'var(--river-600)' : 'var(--ink-0)',
+					transition: 'font-size 180ms, letter-spacing 180ms, margin 180ms, color 180ms',
 				}}>
 					Colorado · {dateStr}
 				</h1>
@@ -158,13 +181,16 @@ export function DesktopShell() {
 				</div>
 			</div>
 
-			{/* Main split: sidebar + detail */}
+			{/* Main split: sidebar + detail. The aside flows in the page; the main
+			    detail panel is sticky on the right so it stays visible while the
+			    list scrolls past underneath. */}
 			<div style={{
 				display: 'grid',
 				gridTemplateColumns: 'minmax(320px, 440px) minmax(0, 1fr)',
-				gap: 20, padding: '0 28px 28px', flex: 1, minHeight: 0,
+				gap: 20, padding: '16px 28px 48px',
+				alignItems: 'start',
 			}}>
-				<aside style={{ display: 'flex', flexDirection: 'column', gap: 18, overflow: 'auto', paddingRight: 4, minWidth: 0 }}>
+				<aside style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingRight: 4, minWidth: 0 }}>
 					{isLoading ? (
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 							{[1,2,3,4,5,6].map(i => <Skeleton key={i} height={88} borderRadius="var(--r-lg)" />)}
@@ -211,8 +237,14 @@ export function DesktopShell() {
 				<main style={{
 					background: 'var(--bg-card)', border: '1px solid var(--rule)',
 					borderRadius: 'var(--r-xl)', boxShadow: 'var(--shadow-card)',
-					overflow: 'auto', padding: 28,
+					padding: 28,
 					minWidth: 0,
+					// Sticky so the detail stays visible while the river list scrolls
+					// past. Top offset = AppHeader (64) + compact title block (~118).
+					position: 'sticky',
+					top: 182,
+					maxHeight: 'calc(100vh - 200px)',
+					overflowY: 'auto',
 				}}>
 					{isLoading ? (
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

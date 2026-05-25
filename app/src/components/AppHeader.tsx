@@ -26,8 +26,10 @@ export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'logs
 			height: 64, padding: '0 28px',
 			borderBottom: '1px solid var(--rule)',
 			background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)',
+			WebkitBackdropFilter: 'blur(12px)',
 			display: 'flex', alignItems: 'center', justifyContent: 'space-between',
 			flexShrink: 0,
+			position: 'sticky', top: 0, zIndex: 30,
 		}}>
 			<div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => navigate('/')}>
