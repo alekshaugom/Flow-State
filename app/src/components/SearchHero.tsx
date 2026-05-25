@@ -14,8 +14,10 @@ const heroWrap: React.CSSProperties = {
 	width: '100%',
 	flexShrink: 0,
 	minHeight: 360,
-	// No `isolation: isolate` — the dropdown needs to escape this stacking
-	// context to render above sibling content (river tiles) below the hero.
+	// z-index must beat the sticky title bar (z-index 20) so the dropdown
+	// renders above the title + tiles when it overflows past the hero. Still
+	// stays below the AppHeader (z-index 30).
+	zIndex: 25,
 };
 
 // The image + overlay are clipped by overflow:hidden on their own container so
@@ -348,7 +350,7 @@ export function SearchHero({ variant = 'hero' }: SearchHeroProps) {
 			<div style={heroContent}>
 				<h1 style={headline}>Find your next river</h1>
 				<p style={subhead}>
-					Real-time flows for Colorado, more coming soon.
+					Live flows for every Colorado river. More waters on the way.
 				</p>
 				<div ref={wrapRef} style={glassBoxWrap}>
 					<div style={glassBox}>

@@ -105,6 +105,17 @@ export class RiverSearch extends Resource {
 		const watershedNameById = new Map<string, string>();
 		for (const w of watersheds) watershedNameById.set((w as any).id, (w as any).name);
 
+		// Pick the most-upstream section for each river so a "Colorado River"
+		// search hit can navigate somewhere real (we don't have a river-level
+		// page; the first section is a reasonable landing point).
+		const firstSectionByRiverId = new Map<string, string>();
+		const sortedSections = [...sections].sort((a: any, b: any) => (a.sortIndex ?? 999) - (b.sortIndex ?? 999));
+		for (const s of sortedSections as any[]) {
+			if (s.riverId && !firstSectionByRiverId.has(s.riverId)) {
+				firstSectionByRiverId.set(s.riverId, s.id);
+			}
+		}
+
 		// Helper to format "Class X-Y" from min/max.
 		const formatClass = (s: any): string | null => {
 			if (!s.difficultyMin && !s.difficultyMax) return null;
@@ -121,12 +132,14 @@ export class RiverSearch extends Resource {
 		for (const r of rivers as any[]) {
 			const rank = nameRank(q, r.name);
 			if (rank === null) continue;
+			const landingSectionId = firstSectionByRiverId.get(r.id);
+			if (!landingSectionId) continue; // skip rivers with no sections — no destination
 			coRiverHits.push({
 				kind: 'river',
 				id: r.id,
 				name: r.name,
 				right: `River · ${r.state || 'Colorado'}`,
-				href: `/section/${r.id}`,
+				href: `/section/${landingSectionId}`,
 				rank,
 			});
 		}
