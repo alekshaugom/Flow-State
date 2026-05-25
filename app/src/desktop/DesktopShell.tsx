@@ -9,7 +9,7 @@ import { SummaryStat } from './SummaryStat';
 import { DesktopRiverRow } from './DesktopRiverRow';
 import { DesktopDetail } from './DesktopDetail';
 import { SearchHero } from '../components/SearchHero';
-import { useStuck } from '../hooks/useStuck';
+import { useScrollProgress, lerpStyle } from '../hooks/useStuck';
 
 type DashboardFilter = 'all' | 'running' | 'ideal' | 'rising' | 'low';
 
@@ -30,7 +30,7 @@ export function DesktopShell() {
 	const [filter, setFilter] = useState<DashboardFilter>('all');
 	const [selectedId, setSelectedId] = useState<string | null>(urlSectionId || null);
 	const [sparkDays, setSparkDays] = useState<SparkRange>(14);
-	const { ref: titleRef, stuck: titleStuck } = useStuck<HTMLDivElement>();
+	const { ref: titleRef, progress: titleProgress } = useScrollProgress<HTMLDivElement>(64, 140);
 
 	const sections = data?.sections || [];
 	const [collapsedWatersheds, setCollapsedWatersheds] = useState<Set<string>>(new Set());
@@ -127,33 +127,35 @@ export function DesktopShell() {
 			{/* Hero — image + glass search box, Colorado-first global search */}
 			<SearchHero />
 
-			{/* Page heading + controls — sticky below the AppHeader, shrinks when
-			    the SearchHero has scrolled past. */}
+			{/* Page heading + controls — sticky below the AppHeader. The title
+			    scales smoothly with scroll instead of swapping between two
+			    layouts (which used to oscillate because the size change moved
+			    the sentinel). Font family, weight, and case are constant; only
+			    size, padding, and the divider tint change with progress. */}
 			<div
 				ref={titleRef}
 				style={{
 					position: 'sticky',
-					top: 64,            // height of the AppHeader
+					top: 64,
 					zIndex: 20,
-					background: titleStuck
-						? 'rgba(255,255,255,0.92)'
-						: 'var(--bg-app)',
-					backdropFilter: titleStuck ? 'blur(12px) saturate(180%)' : undefined,
-					WebkitBackdropFilter: titleStuck ? 'blur(12px) saturate(180%)' : undefined,
-					borderBottom: titleStuck ? '1px solid var(--rule)' : '1px solid transparent',
-					padding: titleStuck ? '10px 28px 12px' : '24px 28px 16px',
-					transition: 'padding 180ms, background 180ms, border-color 180ms',
+					background: `rgba(255,255,255,${lerpStyle(0, 0.92, titleProgress)})`,
+					backdropFilter: titleProgress > 0.05 ? 'blur(12px) saturate(180%)' : 'none',
+					WebkitBackdropFilter: titleProgress > 0.05 ? 'blur(12px) saturate(180%)' : 'none',
+					borderBottom: `1px solid rgba(0,0,0,${lerpStyle(0, 0.08, titleProgress)})`,
+					paddingTop: lerpStyle(24, 10, titleProgress),
+					paddingBottom: lerpStyle(16, 10, titleProgress),
+					paddingLeft: 28,
+					paddingRight: 28,
 				}}
 			>
 				<h1 style={{
-					margin: titleStuck ? '0 0 8px' : '0 0 16px',
-					fontFamily: titleStuck ? 'var(--font-mono)' : 'var(--font-sans)',
-					fontSize: titleStuck ? 12 : 32,
-					fontWeight: titleStuck ? 600 : 700,
-					letterSpacing: titleStuck ? '0.14em' : '-0.025em',
-					textTransform: titleStuck ? 'uppercase' : 'none',
-					color: titleStuck ? 'var(--river-600)' : 'var(--ink-0)',
-					transition: 'font-size 180ms, letter-spacing 180ms, margin 180ms, color 180ms',
+					margin: `0 0 ${lerpStyle(16, 8, titleProgress)}px`,
+					fontFamily: 'var(--font-sans)',
+					fontSize: lerpStyle(32, 16, titleProgress),
+					fontWeight: 700,
+					letterSpacing: '-0.025em',
+					color: 'var(--ink-0)',
+					lineHeight: 1.15,
 				}}>
 					Colorado · {dateStr}
 				</h1>
