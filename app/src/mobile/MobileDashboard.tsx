@@ -1,15 +1,25 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { STATUS_ORDER, STATUS_LABEL, type DesignStatus } from '../constants';
 import { useDashboard } from '../hooks/useDashboard';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '../components/Icon';
 import { Skeleton } from '../components/Skeleton';
 import { WatershedGroupHeader, type SparkRange } from '../components/WatershedGroupHeader';
 import { CraftSkillControl } from '../components/CraftSkillControl';
-import { FilterChip } from './FilterChip';
 import { RiverCard } from './RiverCard';
 import { SearchHero } from '../components/SearchHero';
+
+type DashboardFilter = 'all' | 'running' | 'ideal' | 'rising' | 'low';
+
+function matchesFilter(s: any, filter: DashboardFilter): boolean {
+	switch (filter) {
+		case 'all': return true;
+		case 'running': return s.status === 'ideal' || s.status === 'runnable' || s.status === 'high';
+		case 'ideal': return s.status === 'ideal';
+		case 'rising': return s.trend === 'up';
+		case 'low': return s.status === 'low';
+	}
+}
 
 const iconBtn: React.CSSProperties = {
 	width: 36, height: 36, borderRadius: 'var(--r-pill)',
@@ -17,28 +27,20 @@ const iconBtn: React.CSSProperties = {
 	display: 'flex', alignItems: 'center', justifyContent: 'center',
 	border: '1px solid rgba(255,255,255,0.16)',
 };
-const summaryStat: React.CSSProperties = {
-	flex: 1, padding: '12px 14px', borderRadius: 'var(--r-md)',
-	background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
-	display: 'flex', flexDirection: 'column', gap: 2, color: 'white',
-};
-const summaryLabel: React.CSSProperties = {
-	fontSize: 10, letterSpacing: '0.10em', textTransform: 'uppercase',
-	color: 'rgba(255,255,255,0.65)', fontFamily: 'var(--font-mono)', fontWeight: 500,
-};
 
 export function MobileDashboard() {
 	const navigate = useNavigate();
 	const { data, isLoading, error } = useDashboard();
 	const auth = useAuth();
-	const [filter, setFilter] = useState<'all' | DesignStatus>('all');
+	const [filter, setFilter] = useState<DashboardFilter>('all');
 	const [sparkDays, setSparkDays] = useState<SparkRange>(14);
 
 	const sections = data?.sections || [];
 	const [collapsedWatersheds, setCollapsedWatersheds] = useState<Set<string>>(new Set());
 
 	const filtered = useMemo(() => {
-		return filter === 'all' ? sections : sections.filter(s => s.status === filter);
+		if (filter === 'all') return sections;
+		return sections.filter(s => matchesFilter(s, filter));
 	}, [sections, filter]);
 
 	const watershedOrder = useMemo(() => {
@@ -80,9 +82,19 @@ export function MobileDashboard() {
 		});
 	};
 
-	const totalRunnable = sections.filter(s => s.status === 'ideal' || s.status === 'runnable' || s.status === 'high').length;
+	const totalCount = sections.length;
+	const runningCount = sections.filter(s => s.status === 'ideal' || s.status === 'runnable' || s.status === 'high').length;
 	const idealCount = sections.filter(s => s.status === 'ideal').length;
 	const risingCount = sections.filter(s => s.trend === 'up').length;
+	const lowCount = sections.filter(s => s.status === 'low').length;
+
+	const tiles: Array<{ key: DashboardFilter; label: string; value: number; valueColor?: string; trendIcon?: 'up' | 'down' }> = [
+		{ key: 'all',     label: 'All',     value: totalCount },
+		{ key: 'running', label: 'Running', value: runningCount },
+		{ key: 'ideal',   label: 'Ideal',   value: idealCount,  valueColor: 'var(--ideal-line)' },
+		{ key: 'rising',  label: 'Rising',  value: risingCount, valueColor: '#ffd58a', trendIcon: 'up' },
+		{ key: 'low',     label: 'Low',     value: lowCount,    valueColor: '#ffd58a' },
+	];
 
 	const now = new Date();
 	const dateStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
@@ -146,57 +158,33 @@ export function MobileDashboard() {
 						<button style={iconBtn} onClick={() => navigate('/login')}><Icon name="user" size={18} color="white" /></button>
 					</div>
 				</div>
-				<div style={{ display: 'flex', gap: 8, marginTop: 18, position: 'relative' }}>
+				<div style={{
+					display: 'flex', gap: 6, marginTop: 14, position: 'relative',
+					overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none',
+				}}>
 					{isLoading ? (
-						<>{[1,2,3].map(i => <Skeleton key={i} height={54} borderRadius="var(--r-md)" style={{ flex: 1, background: 'rgba(255,255,255,0.08)' }} />)}</>
+						<>{[1,2,3,4,5].map(i => <Skeleton key={i} height={56} width={68} borderRadius="var(--r-md)" style={{ background: 'rgba(255,255,255,0.08)' }} />)}</>
 					) : (
-						<>
-							<div style={summaryStat}>
-								<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, letterSpacing: '-0.02em' }}>{totalRunnable}</div>
-								<div style={summaryLabel}>running</div>
-							</div>
-							<div style={summaryStat}>
-								<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: 'var(--ideal-line)', letterSpacing: '-0.02em' }}>
-									{idealCount}
-								</div>
-								<div style={summaryLabel}>ideal</div>
-							</div>
-							<div style={summaryStat}>
-								<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: '#ffd58a', letterSpacing: '-0.02em' }}>
-									{risingCount}↑
-								</div>
-								<div style={summaryLabel}>rising</div>
-							</div>
-						</>
+						tiles.map(t => (
+							<MobileTile
+								key={t.key}
+								label={t.label}
+								value={t.value}
+								valueColor={t.valueColor}
+								trendIcon={t.trendIcon}
+								active={filter === t.key}
+								onClick={() => setFilter(t.key)}
+							/>
+						))
 					)}
 				</div>
-				<div style={{ marginTop: 10, position: 'relative' }}>
+				<div style={{ marginTop: 10, position: 'relative', display: 'flex', justifyContent: 'flex-start' }}>
 					<CraftSkillControl variant="mobile" />
 				</div>
 			</header>
 
 			{/* Hero — image + glass search box */}
 			<SearchHero />
-
-			{/* Filter chips */}
-			<div style={{
-				display: 'flex', gap: 6, padding: '14px 20px 4px',
-				overflowX: 'auto', WebkitOverflowScrolling: 'touch',
-				scrollbarWidth: 'none', flexShrink: 0,
-			}}>
-				{isLoading ? (
-					<>{[60, 50, 65, 45].map((w, i) => <Skeleton key={i} width={w} height={30} borderRadius="var(--r-pill)" />)}</>
-				) : (
-					<>
-						<FilterChip label="All" count={sections.length} active={filter === 'all'} onClick={() => setFilter('all')} />
-						{STATUS_ORDER.map(s => {
-							const n = sections.filter(r => r.status === s).length;
-							if (n === 0) return null;
-							return <FilterChip key={s} label={STATUS_LABEL[s]} count={n} status={s} active={filter === s} onClick={() => setFilter(s)} />;
-						})}
-					</>
-				)}
-			</div>
 
 			{/* Cards grouped by watershed (upstream → downstream within each) */}
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 18, padding: '10px 16px 0' }}>
@@ -250,5 +238,52 @@ export function MobileDashboard() {
 				Data sourced from USGS Water Services · refreshed every 15m
 			</div>
 		</div>
+	);
+}
+
+interface MobileTileProps {
+	label: string;
+	value: number;
+	valueColor?: string;
+	trendIcon?: 'up' | 'down';
+	active: boolean;
+	onClick: () => void;
+}
+
+function MobileTile({ label, value, valueColor, trendIcon, active, onClick }: MobileTileProps) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			aria-pressed={active}
+			style={{
+				flex: '0 0 auto',
+				minWidth: 64,
+				padding: '10px 12px',
+				borderRadius: 'var(--r-md)',
+				background: active ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.08)',
+				border: active ? '1px solid rgba(255,255,255,0.95)' : '1px solid rgba(255,255,255,0.14)',
+				color: active ? 'var(--river-800)' : 'white',
+				display: 'flex',
+				flexDirection: 'column',
+				gap: 2,
+				alignItems: 'flex-start',
+				cursor: 'pointer',
+				transition: 'background 120ms, border-color 120ms, color 120ms',
+				fontFamily: 'var(--font-sans)',
+			}}
+		>
+			<span style={{
+				fontSize: 10, letterSpacing: '0.10em', textTransform: 'uppercase',
+				color: active ? 'var(--river-700)' : 'rgba(255,255,255,0.7)',
+				fontFamily: 'var(--font-mono)', fontWeight: 600,
+			}}>{label}</span>
+			<span style={{
+				fontFamily: 'var(--font-mono)',
+				fontSize: 22, fontWeight: 500, letterSpacing: '-0.02em',
+				color: active ? 'var(--river-800)' : (valueColor || 'white'),
+				lineHeight: 1,
+			}}>{value}{trendIcon === 'up' ? '↑' : trendIcon === 'down' ? '↓' : ''}</span>
+		</button>
 	);
 }

@@ -1,5 +1,7 @@
-import { CRAFTS, SKILLS, type SkillLevel } from '../lib/craftTypes';
+import { useEffect, useRef, useState } from 'react';
+import { CRAFTS, SKILLS, type CraftType, type SkillLevel } from '../lib/craftTypes';
 import { useCraftSkill } from '../lib/craftContext';
+import { Icon } from './Icon';
 
 interface CraftSkillControlProps {
 	variant?: 'desktop' | 'mobile';
@@ -7,45 +9,106 @@ interface CraftSkillControlProps {
 
 export function CraftSkillControl({ variant = 'desktop' }: CraftSkillControlProps) {
 	const { craft, skill, setCraft, setSkill } = useCraftSkill();
+	const [open, setOpen] = useState(false);
+	const wrapRef = useRef<HTMLDivElement>(null);
 	const isMobile = variant === 'mobile';
 
-	const labelStyle: React.CSSProperties = {
-		fontFamily: 'var(--font-mono)',
-		fontSize: 10,
-		letterSpacing: '0.10em',
-		textTransform: 'uppercase',
-		color: isMobile ? 'rgba(255,255,255,0.65)' : 'var(--ink-3)',
-		fontWeight: 500,
-		whiteSpace: 'nowrap',
-		minWidth: 40,
-	};
+	useEffect(() => {
+		if (!open) return;
+		function onDocClick(e: MouseEvent) {
+			if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+		}
+		document.addEventListener('mousedown', onDocClick);
+		return () => document.removeEventListener('mousedown', onDocClick);
+	}, [open]);
+
+	const craftLabel = CRAFTS.find(c => c.id === craft)?.short || craft;
+	const skillLabel = shortSkill(skill);
+
+	const baseFg = isMobile ? '#fff' : 'var(--ink-1)';
+	const bgIdle = isMobile ? 'rgba(255,255,255,0.10)' : 'var(--bg-card)';
+	const bgHover = isMobile ? 'rgba(255,255,255,0.16)' : 'var(--bg-sunken)';
+	const border = isMobile ? '1px solid rgba(255,255,255,0.18)' : '1px solid var(--rule)';
 
 	return (
-		<div style={{
-			padding: '10px 14px',
-			borderRadius: 'var(--r-lg)',
-			background: isMobile ? 'rgba(255,255,255,0.08)' : 'var(--bg-card)',
-			border: isMobile ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--rule)',
-			boxShadow: isMobile ? 'none' : 'var(--shadow-card)',
-			display: 'flex', flexDirection: 'column', gap: 8,
-			minWidth: isMobile ? 0 : 320,
-		}}>
-			<Row label="Craft" labelStyle={labelStyle}>
-				<Segmented
-					options={CRAFTS.map(c => ({ id: c.id, label: c.short }))}
-					value={craft}
-					onChange={setCraft}
-					isMobile={isMobile}
-				/>
-			</Row>
-			<Row label="Skill" labelStyle={labelStyle}>
-				<Segmented
-					options={SKILLS.map(s => ({ id: s.id, label: shortSkill(s.id) }))}
-					value={skill}
-					onChange={setSkill}
-					isMobile={isMobile}
-				/>
-			</Row>
+		<div ref={wrapRef} style={{ position: 'relative', display: 'inline-block' }}>
+			<button
+				type="button"
+				onClick={() => setOpen(o => !o)}
+				aria-expanded={open}
+				style={{
+					display: 'inline-flex',
+					alignItems: 'center',
+					gap: 8,
+					padding: '8px 12px 8px 14px',
+					borderRadius: 'var(--r-pill)',
+					background: open ? bgHover : bgIdle,
+					border,
+					color: baseFg,
+					fontSize: 12,
+					fontWeight: 600,
+					fontFamily: 'var(--font-sans)',
+					cursor: 'pointer',
+					whiteSpace: 'nowrap',
+					boxShadow: isMobile ? 'none' : 'var(--shadow-card)',
+				}}
+			>
+				<span style={{
+					fontFamily: 'var(--font-mono)',
+					fontSize: 9,
+					letterSpacing: '0.10em',
+					textTransform: 'uppercase',
+					color: isMobile ? 'rgba(255,255,255,0.55)' : 'var(--ink-3)',
+					fontWeight: 500,
+				}}>Boat</span>
+				<span>{craftLabel}</span>
+				<span style={{
+					width: 1, height: 14, background: isMobile ? 'rgba(255,255,255,0.20)' : 'var(--rule)',
+				}} />
+				<span style={{
+					fontFamily: 'var(--font-mono)',
+					fontSize: 9,
+					letterSpacing: '0.10em',
+					textTransform: 'uppercase',
+					color: isMobile ? 'rgba(255,255,255,0.55)' : 'var(--ink-3)',
+					fontWeight: 500,
+				}}>Skill</span>
+				<span>{skillLabel}</span>
+				<Icon name="chevron-right" size={12} color={isMobile ? 'rgba(255,255,255,0.6)' : 'var(--ink-3)'} />
+			</button>
+
+			{open && (
+				<div style={{
+					position: 'absolute',
+					top: 'calc(100% + 8px)',
+					right: 0,
+					minWidth: 280,
+					padding: 12,
+					borderRadius: 'var(--r-lg)',
+					background: 'var(--bg-card)',
+					border: '1px solid var(--rule)',
+					boxShadow: '0 16px 40px rgba(0,30,50,0.20)',
+					zIndex: 60,
+					display: 'flex',
+					flexDirection: 'column',
+					gap: 10,
+				}}>
+					<PickerRow label="Boat">
+						<Segmented
+							options={CRAFTS.map(c => ({ id: c.id, label: c.short }))}
+							value={craft}
+							onChange={(v) => { setCraft(v as CraftType); setOpen(false); }}
+						/>
+					</PickerRow>
+					<PickerRow label="Skill">
+						<Segmented
+							options={SKILLS.map(s => ({ id: s.id, label: shortSkill(s.id) }))}
+							value={skill}
+							onChange={(v) => { setSkill(v as SkillLevel); setOpen(false); }}
+						/>
+					</PickerRow>
+				</div>
+			)}
 		</div>
 	);
 }
@@ -54,10 +117,18 @@ function shortSkill(s: SkillLevel): string {
 	return s === 'intermediate' ? 'Inter.' : s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function Row({ label, labelStyle, children }: { label: string; labelStyle: React.CSSProperties; children: React.ReactNode }) {
+function PickerRow({ label, children }: { label: string; children: React.ReactNode }) {
 	return (
-		<div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-			<span style={labelStyle}>{label}</span>
+		<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+			<span style={{
+				fontFamily: 'var(--font-mono)',
+				fontSize: 10,
+				letterSpacing: '0.10em',
+				textTransform: 'uppercase',
+				color: 'var(--ink-3)',
+				fontWeight: 500,
+				minWidth: 40,
+			}}>{label}</span>
 			{children}
 		</div>
 	);
@@ -67,22 +138,15 @@ interface SegmentedProps<T extends string> {
 	options: { id: T; label: string }[];
 	value: T;
 	onChange: (v: T) => void;
-	isMobile: boolean;
 }
 
-function Segmented<T extends string>({ options, value, onChange, isMobile }: SegmentedProps<T>) {
-	const trackBg = isMobile ? 'rgba(0,0,0,0.18)' : 'var(--bg-sunken)';
-	const selBg = isMobile ? 'rgba(255,255,255,0.92)' : 'var(--bg-card)';
-	const selFg = isMobile ? 'var(--river-800)' : 'var(--ink-0)';
-	const selBorder = isMobile ? '1px solid rgba(255,255,255,0.6)' : '1px solid var(--rule)';
-	const idleFg = isMobile ? 'rgba(255,255,255,0.78)' : 'var(--ink-3)';
-
+function Segmented<T extends string>({ options, value, onChange }: SegmentedProps<T>) {
 	return (
 		<div style={{
 			display: 'inline-flex',
 			gap: 2,
 			padding: 3,
-			background: trackBg,
+			background: 'var(--bg-sunken)',
 			borderRadius: 'var(--r-pill)',
 			flex: 1,
 		}}>
@@ -91,14 +155,15 @@ function Segmented<T extends string>({ options, value, onChange, isMobile }: Seg
 				return (
 					<button
 						key={o.id}
+						type="button"
 						onClick={() => onChange(o.id)}
 						style={{
 							flex: 1,
 							padding: '6px 10px',
 							borderRadius: 'var(--r-pill)',
-							background: sel ? selBg : 'transparent',
-							color: sel ? selFg : idleFg,
-							border: sel ? selBorder : '1px solid transparent',
+							background: sel ? 'var(--bg-card)' : 'transparent',
+							color: sel ? 'var(--ink-0)' : 'var(--ink-3)',
+							border: sel ? '1px solid var(--rule)' : '1px solid transparent',
 							fontSize: 11,
 							fontWeight: 600,
 							fontFamily: 'var(--font-sans)',

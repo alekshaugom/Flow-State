@@ -1,22 +1,32 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { STATUS_ORDER, STATUS_LABEL, type DesignStatus } from '../constants';
 import { useDashboard } from '../hooks/useDashboard';
 import { AppHeader } from '../components/AppHeader';
 import { Skeleton } from '../components/Skeleton';
 import { WatershedGroupHeader, type SparkRange } from '../components/WatershedGroupHeader';
 import { CraftSkillControl } from '../components/CraftSkillControl';
 import { SummaryStat } from './SummaryStat';
-import { DesktopFilter } from './DesktopFilter';
 import { DesktopRiverRow } from './DesktopRiverRow';
 import { DesktopDetail } from './DesktopDetail';
 import { SearchHero } from '../components/SearchHero';
+
+type DashboardFilter = 'all' | 'running' | 'ideal' | 'rising' | 'low';
+
+function matchesFilter(s: any, filter: DashboardFilter): boolean {
+	switch (filter) {
+		case 'all': return true;
+		case 'running': return s.status === 'ideal' || s.status === 'runnable' || s.status === 'high';
+		case 'ideal': return s.status === 'ideal';
+		case 'rising': return s.trend === 'up';
+		case 'low': return s.status === 'low';
+	}
+}
 
 export function DesktopShell() {
 	const { sectionId: urlSectionId } = useParams<{ sectionId?: string }>();
 	const navigate = useNavigate();
 	const { data, isLoading, error } = useDashboard();
-	const [filter, setFilter] = useState<'all' | DesignStatus>('all');
+	const [filter, setFilter] = useState<DashboardFilter>('all');
 	const [selectedId, setSelectedId] = useState<string | null>(urlSectionId || null);
 	const [sparkDays, setSparkDays] = useState<SparkRange>(14);
 
@@ -34,7 +44,8 @@ export function DesktopShell() {
 	}, [sections, selectedId]);
 
 	const filtered = useMemo(() => {
-		return filter === 'all' ? sections : sections.filter(s => s.status === filter);
+		if (filter === 'all') return sections;
+		return sections.filter(s => matchesFilter(s, filter));
 	}, [sections, filter]);
 
 	const watershedOrder = useMemo(() => {
@@ -81,10 +92,11 @@ export function DesktopShell() {
 		navigate(`/section/${id}`, { replace: true });
 	};
 
-	const totalRunnable = sections.filter(s => s.status === 'ideal' || s.status === 'runnable' || s.status === 'high').length;
+	const totalCount = sections.length;
+	const runningCount = sections.filter(s => s.status === 'ideal' || s.status === 'runnable' || s.status === 'high').length;
 	const idealCount = sections.filter(s => s.status === 'ideal').length;
 	const risingCount = sections.filter(s => s.trend === 'up').length;
-	const fallingCount = sections.filter(s => s.trend === 'down').length;
+	const lowCount = sections.filter(s => s.status === 'low').length;
 
 	const now = new Date();
 	const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -137,34 +149,19 @@ export function DesktopShell() {
 				}}>
 					<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
 						{isLoading ? (
-							<>{[1,2,3,4].map(i => <Skeleton key={i} width={110} height={70} borderRadius="var(--r-lg)" />)}</>
+							<>{[1,2,3,4,5].map(i => <Skeleton key={i} width={96} height={70} borderRadius="var(--r-lg)" />)}</>
 						) : (
 							<>
-								<SummaryStat label="Running" value={totalRunnable} sub={`of ${sections.length} tracked`} />
-								<SummaryStat label="Ideal" value={idealCount} color="var(--ideal-solid)" sub="sweet spot" />
-								<SummaryStat label="Rising" value={risingCount} color="var(--trend-up)" sub="last 24h" trendIcon="up" />
-								<SummaryStat label="Falling" value={fallingCount} color="var(--trend-down)" sub="last 24h" trendIcon="down" />
+								<SummaryStat label="All"     value={totalCount}   active={filter === 'all'}     onClick={() => setFilter('all')} />
+								<SummaryStat label="Running" value={runningCount} active={filter === 'running'} onClick={() => setFilter('running')} />
+								<SummaryStat label="Ideal"   value={idealCount}   color="var(--ideal-solid)" active={filter === 'ideal'}   onClick={() => setFilter('ideal')} />
+								<SummaryStat label="Rising"  value={risingCount}  color="var(--trend-up)"     trendIcon="up" active={filter === 'rising'}  onClick={() => setFilter('rising')} />
+								<SummaryStat label="Low"     value={lowCount}     color="var(--low-solid)"    active={filter === 'low'}     onClick={() => setFilter('low')} />
 							</>
 						)}
 					</div>
 					<CraftSkillControl variant="desktop" />
 				</div>
-			</div>
-
-			{/* Filter strip */}
-			<div style={{ padding: '0 28px 16px', display: 'flex', gap: 8 }}>
-				{isLoading ? (
-					<>{[90, 70, 80, 55].map((w, i) => <Skeleton key={i} width={w} height={36} borderRadius="var(--r-pill)" />)}</>
-				) : (
-					<>
-						<DesktopFilter label="All sections" count={sections.length} active={filter === 'all'} onClick={() => setFilter('all')} />
-						{STATUS_ORDER.map(s => {
-							const n = sections.filter(r => r.status === s).length;
-							if (n === 0) return null;
-							return <DesktopFilter key={s} label={STATUS_LABEL[s]} count={n} status={s} active={filter === s} onClick={() => setFilter(s)} />;
-						})}
-					</>
-				)}
 			</div>
 
 			{/* Main split: sidebar + detail */}
