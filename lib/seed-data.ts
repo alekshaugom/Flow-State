@@ -2,6 +2,9 @@
 // Sources: USGS site IDs verified via waterdata.usgs.gov, CDSS station abbrevs
 // via dwr.state.co.us, flow thresholds from American Whitewater and BLM/USFS.
 
+import { buildAccessPointsFromSections } from './access-points.ts';
+import { CURATED_ACCESS_POINTS, CURATED_IMPASSABLE_POINTS, CURATED_GAUGES, SECTION_LEG_MAPPING } from './curated-river-data.ts';
+
 export const RIVERS = [
 	{ id: 'colorado', name: 'Colorado River', state: 'CO', watershed: 'Colorado River Basin', watershedId: 'colorado-headwaters', description: 'The major Western river flowing from Rocky Mountain National Park through Grand Valley to Utah. Multiple world-class rafting sections from Class I flatwater to Class V whitewater.' },
 	{ id: 'arkansas', name: 'Arkansas River', state: 'CO', watershed: 'Arkansas River Basin', watershedId: 'arkansas', description: 'Most commercially rafted river in the US. Runs from Leadville through Browns Canyon National Monument and Royal Gorge. Flows managed by Fryingpan-Arkansas Project and Voluntary Flow Program.' },
@@ -220,6 +223,45 @@ export const GAUGES = [
 	{ id: 'usgs-06701900', name: 'South Platte River near Deckers, CO', source: 'usgs', sourceId: '06701900', riverId: 'south-platte', latitude: 39.239, longitude: -105.195, parameter: 'discharge', unit: 'cfs', url: 'https://waterdata.usgs.gov/nwis/uv?site_no=06701900', active: true },
 	{ id: 'usgs-06710247', name: 'South Platte River at Waterton, CO', source: 'usgs', sourceId: '06710247', riverId: 'south-platte', latitude: 39.487, longitude: -105.095, parameter: 'discharge', unit: 'cfs', url: 'https://waterdata.usgs.gov/nwis/uv?site_no=06710247', active: true },
 ];
+
+// === ACCESS POINTS, IMPASSABLE DAMS, GAUGES ===
+// Source of truth: lib/curated-river-data.ts (generated from
+// scripts/access-points-draft.json by scripts/generate-curated-data.mjs).
+// The auto-derive helper below is the FALLBACK for corridors that haven't
+// been hand-curated yet — currently empty since all 20 corridors are covered.
+
+const _curatedCorridorIds = new Set(CURATED_ACCESS_POINTS.map(ap => ap.corridorId));
+const _uncuratedSections = SECTIONS.filter(s => s.corridorId && !_curatedCorridorIds.has(s.corridorId));
+const __apFallback = buildAccessPointsFromSections(_uncuratedSections);
+
+export const ACCESS_POINTS = [...CURATED_ACCESS_POINTS, ...__apFallback.accessPoints];
+export const IMPASSABLE_POINTS = CURATED_IMPASSABLE_POINTS;
+
+// Apply hand-curated section→AP leg mappings; fall back to auto-derived for any
+// section not in SECTION_LEG_MAPPING.
+for (const sec of SECTIONS) {
+	const curated = SECTION_LEG_MAPPING[sec.id];
+	if (curated) {
+		(sec as any).fromAccessPointId = curated.fromAccessPointId;
+		(sec as any).toAccessPointId = curated.toAccessPointId;
+		continue;
+	}
+	const auto = __apFallback.sectionUpdates.get(sec.id);
+	if (auto) {
+		(sec as any).fromAccessPointId = auto.fromAccessPointId;
+		(sec as any).toAccessPointId = auto.toAccessPointId;
+	}
+}
+
+// Replace the plain GAUGES array with the corrected curated set (includes
+// fixed Arkansas gauge names/coords + 25 new gauges).
+const _curatedGaugeIds = new Set(CURATED_GAUGES.map(g => g.id));
+const _legacyGaugesNotInCurated = GAUGES.filter(g => !_curatedGaugeIds.has(g.id));
+// `GAUGES` declared above is `const` — we splice in place to preserve the
+// reference for any importer that captured it.
+GAUGES.length = 0;
+for (const g of CURATED_GAUGES) GAUGES.push(g as any);
+for (const g of _legacyGaugesNotInCurated) GAUGES.push(g as any);
 
 export const RESERVOIRS = [
 	{ id: 'blue-mesa', name: 'Blue Mesa Reservoir', riverId: 'gunnison', operator: 'Bureau of Reclamation', latitude: 38.458, longitude: -107.324, maxStorageAcreFt: 829500, normalElevationFt: 7519.4, sourceId: '913', source: 'bor-rise', url: 'https://data.usbr.gov/', notes: 'Largest reservoir in Colorado. Part of Aspinall Unit. Controls Gunnison River flows downstream through Morrow Point and Crystal.' },

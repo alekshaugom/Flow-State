@@ -5,6 +5,9 @@ type Gauge @table @export {
 	sourceId: String @indexed
 	riverId: ID @indexed
 	river: River @relationship(from: "riverId")
+	corridorId: ID @indexed
+	sortIndex: Int @indexed
+	riverMile: Float
 	latitude: Float
 	longitude: Float
 	parameter: String

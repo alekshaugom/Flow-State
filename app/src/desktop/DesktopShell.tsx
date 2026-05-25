@@ -1,38 +1,31 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDashboard } from '../hooks/useDashboard';
+import { useCorridorTiles } from '../hooks/useCorridorTiles';
 import { AppHeader } from '../components/AppHeader';
 import { Skeleton } from '../components/Skeleton';
-import { WatershedGroupHeader, type SparkRange } from '../components/WatershedGroupHeader';
+import { WatershedGroupHeader } from '../components/WatershedGroupHeader';
 import { CraftSkillControl } from '../components/CraftSkillControl';
 import { SummaryStat } from './SummaryStat';
-import { DesktopRiverRow } from './DesktopRiverRow';
+import { CorridorTile } from '../components/CorridorTile';
 import { DesktopDetail } from './DesktopDetail';
 import { SearchHero } from '../components/SearchHero';
 import { useScrollProgress, lerpStyle } from '../hooks/useStuck';
+import { mapStatusToDesign } from '../constants';
 
 type DashboardFilter = 'all' | 'running' | 'ideal' | 'rising' | 'low';
-
-function matchesFilter(s: any, filter: DashboardFilter): boolean {
-	switch (filter) {
-		case 'all': return true;
-		case 'running': return s.status === 'ideal' || s.status === 'runnable' || s.status === 'high';
-		case 'ideal': return s.status === 'ideal';
-		case 'rising': return s.trend === 'up';
-		case 'low': return s.status === 'low';
-	}
-}
 
 export function DesktopShell() {
 	const { sectionId: urlSectionId } = useParams<{ sectionId?: string }>();
 	const navigate = useNavigate();
 	const { data, isLoading, error } = useDashboard();
+	const { data: tilesData, isLoading: tilesLoading } = useCorridorTiles();
 	const [filter, setFilter] = useState<DashboardFilter>('all');
 	const [selectedId, setSelectedId] = useState<string | null>(urlSectionId || null);
-	const [sparkDays, setSparkDays] = useState<SparkRange>(14);
 	const { ref: titleRef, progress: titleProgress } = useScrollProgress<HTMLDivElement>(64, 140);
 
 	const sections = data?.sections || [];
+	const tiles = useMemo(() => tilesData?.tiles || [], [tilesData]);
 	const [collapsedWatersheds, setCollapsedWatersheds] = useState<Set<string>>(new Set());
 
 	useEffect(() => {
@@ -40,45 +33,48 @@ export function DesktopShell() {
 	}, [urlSectionId]);
 
 	useEffect(() => {
-		if (!selectedId && sections.length > 0) {
-			setSelectedId(sections[0].id);
+		if (!selectedId && tiles.length > 0) {
+			const firstLeg = tiles.find(t => t.legs.length > 0)?.legs[0];
+			if (firstLeg) setSelectedId(firstLeg.sectionId);
 		}
-	}, [sections, selectedId]);
+	}, [tiles, selectedId]);
 
-	const filtered = useMemo(() => {
-		if (filter === 'all') return sections;
-		return sections.filter(s => matchesFilter(s, filter));
-	}, [sections, filter]);
+	const tileMatchesFilter = (tile: typeof tiles[number], f: DashboardFilter): boolean => {
+		if (f === 'all') return true;
+		if (f === 'rising') return tile.gauges.some(g => g.trend === 'up');
+		return tile.legs.some(l => {
+			const ds = mapStatusToDesign(l.status);
+			if (f === 'running') return ds === 'ideal' || ds === 'runnable' || ds === 'high';
+			if (f === 'ideal') return ds === 'ideal';
+			if (f === 'low') return ds === 'low';
+			return false;
+		});
+	};
+
+	const filteredTiles = useMemo(() => tiles.filter(t => tileMatchesFilter(t, filter)), [tiles, filter]);
 
 	const watershedOrder = useMemo(() => {
 		const seen = new Map<string, string>();
-		for (const s of filtered) {
-			const slug = s.watershedSlug || '_unassigned';
-			if (!seen.has(slug)) seen.set(slug, s.watershedName || 'Other');
+		for (const t of filteredTiles) {
+			const slug = t.watershedId || '_unassigned';
+			if (!seen.has(slug)) seen.set(slug, t.watershedName || 'Other');
 		}
 		return Array.from(seen.entries())
 			.sort(([, aName], [, bName]) => aName.localeCompare(bName));
-	}, [filtered]);
+	}, [filteredTiles]);
 
-	const groupedByWatershed = useMemo(() => {
-		const m: Record<string, typeof sections> = {};
-		for (const s of filtered) {
-			const slug = s.watershedSlug || '_unassigned';
+	const groupedTilesByWatershed = useMemo(() => {
+		const m: Record<string, typeof tiles> = {};
+		for (const t of filteredTiles) {
+			const slug = t.watershedId || '_unassigned';
 			if (!m[slug]) m[slug] = [];
-			m[slug].push(s);
+			m[slug].push(t);
 		}
-		// Within each watershed, sort upstream→downstream by corridor then section
-		// sortIndex (same order as the watershed/corridor pages).
 		for (const slug of Object.keys(m)) {
-			m[slug] = m[slug].slice().sort((a, b) => {
-				const ai = a.corridorSortIndex ?? 999;
-				const bi = b.corridorSortIndex ?? 999;
-				if (ai !== bi) return ai - bi;
-				return (a.sortIndex ?? 999) - (b.sortIndex ?? 999);
-			});
+			m[slug] = m[slug].slice().sort((a, b) => (a.sortIndex ?? 999) - (b.sortIndex ?? 999));
 		}
 		return m;
-	}, [filtered]);
+	}, [filteredTiles]);
 
 	const toggleWatershed = (slug: string) => {
 		setCollapsedWatersheds(prev => {
@@ -87,11 +83,6 @@ export function DesktopShell() {
 			else next.add(slug);
 			return next;
 		});
-	};
-
-	const handleSelect = (id: string) => {
-		setSelectedId(id);
-		navigate(`/section/${id}`, { replace: true });
 	};
 
 	const totalCount = sections.length;
@@ -193,46 +184,34 @@ export function DesktopShell() {
 				alignItems: 'start',
 			}}>
 				<aside style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingRight: 4, minWidth: 0 }}>
-					{isLoading ? (
+					{tilesLoading || isLoading ? (
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-							{[1,2,3,4,5,6].map(i => <Skeleton key={i} height={88} borderRadius="var(--r-lg)" />)}
+							{[1,2,3,4,5,6].map(i => <Skeleton key={i} height={220} borderRadius="var(--r-lg)" />)}
 						</div>
 					) : (
-						(() => {
-							let isFirst = true;
-							return watershedOrder.map(([slug, name]) => {
-								const items = groupedByWatershed[slug];
-								if (!items || items.length === 0) return null;
-								const showSelector = isFirst;
-								isFirst = false;
-								const collapsed = collapsedWatersheds.has(slug);
-								return (
-									<section key={slug}>
-										<WatershedGroupHeader
-											slug={slug}
-											name={name}
-											count={items.length}
-											collapsed={collapsed}
-											onToggle={() => toggleWatershed(slug)}
-											{...(showSelector ? { sparkRange: sparkDays, onSparkRangeChange: setSparkDays } : {})}
-										/>
-										{!collapsed && (
-											<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-												{items.map(s => (
-													<DesktopRiverRow
-														key={s.id}
-														section={s}
-														selected={s.id === selectedId}
-														onClick={() => handleSelect(s.id)}
-														sparkDays={sparkDays}
-													/>
-												))}
-											</div>
-										)}
-									</section>
-								);
-							});
-						})()
+						watershedOrder.map(([slug, name]) => {
+							const items = groupedTilesByWatershed[slug];
+							if (!items || items.length === 0) return null;
+							const collapsed = collapsedWatersheds.has(slug);
+							return (
+								<section key={slug}>
+									<WatershedGroupHeader
+										slug={slug}
+										name={name}
+										count={items.reduce((s, t) => s + t.legs.length, 0)}
+										collapsed={collapsed}
+										onToggle={() => toggleWatershed(slug)}
+									/>
+									{!collapsed && (
+										<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+											{items.map(t => (
+												<CorridorTile key={t.corridorId} tile={t} density="desktop" />
+											))}
+										</div>
+									)}
+								</section>
+							);
+						})
 					)}
 				</aside>
 

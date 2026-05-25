@@ -16,6 +16,9 @@ export const api = {
 	dashboard: () =>
 		fetch('/Dashboard').then(json<any>),
 
+	corridorTiles: () =>
+		fetch('/CorridorTiles').then(json<any>),
+
 	riverDetail: (sectionId: string) =>
 		fetch(`/RiverDetail/${encodeURIComponent(sectionId)}`).then(json<any>),
 

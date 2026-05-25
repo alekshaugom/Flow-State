@@ -1,0 +1,13 @@
+type ImpassablePoint @table @export {
+	id: ID @primaryKey
+	riverId: ID @indexed
+	river: River @relationship(from: "riverId")
+	upstreamCorridorId: ID @indexed
+	downstreamCorridorId: ID @indexed
+	name: String
+	kind: String
+	latitude: Float
+	longitude: Float
+	riverMile: Float
+	notes: String
+}

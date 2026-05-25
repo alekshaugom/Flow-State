@@ -23,6 +23,8 @@ export default defineConfig({
 		port: 5173,
 		proxy: {
 			...proxyEntry('/Dashboard'),
+			...proxyEntry('/CorridorTiles'),
+			...proxyEntry('/AccessPoint'),
 			...proxyEntry('/RiverDetail'),
 			...proxyEntry('/WatershedView'),
 			...proxyEntry('/CorridorView'),

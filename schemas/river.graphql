@@ -33,6 +33,8 @@ type RiverSection @table @export {
 	primaryGaugeId: String @indexed
 	upstreamGaugeIds: String
 	downstreamGaugeIds: String
+	fromAccessPointId: ID @indexed
+	toAccessPointId: ID @indexed
 	reservoirIds: String
 	snowpackBasinIds: String
 	notes: String

@@ -15,4 +15,5 @@ type RiverCorridor @table @export {
 	driver: String @indexed
 	sortIndex: Int @indexed
 	sections: [RiverSection] @relationship(to: "corridorId")
+	accessPoints: [AccessPoint] @relationship(to: "corridorId")
 }

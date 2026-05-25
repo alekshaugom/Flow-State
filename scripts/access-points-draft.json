@@ -1,0 +1,3916 @@
+{
+  "_meta": {
+    "purpose": "Comprehensive GPS-tagged inventory of access points, impassable dams, and USGS gauges for every Colorado-river corridor in Flow-State. Compiled from 5 parallel research agents using American Whitewater, BLM, USFS, CPW, USGS NWIS, OpenStreetMap, and Wikipedia. Each entry includes a `_confidence` field (high/medium/low) and a `source` field with citations. Lat/lon set to null where no authoritative source confirms a precise pin — better null than wrong.",
+    "review_required": "Walk each river's accessPoints[] in upstream→downstream order. Confirm names, kinds, coords, and any missing intermediate APs. Note: riverMile is NOT yet populated — Phase 9 (compute-river-miles.ts) will snap each lat/lon to USGS NHDPlus flowlines and compute cumulative river-mile from the corridor head.",
+    "kind_values": [
+      "put-in",
+      "take-out",
+      "both"
+    ],
+    "confidence_values": [
+      "high (USGS NWIS site, BLM/CPW/USFS page, OSM slipway with explicit name)",
+      "medium (boater knowledge / town centroid / inferred from MP)",
+      "low (general location only, may need on-the-ground verification)"
+    ],
+    "compiled_at": "2026-05-25",
+    "totals": {
+      "rivers": 16,
+      "accessPoints": "~196 (vs. 69 auto-derived in current seed)",
+      "impassableDams": 13,
+      "gauges": "~55 (vs. 34 in current seed)"
+    },
+    "ark_specific_corrections_from_research": [
+      "Hecla Junction (38.65185, -106.05127) and Ruby Mountain (38.75221, -106.07085) are CONFIRMED distinct sites ~12 km apart with Browns Canyon between them — split the current 'Hecla Junction (or Ruby Mountain)' AP.",
+      "Stone Bridge (38.61153, -106.06339) is the BOTTOM of Browns Canyon; the existing 'Stone Bridge / Fisherman's Bridge' string conflates two sites.",
+      "Existing gauge usgs-07086000 'at Granite' has WRONG longitude in seed (-106.437 puts it on Turquoise Lake; correct is -106.26586).",
+      "Existing gauge usgs-07087050 is mislabeled 'near Wellsville' — it's actually 'below Granite' at Numbers Launch. True Wellsville gauge is 07093700 (a different site, not in current seed).",
+      "Existing gauge usgs-07091200 is mislabeled 'at Salida' — it's actually 'near Nathrop' (at Hecla Junction). True Salida gauge is 07091500 (a different site, not in current seed)."
+    ]
+  },
+  "rivers": {
+    "arkansas": {
+      "corridorIds": [
+        "arkansas-headwaters"
+      ],
+      "_summary": "Arkansas Headwaters Recreation Area (AHRA), Granite to Cañon City, ~120 mi. Most commercially rafted river in the US. 30 access points, 1 impassable dam (Pueblo Dam), 11 gauges (vs. 5 in current seed).",
+      "accessPoints": [
+        {
+          "name": "Granite",
+          "altNames": [
+            "Granite Recreation Site"
+          ],
+          "kind": "put-in",
+          "latitude": 39.0436,
+          "longitude": -106.26528,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA developed site at town of Granite. Pine Creek put-in.",
+          "source": "CPW AHRA; AW reach 355; RiverBrain run 174",
+          "_confidence": "high",
+          "riverMile": 0
+        },
+        {
+          "name": "Pine Creek",
+          "altNames": [
+            "Pine Creek Recreation Site"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA portage trail around Pine Creek Rapid (Class V-VI). Rare put-in/take-out at high flows.",
+          "source": "CPW AHRA Leadville-Buena Vista page",
+          "_confidence": "low"
+        },
+        {
+          "name": "Granite Boat Chute",
+          "altNames": [],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA boat ramp/slide between Granite and Clear Creek confluence.",
+          "source": "CPW AHRA",
+          "_confidence": "low"
+        },
+        {
+          "name": "Clear Creek",
+          "altNames": [
+            "Clear Creek North",
+            "Clear Creek South"
+          ],
+          "kind": "put-in",
+          "latitude": 39.02225,
+          "longitude": -106.25392,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "Clear Creek confluence on Clear Creek Rd near Vicksburg/Granite. Commercial Pine Creek and Numbers put-in.",
+          "source": "OSM node 1590331264 (leisure=slipway)",
+          "_confidence": "high",
+          "riverMile": 1.96
+        },
+        {
+          "name": "Numbers Launch",
+          "altNames": [
+            "Numbers Put-in",
+            "Numbers Recreation Site"
+          ],
+          "kind": "put-in",
+          "latitude": 38.99494,
+          "longitude": -106.2203,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA fee site ~11 mi north of BV on Hwy 24. Standard Numbers put-in. Co-located with USGS 07087050.",
+          "source": "USGS NWIS 07087050; CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 5.15
+        },
+        {
+          "name": "Frog Rock",
+          "altNames": [
+            "Narrows",
+            "Milk Run put-in"
+          ],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "Informal Hwy 24 pull-off between Numbers and Railroad Bridge.",
+          "source": "CPW AHRA (Riverside / Placer area); boater knowledge",
+          "_confidence": "low"
+        },
+        {
+          "name": "Riverside",
+          "altNames": [],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA dispersed-camping site between Numbers and Railroad Bridge.",
+          "source": "CPW AHRA",
+          "_confidence": "low"
+        },
+        {
+          "name": "Railroad Bridge",
+          "altNames": [
+            "RR Bridge",
+            "Railroad Bridge Take-out",
+            "Railroad Bridge Campground"
+          ],
+          "kind": "take-out",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA developed campground on CR 371 north of BV. Standard Numbers take-out.",
+          "source": "CPW AHRA; AW reach 356",
+          "_confidence": "medium"
+        },
+        {
+          "name": "Elephant Rock",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "AHRA dispersed camping with walk-down kayak-only access. NOT for rafts.",
+          "source": "CPW AHRA Leadville-Buena Vista",
+          "_confidence": "low"
+        },
+        {
+          "name": "Buena Vista Whitewater Park",
+          "altNames": [
+            "BV River Park",
+            "BV Boat Ramp",
+            "Buena Vista River Park",
+            "South Main"
+          ],
+          "kind": "both",
+          "latitude": 38.84256,
+          "longitude": -106.13377,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town play park with 5 features incl. Staircase Wave. Boat ramp on river right. Commercial put-in/take-out.",
+          "source": "OSM node 9959956413 (leisure=slipway); UncoverColorado; AW reach 4347",
+          "_confidence": "high",
+          "riverMile": 17.64
+        },
+        {
+          "name": "Johnson's Village",
+          "altNames": [
+            "Johnson Village Bridge",
+            "Wilderness Aware put-in",
+            "River Runners"
+          ],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "Hwy 24/285 bridge south of BV. Multiple outfitter properties (Wilderness Aware, River Runners).",
+          "source": "Wikipedia (Johnson Village bridge); CPW AHRA",
+          "_confidence": "low"
+        },
+        {
+          "name": "Collegiate Peaks Overlook",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA site 1 mi east of Johnson Village off Hwy 24/285, CR 304.",
+          "source": "CPW AHRA",
+          "_confidence": "low"
+        },
+        {
+          "name": "Fisherman's Bridge (Browns top)",
+          "altNames": [
+            "Fisherman's Bridge Put-in",
+            "Nathrop Put-in",
+            "Browns Canyon Put-in"
+          ],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA site at US-285 MP 144.7, east on CR 301. TOP of Browns Canyon. UPSTREAM Fisherman's Bridge (distinct from the downstream one).",
+          "source": "AW reach 358; CPW AHRA; RiverBrain access 289",
+          "_confidence": "medium"
+        },
+        {
+          "name": "Ruby Mountain",
+          "altNames": [
+            "Ruby Mountain Campground",
+            "Ruby Mountain Recreation Site"
+          ],
+          "kind": "both",
+          "latitude": 38.75221,
+          "longitude": -106.07085,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA campground and boat ramp on CR 300. Often used as a Browns put-in to skip the upper flat section, OR a half-day take-out. DISTINCT FROM HECLA — Ruby is upstream, Hecla downstream.",
+          "source": "OSM node 1498622284 (leisure=slipway); Nominatim; CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 26.19
+        },
+        {
+          "name": "Hecla Junction",
+          "altNames": [
+            "Hecla Junction Campground",
+            "Hecla"
+          ],
+          "kind": "take-out",
+          "latitude": 38.65185,
+          "longitude": -106.05127,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA campground and primary Browns Canyon TAKE-OUT, at US-285 MP 135.4 then 2.6 mi down CR 194. MIDDLE of Browns. DISTINCT FROM RUBY MOUNTAIN.",
+          "source": "OSM node 4633189670 (leisure=slipway, name=Hecla Junction); AW reach 358; CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 33.95
+        },
+        {
+          "name": "Stone Bridge",
+          "altNames": [
+            "Stone Bridge Take-out",
+            "Lower Browns take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 38.61153,
+          "longitude": -106.06339,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA boat ramp on CR 191 (east off Hwy 291 from US-285 MP 133.9). BOTTOM take-out for the full Browns Canyon run.",
+          "source": "OSM node 4823215093 (leisure=slipway, name=Stone Bridge Takeout); AW reach 358; CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 37.58
+        },
+        {
+          "name": "Big Bend",
+          "altNames": [],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA two-tier site between Stone Bridge and Salida on US-285.",
+          "source": "CPW AHRA Buena Vista-Salida page",
+          "_confidence": "low"
+        },
+        {
+          "name": "Slaughterhouse",
+          "altNames": [
+            "Slaughterhouse Bridge"
+          ],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA fishing access on CR 166 west of Salida.",
+          "source": "CPW AHRA Buena Vista-Salida page",
+          "_confidence": "low"
+        },
+        {
+          "name": "Salida Whitewater Park",
+          "altNames": [
+            "F Street",
+            "Scout Wave",
+            "Salida Boat Ramp",
+            "Downtown Salida"
+          ],
+          "kind": "both",
+          "latitude": 38.53773,
+          "longitude": -105.99024,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town play park with Scout Wave (FIBArk venue). Boat ramp/slide.",
+          "source": "OSM way 1108090538 (leisure=whitewater_course); CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 46.96
+        },
+        {
+          "name": "Salida East",
+          "altNames": [
+            "Salida East Campground"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA developed campground 1.5 mi east of Salida on US-50 near MP 224. 33 sites + yurt.",
+          "source": "CPW AHRA Salida-Vallie",
+          "_confidence": "medium"
+        },
+        {
+          "name": "Point Barr",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 38.47093,
+          "longitude": -105.8711,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA campground at US-50 MP 227 (~4.7 mi east of Salida). 12 sites. Gold panning permitted.",
+          "source": "OSM node 8168385888 (tourism=camp_site, operator=AHRA); CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 56.46
+        },
+        {
+          "name": "Rincon",
+          "altNames": [
+            "Rincon Recreation Site",
+            "Rincon Campground"
+          ],
+          "kind": "both",
+          "latitude": 38.4727,
+          "longitude": -105.86602,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA campground at US-50 MP 231 between Swissvale and Howard. 8 sites; direct river access and boat ramp.",
+          "source": "OSM node 3130448909 (leisure=slipway); CPW AHRA Salida-Vallie",
+          "_confidence": "high",
+          "riverMile": 57.01
+        },
+        {
+          "name": "Vallie Bridge",
+          "altNames": [
+            "Vallie Bridge Campground"
+          ],
+          "kind": "both",
+          "latitude": 38.39128,
+          "longitude": -105.7738,
+          "fee": "fee",
+          "vehicleAccess": false,
+          "notes": "AHRA boat-in/walk-in campground in Bighorn Sheep Canyon, CR 45. 16 tent-only sites. Vehicle access to bridge/ramp only (not campsites).",
+          "source": "OSM nodes 589780321 + 13383874736 (leisure=slipway) + 3047946096 (tourism=camp_site); CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 65.79
+        },
+        {
+          "name": "Trading Post",
+          "altNames": [
+            "Canyon Trading Post",
+            "Trading Post River Access"
+          ],
+          "kind": "both",
+          "latitude": 38.36762,
+          "longitude": -105.71533,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA boat ramp with picnic facilities along US-50 in Bighorn Sheep Canyon.",
+          "source": "OSM node 3130312152 (leisure=slipway, name=Trading Post River Access); CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 70.43
+        },
+        {
+          "name": "Cotopaxi",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 38.37028,
+          "longitude": -105.68806,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Small hamlet ~25 mi downriver of Salida. Private river access available (CPW notes).",
+          "source": "OSM hamlet 151522099; CPW AHRA",
+          "_confidence": "medium",
+          "riverMile": 72.11
+        },
+        {
+          "name": "Lone Pine",
+          "altNames": [
+            "Lone Pine Recreation Site"
+          ],
+          "kind": "both",
+          "latitude": 38.39106,
+          "longitude": -105.65192,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA site along US-50 in Bighorn Sheep Canyon with ~0.5 mi river trail.",
+          "source": "OSM node 9929712407 (leisure=slipway, name=Lone Pine River Access); CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 74.8
+        },
+        {
+          "name": "Five Points",
+          "altNames": [
+            "Five Points Recreation Site",
+            "Five Points Campground"
+          ],
+          "kind": "both",
+          "latitude": 38.45295,
+          "longitude": -105.49319,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA developed campground at US-50 MP 260 (~20 mi west of Cañon City). 20 sites + bighorn sheep watchable wildlife area.",
+          "source": "CPW AHRA Vallie-Parkdale; Snoflo POI",
+          "_confidence": "high",
+          "riverMile": 87.24
+        },
+        {
+          "name": "Texas Creek",
+          "altNames": [
+            "Texas Creek River Access"
+          ],
+          "kind": "both",
+          "latitude": 38.41056,
+          "longitude": -105.58451,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA site at confluence of Texas Creek and Arkansas on US-50.",
+          "source": "OSM node 6883735567 (leisure=slipway, name=Texas Creek River Access); CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 79.77
+        },
+        {
+          "name": "Ford's Landing",
+          "altNames": [
+            "Ford Crossing"
+          ],
+          "kind": "both",
+          "latitude": 38.4097,
+          "longitude": -105.59084,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA boat ramp east of Texas Creek.",
+          "source": "OSM node 6883735568 (leisure=slipway, name=Ford's Landing); CPW AHRA",
+          "_confidence": "high",
+          "riverMile": 79.42
+        },
+        {
+          "name": "Pinnacle Rock",
+          "altNames": [],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA fee site with boat ramp between Five Points and Parkdale on US-50.",
+          "source": "CPW AHRA Vallie-Parkdale; AW reach 4349",
+          "_confidence": "low"
+        },
+        {
+          "name": "Parkdale",
+          "altNames": [
+            "Parkdale Recreation Site"
+          ],
+          "kind": "put-in",
+          "latitude": 38.48472,
+          "longitude": -105.39917,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA fee site ~12 mi west of Cañon City on US-50. Standard Royal Gorge put-in. Co-located near USGS Parkdale gauge 07094500.",
+          "source": "CPW AHRA; AW reach 360; riverfacts.com/maps/10682",
+          "_confidence": "high",
+          "riverMile": 93.28
+        },
+        {
+          "name": "Centennial Park",
+          "altNames": [
+            "Cañon City Whitewater Park",
+            "Royal Gorge Take-out",
+            "4th Street take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 38.43688,
+          "longitude": -105.24198,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Cañon City park on river right, 4th Street bridge access from US-50. Standard Royal Gorge take-out. Whitewater Park features (2010) integrated.",
+          "source": "OSM way 387463406 (Centennial Park) + node 13383874741 (leisure=slipway); AW reach 360",
+          "_confidence": "high",
+          "riverMile": 104.2
+        },
+        {
+          "name": "River Station",
+          "altNames": [
+            "River Station Depot"
+          ],
+          "kind": "take-out",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Alt Royal Gorge take-out river left, just downstream of Centennial Park bridge.",
+          "source": "CPW AHRA Cañon City-Lake Pueblo; AW reach 360",
+          "_confidence": "medium"
+        },
+        {
+          "name": "MacKenzie Bridge",
+          "altNames": [],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "AHRA boat ramp east of Cañon City. Seasonal — closes for winter.",
+          "source": "CPW AHRA Cañon City-Lake Pueblo",
+          "_confidence": "low"
+        },
+        {
+          "name": "Pathfinder Park",
+          "altNames": [],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Florence-managed park with boat ramp east of Cañon City.",
+          "source": "CPW AHRA Cañon City-Lake Pueblo",
+          "_confidence": "low"
+        },
+        {
+          "name": "Florence Whitewater Park",
+          "altNames": [],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Florence town-managed boat ramp / play park. Below Cañon City. Class I-II.",
+          "source": "CPW AHRA Cañon City-Lake Pueblo",
+          "_confidence": "low"
+        },
+        {
+          "name": "Pueblo Reservoir Inlet (West)",
+          "altNames": [
+            "North Shore Marina inlet",
+            "Swallows area"
+          ],
+          "kind": "take-out",
+          "latitude": 38.26494,
+          "longitude": -104.78934,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "Lake Pueblo State Park boat ramp where the Arkansas enters Lake Pueblo. Practical lower take-out before the dam.",
+          "source": "OSM node 2500249842 (leisure=slipway); CPW AHRA",
+          "_confidence": "medium",
+          "riverMile": 137.52
+        },
+        {
+          "name": "Arkansas River below Pueblo Dam",
+          "altNames": [
+            "Below Pueblo Dam put-in",
+            "Arkansas River Trail put-in"
+          ],
+          "kind": "put-in",
+          "latitude": 38.26991,
+          "longitude": -104.67654,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Slipway on Arkansas River MUP in Pueblo, below Pueblo Dam. Resumes the river corridor downstream of the impassable dam. Class I-II.",
+          "source": "OSM node 5241801721 (leisure=slipway, Arkansas River MUP)",
+          "_confidence": "high",
+          "riverMile": 145.35
+        }
+      ],
+      "impassableDams": [
+        {
+          "name": "Pueblo Dam",
+          "latitude": 38.26883,
+          "longitude": -104.72504,
+          "notes": "USBR concrete buttress dam (1975), 250 ft tall, 10,230 ft long. Terminal storage for Fryingpan-Arkansas Project. Lower boundary of the Arkansas Headwaters floatable corridor; river resumes Class I-II below.",
+          "source": "OSM way 52300600; USBR; NID CO00299",
+          "_confidence": "high",
+          "riverMile": 141.29
+        }
+      ],
+      "gauges": [
+        {
+          "id": "usgs-07081200",
+          "name": "Arkansas River near Leadville, CO",
+          "latitude": 39.249,
+          "longitude": -106.34811,
+          "notes": "NEW. Most upstream mainstem gauge — above all rafted sections. Useful for snowmelt timing.",
+          "source": "USGS NWIS 07081200",
+          "riverMile": null
+        },
+        {
+          "id": "usgs-07086000",
+          "name": "Arkansas River at Granite, CO",
+          "latitude": 39.04277,
+          "longitude": -106.26586,
+          "notes": "Existing — CORRECT lat/lon (current seed has -106.437 which is Turquoise Lake; should be -106.26586). Located at town of Granite.",
+          "source": "USGS NWIS 07086000",
+          "riverMile": 0.05
+        },
+        {
+          "id": "usgs-07087050",
+          "name": "Arkansas River below Granite, CO",
+          "latitude": 38.97694,
+          "longitude": -106.21398,
+          "notes": "Existing — RENAME. Current seed labels this 'near Wellsville' which is WRONG. This gauge is at Numbers Launch put-in.",
+          "source": "USGS NWIS 07087050",
+          "riverMile": 6.53
+        },
+        {
+          "id": "usgs-07087200",
+          "name": "Arkansas River at Buena Vista, CO",
+          "latitude": 38.84916,
+          "longitude": -106.12474,
+          "notes": "NEW. Mainstem at BV whitewater park area. Reference for Fractions and upper Browns.",
+          "source": "USGS NWIS 07087200",
+          "riverMile": 17.63
+        },
+        {
+          "id": "usgs-07091200",
+          "name": "Arkansas River near Nathrop, CO",
+          "latitude": 38.65222,
+          "longitude": -106.05113,
+          "notes": "Existing — RENAME. Current seed labels this 'at Salida' which is WRONG. This gauge is at Hecla Junction. Reference for Browns Canyon.",
+          "source": "USGS NWIS 07091200",
+          "riverMile": 33.93
+        },
+        {
+          "id": "usgs-07091500",
+          "name": "Arkansas River at Salida, CO",
+          "latitude": 38.54583,
+          "longitude": -106.01,
+          "notes": "NEW. Actual Salida mainstem gauge (07091200 was mislabeled).",
+          "source": "USGS NWIS 07091500",
+          "riverMile": 45.66
+        },
+        {
+          "id": "usgs-07093700",
+          "name": "Arkansas River near Wellsville, CO",
+          "latitude": 38.50277,
+          "longitude": -105.93973,
+          "notes": "NEW. Actual Wellsville gauge (07087050 was mislabeled).",
+          "source": "USGS NWIS 07093700",
+          "riverMile": 51.27
+        },
+        {
+          "id": "usgs-07094500",
+          "name": "Arkansas River at Parkdale, CO",
+          "latitude": 38.48722,
+          "longitude": -105.37306,
+          "notes": "Existing — minor refinement to lat/lon. Reference gauge for Royal Gorge.",
+          "source": "USGS NWIS 07094500",
+          "riverMile": 94.79
+        },
+        {
+          "id": "usgs-07096000",
+          "name": "Arkansas River at Cañon City, CO",
+          "latitude": 38.43389,
+          "longitude": -105.25721,
+          "notes": "Existing — minor correction.",
+          "source": "USGS NWIS 07096000",
+          "riverMile": 103.3
+        },
+        {
+          "id": "usgs-07099400",
+          "name": "Arkansas River above Pueblo, CO",
+          "latitude": 38.27167,
+          "longitude": -104.71803,
+          "notes": "NEW. Just upstream of Pueblo Dam — measures inflow to Lake Pueblo.",
+          "source": "USGS NWIS 07099400",
+          "riverMile": 141.71
+        },
+        {
+          "id": "usgs-07099970",
+          "name": "Arkansas River at Moffat Street at Pueblo, CO",
+          "latitude": 38.25361,
+          "longitude": -104.60556,
+          "notes": "NEW. Below Pueblo Dam in Pueblo city.",
+          "source": "USGS NWIS 07099970",
+          "riverMile": 150.36
+        }
+      ]
+    },
+    "colorado": {
+      "corridorIds": [
+        "upper-colorado",
+        "glenwood-canyon",
+        "grand-valley",
+        "ruby-horsethief"
+      ],
+      "_summary": "Colorado mainstem from RMNP headwaters to UT line. Gore Canyon (Class V), Pumphouse-State Bridge (popular Class II-III), Glenwood Canyon (Shoshone), Grand Valley, Ruby-Horsethief. 24 APs, 2 impassable dams (Granby, Shoshone Diversion), 7 gauges.",
+      "accessPoints": [
+        {
+          "name": "Confluence River Access (Kremmling)",
+          "altNames": [
+            "Kremmling Confluence",
+            "Kremmling Boat Ramp"
+          ],
+          "kind": "put-in",
+          "latitude": 40.042469,
+          "longitude": -106.394698,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM site at Blue/Colorado confluence south of Kremmling on Trough Rd. Gore Canyon put-in; also Lower Blue take-out.",
+          "source": "BLM Confluence River Access page",
+          "_confidence": "high",
+          "riverMile": 0
+        },
+        {
+          "name": "Pumphouse Recreation Site",
+          "altNames": [
+            "Pumphouse BLM",
+            "Pumphouse Campground & Landing"
+          ],
+          "kind": "both",
+          "latitude": 39.98775,
+          "longitude": -106.51116,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "BLM, most-used Upper-C access; take-out for Gore Canyon, primary put-in for Pumphouse-State-Bridge Class II-III.",
+          "source": "AW reach 379; BLM Pumphouse Recreation Area",
+          "_confidence": "high",
+          "riverMile": 9.43
+        },
+        {
+          "name": "Radium Recreation Site",
+          "altNames": [
+            "Radium",
+            "Radium Campground"
+          ],
+          "kind": "both",
+          "latitude": 39.94897,
+          "longitude": -106.55651,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "BLM with developed ramp and campground; intermediate take-out 4 mi below Pumphouse.",
+          "source": "AW reach 379; BLM Radium Recreation Area",
+          "_confidence": "high",
+          "riverMile": 14.11
+        },
+        {
+          "name": "Mugrage Campground",
+          "altNames": [
+            "Mugrage"
+          ],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "BLM tent campground 1 mi above Radium on Trough Rd / Grand CR 11; no developed ramp.",
+          "source": "BLM Kremmling FO",
+          "_confidence": "low"
+        },
+        {
+          "name": "Rancho Del Rio",
+          "altNames": [
+            "Rancho"
+          ],
+          "kind": "both",
+          "latitude": 39.89519,
+          "longitude": -106.6089,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "Private outpost (4199 Trough Rd, Bond) with concrete ramp, store, camping. Common overnight take-out / put-in.",
+          "source": "AW reach 379; ranchodelrio.com",
+          "_confidence": "high",
+          "riverMile": 20.25
+        },
+        {
+          "name": "State Bridge Recreation Site",
+          "altNames": [
+            "State Bridge",
+            "State Bridge Landing"
+          ],
+          "kind": "both",
+          "latitude": 39.856779,
+          "longitude": -106.648539,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM site at Hwy 131 bridge; paved ramp + small-craft launch.",
+          "source": "BLM State Bridge Recreation Site",
+          "_confidence": "high",
+          "riverMile": 24.42
+        },
+        {
+          "name": "Two Bridges",
+          "altNames": [
+            "Two Bridges BLM"
+          ],
+          "kind": "both",
+          "latitude": 39.890978,
+          "longitude": -106.704113,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM/Eagle County site between State Bridge and Bond on Hwy 131. Note: strainer hazard reported.",
+          "source": "BLM Two Bridges page",
+          "_confidence": "high",
+          "riverMile": 29.03
+        },
+        {
+          "name": "Catamount Bridge Boat Launch",
+          "altNames": [
+            "Catamount",
+            "Catamount Campground"
+          ],
+          "kind": "both",
+          "latitude": 39.89047,
+          "longitude": -106.83205,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM concrete ramp on Colorado River Rd; 5 campsites. Adjacent to USGS 09060799.",
+          "source": "BLM Catamount Bridge Boat Launch",
+          "_confidence": "high",
+          "riverMile": 39.47
+        },
+        {
+          "name": "Pinball Access",
+          "altNames": [
+            "Pinball Boat Ramp"
+          ],
+          "kind": "both",
+          "latitude": 39.84193,
+          "longitude": -106.94165,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM ~5 mi downstream of Burns just above Pinball Rapid. Sand at ramp bottom.",
+          "source": "BLM Pinball Access Boat Launch",
+          "_confidence": "high",
+          "riverMile": 48.37
+        },
+        {
+          "name": "Lyons Gulch Boat Launch",
+          "altNames": [
+            "Lyons Gulch Campground"
+          ],
+          "kind": "both",
+          "latitude": 39.69905,
+          "longitude": -107.07292,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "BLM 3.8 mi up Colorado River Rd from I-70 Dotsero exit; ramp + campground.",
+          "source": "BLM Lyons Gulch Campground",
+          "_confidence": "high",
+          "riverMile": 65.34
+        },
+        {
+          "name": "Dotsero Landing",
+          "altNames": [
+            "Dotsero",
+            "Dotsero Landing Boat Ramp"
+          ],
+          "kind": "both",
+          "latitude": 39.649183,
+          "longitude": -107.06301,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM/Eagle County concrete ramp at Eagle-Colorado confluence; take-out for Upper-C, put-in for Dotsero-Glenwood.",
+          "source": "BLM/Eagle County Open Space; Recreation.gov POI 274421",
+          "_confidence": "high",
+          "riverMile": 69.46
+        },
+        {
+          "name": "Shoshone Power Plant Put-in",
+          "altNames": [
+            "Shoshone Put-in"
+          ],
+          "kind": "put-in",
+          "latitude": 39.5875,
+          "longitude": -107.19361,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "I-70 exit 123 eastbound only; ramp directly below the power plant tailrace. Primary put-in for the Class III Shoshone reach.",
+          "source": "AW reach 4260; riverbrain run 199",
+          "_confidence": "high",
+          "riverMile": 79.24
+        },
+        {
+          "name": "Grizzly Creek Rest Area",
+          "altNames": [
+            "Grizzly Creek Take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 39.5675,
+          "longitude": -107.2553,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "CDOT rest area at I-70 exit 121 with boat ramp; standard Shoshone take-out.",
+          "source": "AW reach 5428; CDOT/COtrip",
+          "_confidence": "medium",
+          "riverMile": 83.89
+        },
+        {
+          "name": "No Name Rest Area",
+          "altNames": [
+            "No Name"
+          ],
+          "kind": "both",
+          "latitude": 39.558785,
+          "longitude": -107.284715,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "CDOT rest area at I-70 exit 119; informal river access on north bank, not a developed ramp.",
+          "source": "CDOT rest area; coloradorestareas.com",
+          "_confidence": "medium",
+          "riverMile": 85.62
+        },
+        {
+          "name": "Two Rivers Park",
+          "altNames": [
+            "Two Rivers Park Boat Ramp"
+          ],
+          "kind": "both",
+          "latitude": 39.5476,
+          "longitude": -107.3286,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "City of Glenwood Springs ramp on river right just below Roaring Fork confluence.",
+          "source": "Glenwood Springs Parks & Rec",
+          "_confidence": "medium",
+          "riverMile": 89.11
+        },
+        {
+          "name": "South Canyon River Access",
+          "altNames": [
+            "South Canyon"
+          ],
+          "kind": "both",
+          "latitude": 39.56517,
+          "longitude": -107.41627,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM at I-70 exit 111, concrete ramp. Closed Nov 15 - May 15.",
+          "source": "BLM South Canyon River Access",
+          "_confidence": "high",
+          "riverMile": 94.53
+        },
+        {
+          "name": "New Castle Boat Ramp",
+          "altNames": [
+            "New Castle"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Public ramp in New Castle; 10.7 mi above Silt.",
+          "source": "snoflo.org; community references",
+          "_confidence": "low"
+        },
+        {
+          "name": "Silt Boat Ramp",
+          "altNames": [
+            "Silt"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Cement ramp SE corner of Silt I-70 bridge.",
+          "source": "Town of Silt; River Brain",
+          "_confidence": "low"
+        },
+        {
+          "name": "Rifle Boat Ramp",
+          "altNames": [
+            "Rifle"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Public ramp in Rifle.",
+          "source": "BLM/CPW references",
+          "_confidence": "low"
+        },
+        {
+          "name": "Cameo Boat Ramp",
+          "altNames": [
+            "Cameo"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "DeBeque Canyon access.",
+          "source": "Colorado Mesa Univ river guide",
+          "_confidence": "low"
+        },
+        {
+          "name": "Riverbend Park (Palisade)",
+          "altNames": [
+            "Palisade Boat Ramp"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town of Palisade ramp off G Rd/Hwy 6.",
+          "source": "Town of Palisade",
+          "_confidence": "low"
+        },
+        {
+          "name": "Corn Lake (James M. Robb State Park)",
+          "altNames": [
+            "Corn Lake State Park"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "CPW state park ramp at 32 Rd / Hwy 141 in Clifton.",
+          "source": "Colorado Parks & Wildlife",
+          "_confidence": "low"
+        },
+        {
+          "name": "Loma Boat Launch",
+          "altNames": [
+            "Loma"
+          ],
+          "kind": "put-in",
+          "latitude": 39.197,
+          "longitude": -108.815,
+          "fee": "permit-required",
+          "vehicleAccess": true,
+          "notes": "BLM Grand Junction FO ramp at I-70 exit 15; top put-in for multi-day Ruby-Horsethief permit reach.",
+          "source": "BLM Ruby-Horsethief; AW reach 381",
+          "_confidence": "medium",
+          "riverMile": 205.53
+        },
+        {
+          "name": "Westwater Ranger Station (UT)",
+          "altNames": [
+            "Westwater Put-in"
+          ],
+          "kind": "take-out",
+          "latitude": 39.0264,
+          "longitude": -109.0586,
+          "fee": "permit-required",
+          "vehicleAccess": true,
+          "notes": "BLM Moab FO at I-70 exit 227 (Utah); take-out for Ruby-Horsethief.",
+          "source": "BLM Westwater Canyon",
+          "_confidence": "medium"
+        }
+      ],
+      "impassableDams": [
+        {
+          "name": "Granby Dam",
+          "latitude": 40.14806,
+          "longitude": -105.8675,
+          "notes": "USBR earthfill dam NE of Granby. Forms Lake Granby. Diverts Colorado water under Continental Divide via Adams Tunnel (C-BT Project); no boater pass-through. Splits the RMNP-headwaters segment from the floatable Colorado below.",
+          "source": "Wikipedia; USBR",
+          "_confidence": "high"
+        },
+        {
+          "name": "Shoshone Diversion Dam",
+          "latitude": 39.5908,
+          "longitude": -107.2174,
+          "notes": "245-ft-wide diversion dam in Glenwood Canyon ~2 mi above the Shoshone power plant; diverts up to 1,408 cfs through a 2-mile penstock. Not portageable; rafters must put in below the plant tailrace.",
+          "source": "Wikipedia: Shoshone Hydroelectric; LOC HAER CO-5",
+          "_confidence": "medium",
+          "riverMile": 80.96
+        }
+      ],
+      "gauges": [
+        {
+          "id": "usgs-09034500",
+          "name": "Colorado River at Hot Sulphur Springs, CO",
+          "latitude": 40.08331887,
+          "longitude": -106.0880765,
+          "notes": "NEW. Mainstem above Kremmling.",
+          "source": "USGS NWIS"
+        },
+        {
+          "id": "usgs-09058000",
+          "name": "Colorado River near Kremmling, CO",
+          "latitude": 40.036667,
+          "longitude": -106.439444,
+          "notes": "Existing. Gore Canyon / Upper-C anchor.",
+          "source": "USGS NWIS",
+          "riverMile": 3.97
+        },
+        {
+          "id": "usgs-09060799",
+          "name": "Colorado River at Catamount Bridge, CO",
+          "latitude": 39.8911,
+          "longitude": -106.8316944,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": 39.47
+        },
+        {
+          "id": "usgs-09070500",
+          "name": "Colorado River near Dotsero, CO",
+          "latitude": 39.6446111,
+          "longitude": -107.0780139,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": 71.24
+        },
+        {
+          "id": "usgs-09085100",
+          "name": "Colorado River below Glenwood Springs, CO",
+          "latitude": 39.5549819,
+          "longitude": -107.337554,
+          "notes": "NEW. Key for Grand Valley downstream.",
+          "source": "USGS NWIS",
+          "riverMile": 89.81
+        },
+        {
+          "id": "usgs-09095500",
+          "name": "Colorado River near Cameo, CO",
+          "latitude": 39.2391463,
+          "longitude": -108.2661946,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": 158.75
+        },
+        {
+          "id": "usgs-09163500",
+          "name": "Colorado River near Colorado-Utah State Line",
+          "latitude": 39.1327434,
+          "longitude": -109.02707585,
+          "notes": "Existing. Ruby-Horsethief anchor.",
+          "source": "USGS NWIS",
+          "riverMile": 224.42
+        }
+      ]
+    },
+    "eagle": {
+      "corridorIds": [
+        "eagle-corridor"
+      ],
+      "_summary": "Eagle from Minturn to Dotsero (Colorado confluence). 8 APs, 0 impassable dams, 2 gauges. Many access points only have low-confidence coordinates — needs Phase 6 AW-scraper enrichment.",
+      "accessPoints": [
+        {
+          "name": "Minturn Boat Access",
+          "altNames": [
+            "Stevens Park"
+          ],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town of Minturn informal access above Dowd Chutes.",
+          "source": "Mountain Buzz; AW",
+          "_confidence": "low"
+        },
+        {
+          "name": "Dowd Junction (Eagle-Vail)",
+          "altNames": [
+            "Dowd Chute Take-out"
+          ],
+          "kind": "take-out",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Take-out for Class III-IV Dowd Chutes between Vail and Avon.",
+          "source": "AW",
+          "_confidence": "low"
+        },
+        {
+          "name": "Avon Whitewater Park",
+          "altNames": [
+            "Bob the Bridge"
+          ],
+          "kind": "both",
+          "latitude": 39.6314,
+          "longitude": -106.5223,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town of Avon WW park beside Avon Road bridge. Coordinates approximate.",
+          "source": "Town of Avon WW Park",
+          "_confidence": "low",
+          "riverMile": 0
+        },
+        {
+          "name": "Lake Creek Boat Ramp (Edwards)",
+          "altNames": [
+            "Edwards"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Eagle County Open Space site at 3000 Lake Creek Dr, Edwards.",
+          "source": "Eagle County Open Space",
+          "_confidence": "low"
+        },
+        {
+          "name": "Wolcott Boat Ramp",
+          "altNames": [
+            "Wolcott Campground"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM Wolcott Campground at I-70 exit 157.",
+          "source": "BLM Wolcott Campground",
+          "_confidence": "low"
+        },
+        {
+          "name": "Eagle River Park",
+          "altNames": [
+            "Eagle Whitewater Park",
+            "Eagle Fairgrounds"
+          ],
+          "kind": "both",
+          "latitude": 39.6553,
+          "longitude": -106.8287,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town of Eagle whitewater park at fairgrounds. Coords are Eagle town centroid.",
+          "source": "eagleriverpark.org",
+          "_confidence": "low",
+          "riverMile": 21.83
+        },
+        {
+          "name": "Gypsum Ponds State Wildlife Area",
+          "altNames": [
+            "Gypsum Ponds"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "CPW SWA off Hwy 6 west of Gypsum; informal access.",
+          "source": "Colorado Parks & Wildlife",
+          "_confidence": "low"
+        },
+        {
+          "name": "Eagle-Colorado Confluence (Dotsero)",
+          "altNames": [
+            "Dotsero Eagle Take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 39.649,
+          "longitude": -107.063,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Dotsero Landing on Colorado just below Eagle confluence.",
+          "source": "BLM/Eagle County",
+          "_confidence": "medium",
+          "riverMile": 38.03
+        }
+      ],
+      "impassableDams": [],
+      "gauges": [
+        {
+          "id": "usgs-09064600",
+          "name": "Eagle River near Minturn, CO",
+          "latitude": 39.55387495,
+          "longitude": -106.402529,
+          "notes": "Existing.",
+          "source": "USGS NWIS"
+        },
+        {
+          "id": "usgs-09070000",
+          "name": "Eagle River below Gypsum, CO",
+          "latitude": 39.64942954,
+          "longitude": -106.9536554,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": 30.29
+        }
+      ]
+    },
+    "roaring-fork": {
+      "corridorIds": [
+        "roaring-fork-corridor"
+      ],
+      "_summary": "Roaring Fork from Aspen (Slaughterhouse, Class IV-V) through Basalt and Carbondale to Glenwood Springs (Colorado confluence). 10 APs, 0 impassable mainstem dams (Ruedi on Fryingpan tributary excluded), 2 gauges.",
+      "accessPoints": [
+        {
+          "name": "Upper Woody Creek Bridge",
+          "altNames": [
+            "Slaughterhouse Put-in",
+            "Woody Creek"
+          ],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Put-in for Slaughterhouse Class IV; Smith Way off CO-82 / McLain Flats Rd.",
+          "source": "AW; awetstate.com",
+          "_confidence": "low"
+        },
+        {
+          "name": "Henry Stein Park (Slaughterhouse Bridge)",
+          "altNames": [
+            "Stein Park",
+            "Cemetery Lane Bridge",
+            "Slaughterhouse Bridge"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "City of Aspen park at Cemetery Lane bridge; Slaughterhouse take-out, Toothache/Cemetery put-in.",
+          "source": "City of Aspen Rec",
+          "_confidence": "low"
+        },
+        {
+          "name": "Wingo Junction River Access",
+          "altNames": [
+            "Wingo Bridge",
+            "Wingo"
+          ],
+          "kind": "both",
+          "latitude": 39.34252,
+          "longitude": -107.00587,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM/Pitkin County concrete ramp upstream of Basalt.",
+          "source": "BLM Wingo Junction River Access",
+          "_confidence": "high",
+          "riverMile": 0
+        },
+        {
+          "name": "Hooks Bridge",
+          "altNames": [
+            "Hooks Lane Bridge"
+          ],
+          "kind": "both",
+          "latitude": 39.37348,
+          "longitude": -107.08405,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Pitkin County easement at Willits Lane, Basalt.",
+          "source": "Pitkin County Open Space",
+          "_confidence": "medium",
+          "riverMile": 5.34
+        },
+        {
+          "name": "Tree Farm (El Jebel)",
+          "altNames": [
+            "El Jebel"
+          ],
+          "kind": "both",
+          "latitude": 39.39452,
+          "longitude": -107.10488,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Roaring Fork Conservancy open-space access at Hwy 82 / Valley Rd.",
+          "source": "Roaring Fork Conservancy",
+          "_confidence": "medium",
+          "riverMile": 7.37
+        },
+        {
+          "name": "Catherine Store Bridge",
+          "altNames": [
+            "Catherine Store"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Informal kayak put-in on CR 100 east of Carbondale.",
+          "source": "Aspen Daily News; snoflo.org",
+          "_confidence": "low"
+        },
+        {
+          "name": "Bob Terrell SWA Boat Ramp",
+          "altNames": [
+            "Carbondale Boat Ramp",
+            "Pink Access"
+          ],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "CPW Bob Terrell SWA concrete ramp at Hwy 82/133 junction Carbondale.",
+          "source": "Colorado Parks & Wildlife",
+          "_confidence": "low"
+        },
+        {
+          "name": "Black Bridge (CR 109)",
+          "altNames": [
+            "Westbank"
+          ],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Garfield CR 109 / Old Hwy 82 bridge ~5 mi south of Glenwood Springs. Lower Roaring Fork put-in.",
+          "source": "AW reach 418",
+          "_confidence": "low"
+        },
+        {
+          "name": "Veltus Park",
+          "altNames": [
+            "Kiwanis Park"
+          ],
+          "kind": "take-out",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "City of Glenwood Springs park at 8th & Midland on river-left.",
+          "source": "Glenwood Springs Parks & Rec",
+          "_confidence": "low"
+        },
+        {
+          "name": "Two Rivers Park (Glenwood Springs RF take-out)",
+          "altNames": [],
+          "kind": "take-out",
+          "latitude": 39.5476,
+          "longitude": -107.3286,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Same physical site as Colorado-river entry; Roaring Fork confluence.",
+          "source": "Glenwood Springs Parks & Rec",
+          "_confidence": "medium",
+          "riverMile": 28.08
+        }
+      ],
+      "impassableDams": [],
+      "gauges": [
+        {
+          "id": "usgs-09073300",
+          "name": "Roaring Fork River above Difficult Creek near Aspen, CO",
+          "latitude": 39.141111,
+          "longitude": -106.773611,
+          "notes": "Existing.",
+          "source": "USGS NWIS"
+        },
+        {
+          "id": "usgs-09085000",
+          "name": "Roaring Fork River at Glenwood Springs, CO",
+          "latitude": 39.54666667,
+          "longitude": -107.33083333,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": 28.02
+        }
+      ]
+    },
+    "blue": {
+      "corridorIds": [
+        "blue-corridor"
+      ],
+      "_summary": "Blue from below Dillon Dam through Silverthorne, broken by Green Mountain Dam, then Lower Blue to Colorado confluence at Kremmling. 5 APs, 2 impassable dams (Dillon, Green Mountain), 1 gauge.",
+      "accessPoints": [
+        {
+          "name": "Blue River Campground Put-in (below Dillon Dam)",
+          "altNames": [
+            "Silverthorne Put-in"
+          ],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "fee",
+          "vehicleAccess": true,
+          "notes": "USFS Blue River CG / Hwy 9 access just below Dillon Dam in Silverthorne. Upper Blue Class III-IV put-in.",
+          "source": "USFS White River NF; Uncover Colorado",
+          "_confidence": "low"
+        },
+        {
+          "name": "Columbine Landing",
+          "altNames": [
+            "Silverthorne Take-out"
+          ],
+          "kind": "take-out",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town of Silverthorne river-access park ~2.5 mi below Blue River CG.",
+          "source": "Town of Silverthorne",
+          "_confidence": "low"
+        },
+        {
+          "name": "Green Mountain Dam Access (Below)",
+          "altNames": [
+            "Green Mountain Tailwater"
+          ],
+          "kind": "put-in",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "USBR/USFS access immediately below Green Mountain Dam. Lower Blue put-in.",
+          "source": "USBR; coloradoraftingcompany.com",
+          "_confidence": "low"
+        },
+        {
+          "name": "Spring Creek Road Access",
+          "altNames": [],
+          "kind": "both",
+          "latitude": null,
+          "longitude": null,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Informal mid-run access on Spring Creek Rd between Green Mountain Dam and Kremmling.",
+          "source": "Mountain Buzz",
+          "_confidence": "low"
+        },
+        {
+          "name": "Blue-Colorado Confluence (Kremmling)",
+          "altNames": [
+            "Confluence River Access"
+          ],
+          "kind": "take-out",
+          "latitude": 40.042469,
+          "longitude": -106.394698,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Same BLM Confluence site as Colorado put-in for Gore Canyon; Lower Blue take-out.",
+          "source": "BLM Confluence River Access",
+          "_confidence": "high",
+          "riverMile": 0
+        }
+      ],
+      "impassableDams": [
+        {
+          "name": "Dillon Dam",
+          "latitude": 39.6151,
+          "longitude": -106.0586,
+          "notes": "Denver Water earthfill dam at Silverthorne; impounds Dillon Reservoir. Splits Upper Blue from the rafted reach starting at Blue River CG tailwater.",
+          "source": "Wikipedia: Dillon Reservoir; Denver Water",
+          "_confidence": "high",
+          "riverMile": null
+        },
+        {
+          "name": "Green Mountain Dam",
+          "latitude": 39.8776,
+          "longitude": -106.3305,
+          "notes": "309-ft USBR dam (1943) between Silverthorne and Kremmling. Splits Upper Blue (Silverthorne reach) from Lower Blue (Kremmling reach).",
+          "source": "Wikipedia: Green Mountain Dam; USBR",
+          "_confidence": "high",
+          "riverMile": null
+        }
+      ],
+      "gauges": [
+        {
+          "id": "usgs-09050700",
+          "name": "Blue River below Dillon, CO",
+          "latitude": 39.625556,
+          "longitude": -106.065833,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": null
+        }
+      ]
+    },
+    "gunnison": {
+      "corridorIds": [
+        "gunnison-headwaters",
+        "gunnison-gorge-corridor"
+      ],
+      "_summary": "Gunnison from Almont (Taylor+East confluence) through Upper Gunnison, broken by Aspinall Unit (Blue Mesa+Morrow Point+Crystal), then Gunnison Gorge (permit-only) down to Whitewater / Grand Junction. Includes Taylor River below Taylor Park Dam. 19 APs, 3 impassable dams (Aspinall Unit), 5 gauges.",
+      "accessPoints": [
+        {
+          "name": "Taylor Park Dam (tailwater)",
+          "altNames": [
+            "Below Taylor Park Reservoir"
+          ],
+          "kind": "put-in",
+          "latitude": 38.819,
+          "longitude": -106.612,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Top of dam-controlled Taylor River run. Reservoir is the headwater anchor.",
+          "source": "AW; BOR",
+          "_confidence": "high"
+        },
+        {
+          "name": "Lottis Creek Campground",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 38.78,
+          "longitude": -106.58,
+          "fee": "USFS day-use/camp fee",
+          "vehicleAccess": true,
+          "notes": "USFS campground 16.7 mi up Taylor Canyon (CR 742) from Almont.",
+          "source": "Recreation.gov; USFS GMUG",
+          "_confidence": "medium"
+        },
+        {
+          "name": "Lodgepole Campground",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 38.77,
+          "longitude": -106.66,
+          "fee": "USFS day-use/camp fee",
+          "vehicleAccess": true,
+          "notes": "USFS campground ~12 mi up Taylor Canyon Rd from Almont.",
+          "source": "USFS GMUG",
+          "_confidence": "medium"
+        },
+        {
+          "name": "Five Mile Access (Taylor River)",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 38.71,
+          "longitude": -106.78,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Class II Taylor put-in/take-out ~5 mi above Almont.",
+          "source": "AW; Mountain Buzz",
+          "_confidence": "low"
+        },
+        {
+          "name": "Three Rivers Resort (Almont)",
+          "altNames": [
+            "Three Rivers"
+          ],
+          "kind": "both",
+          "latitude": 38.667,
+          "longitude": -106.848,
+          "fee": "private (resort access)",
+          "vehicleAccess": true,
+          "notes": "Outfitter resort at Almont; common commercial put-in/take-out on Taylor + Upper Gunnison.",
+          "source": "Three Rivers Resort",
+          "_confidence": "medium",
+          "riverMile": 0
+        },
+        {
+          "name": "Almont (East + Taylor confluence)",
+          "altNames": [
+            "Almont Bridge"
+          ],
+          "kind": "put-in",
+          "latitude": 38.667,
+          "longitude": -106.846,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Taylor + East River confluence forms the Gunnison. Top of Upper Gunnison, bottom of Taylor.",
+          "source": "AW; USGS 09110000",
+          "_confidence": "high",
+          "riverMile": 0
+        },
+        {
+          "name": "Gunnison Whitewater Park",
+          "altNames": [
+            "Gunny Play Park"
+          ],
+          "kind": "both",
+          "latitude": 38.547,
+          "longitude": -106.91,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town park with three surf features ~1 mi east of downtown Gunnison off US-50.",
+          "source": "AW; Uncover Colorado; UGRWCD",
+          "_confidence": "medium",
+          "riverMile": 11.13
+        },
+        {
+          "name": "Town of Gunnison (US-50 access)",
+          "altNames": [
+            "Gunnison take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 38.545,
+          "longitude": -106.925,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Common bottom of Almont-to-Gunnison float, before Blue Mesa backwater.",
+          "source": "AW",
+          "_confidence": "medium",
+          "riverMile": 11.13
+        },
+        {
+          "name": "Blue Mesa Reservoir inflow (corridor end)",
+          "altNames": [
+            "Iola arm"
+          ],
+          "kind": "take-out",
+          "latitude": 38.52,
+          "longitude": -107.03,
+          "fee": "NPS Curecanti pass",
+          "vehicleAccess": true,
+          "notes": "Free-flowing Gunnison ends in upper Iola arm of Blue Mesa.",
+          "source": "NPS Curecanti",
+          "_confidence": "low",
+          "riverMile": 17.58
+        },
+        {
+          "name": "Chukar Trail",
+          "altNames": [
+            "Chukar Trailhead"
+          ],
+          "kind": "put-in",
+          "latitude": 38.7,
+          "longitude": -107.738,
+          "fee": "BLM permit (self-issue) + day-use",
+          "vehicleAccess": true,
+          "notes": "Primary Gunnison Gorge Wilderness access. 1.1-mi pack trail (~600 ft drop); horses haul gear. Off Peach Valley Rd from Olathe.",
+          "source": "BLM Uncompahgre FO; AW",
+          "_confidence": "medium"
+        },
+        {
+          "name": "Bobcat Trail",
+          "altNames": [
+            "Bobcat Trailhead"
+          ],
+          "kind": "both",
+          "latitude": 38.69,
+          "longitude": -107.77,
+          "fee": "BLM permit (self-issue)",
+          "vehicleAccess": true,
+          "notes": "Steep 1.5-mi pack trail (~800 ft drop). Mostly fishing.",
+          "source": "BLM Uncompahgre FO",
+          "_confidence": "low"
+        },
+        {
+          "name": "Duncan Trail",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 38.68,
+          "longitude": -107.79,
+          "fee": "BLM permit (self-issue)",
+          "vehicleAccess": true,
+          "notes": "Foot/horse trail into Gunnison Gorge Wilderness.",
+          "source": "BLM Uncompahgre FO",
+          "_confidence": "low",
+          "riverMile": 82.47
+        },
+        {
+          "name": "Ute Trail (Gunnison Gorge)",
+          "altNames": [
+            "Ute Park Trail"
+          ],
+          "kind": "both",
+          "latitude": 38.665,
+          "longitude": -107.815,
+          "fee": "BLM permit (self-issue)",
+          "vehicleAccess": true,
+          "notes": "Longest of the four wilderness trails (4.5 mi, ~1,200 ft drop).",
+          "source": "BLM Uncompahgre FO",
+          "_confidence": "low",
+          "riverMile": 80.42
+        },
+        {
+          "name": "Gunnison Forks / Pleasure Park",
+          "altNames": [
+            "Pleasure Park",
+            "North Fork Confluence"
+          ],
+          "kind": "take-out",
+          "latitude": 38.793,
+          "longitude": -107.879,
+          "fee": "BLM free day-use; private outfitter",
+          "vehicleAccess": true,
+          "notes": "Standard take-out for Gunnison Gorge trips at North Fork confluence. BLM Gunnison Forks + private Pleasure Park.",
+          "source": "BLM; Pleasure Park",
+          "_confidence": "medium",
+          "riverMile": 93.92
+        },
+        {
+          "name": "Confluence Park (Delta)",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 38.748,
+          "longitude": -108.073,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Below Hartland Diversion at Uncompahgre confluence. Top of Lower Gunnison float through Dominguez-Escalante NCA.",
+          "source": "City of Delta; USGS 09144250",
+          "_confidence": "medium",
+          "riverMile": 106.5
+        },
+        {
+          "name": "Escalante Boat Ramp",
+          "altNames": [
+            "Escalante Canyon Road ramp"
+          ],
+          "kind": "both",
+          "latitude": 38.758,
+          "longitude": -108.258,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Concrete ramp at Escalante Canyon Rd bridge ~15 mi NW of Delta.",
+          "source": "BLM; snoflo boat launches",
+          "_confidence": "high",
+          "riverMile": 121.46
+        },
+        {
+          "name": "Bridgeport",
+          "altNames": [
+            "Bridgeport take-out"
+          ],
+          "kind": "both",
+          "latitude": 38.87,
+          "longitude": -108.36,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM access on Lower Gunnison; 4WD recommended.",
+          "source": "BLM Dominguez-Escalante NCA",
+          "_confidence": "low",
+          "riverMile": 135.95
+        },
+        {
+          "name": "Whitewater Boat Ramp",
+          "altNames": [
+            "Whitewater Recreation Site"
+          ],
+          "kind": "both",
+          "latitude": 38.971,
+          "longitude": -108.454,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Mesa County 114-acre site near US-50/CO-141.",
+          "source": "Mesa County Parks",
+          "_confidence": "high",
+          "riverMile": 148.43
+        },
+        {
+          "name": "Las Colonias Park (Grand Junction)",
+          "altNames": [
+            "Grand Junction river access"
+          ],
+          "kind": "take-out",
+          "latitude": 39.063,
+          "longitude": -108.563,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "City of Grand Junction park on Colorado River just below Gunnison-Colorado confluence.",
+          "source": "City of Grand Junction",
+          "_confidence": "low",
+          "riverMile": 163.41
+        }
+      ],
+      "impassableDams": [
+        {
+          "name": "Blue Mesa Dam",
+          "latitude": 38.458,
+          "longitude": -107.324,
+          "notes": "Top of Aspinall Unit. Breaks Gunnison between Upper Gunnison/Blue Mesa inflow and Morrow Point Reservoir.",
+          "source": "BOR",
+          "_confidence": "high",
+          "riverMile": 40.09
+        },
+        {
+          "name": "Morrow Point Dam",
+          "latitude": 38.451,
+          "longitude": -107.534,
+          "notes": "Middle Aspinall dam inside Black Canyon. Between Blue Mesa tailrace and Crystal Reservoir.",
+          "source": "BOR",
+          "_confidence": "high",
+          "riverMile": 52.3
+        },
+        {
+          "name": "Crystal Dam",
+          "latitude": 38.499,
+          "longitude": -107.625,
+          "notes": "Bottom of Aspinall Unit. Releases feed lower Black Canyon and Gunnison Gorge below Gunnison Tunnel.",
+          "source": "BOR",
+          "_confidence": "high",
+          "riverMile": 58.97
+        }
+      ],
+      "gauges": [
+        {
+          "id": "usgs-09110000",
+          "name": "Taylor River at Almont, CO",
+          "latitude": 38.664,
+          "longitude": -106.845,
+          "notes": "Existing. Taylor below-dam.",
+          "source": "USGS NWIS",
+          "riverMile": 0
+        },
+        {
+          "id": "usgs-09114500",
+          "name": "Gunnison River near Gunnison, CO",
+          "latitude": 38.542,
+          "longitude": -106.95,
+          "notes": "Existing. Primary Upper Gunnison.",
+          "source": "USGS NWIS",
+          "riverMile": 12.04
+        },
+        {
+          "id": "usgs-09128000",
+          "name": "Gunnison River below Gunnison Tunnel, CO",
+          "latitude": 38.529,
+          "longitude": -107.649,
+          "notes": "Existing. Top of Gunnison Gorge; Aspinall releases.",
+          "source": "USGS NWIS",
+          "riverMile": 61.67
+        },
+        {
+          "id": "usgs-09144250",
+          "name": "Gunnison River at Delta, CO",
+          "latitude": 38.753,
+          "longitude": -108.078,
+          "notes": "NEW. Lower Gunnison anchor at Confluence Park.",
+          "source": "USGS NWIS",
+          "riverMile": 106.87
+        },
+        {
+          "id": "usgs-09152500",
+          "name": "Gunnison River near Grand Junction, CO",
+          "latitude": 38.983,
+          "longitude": -108.451,
+          "notes": "Existing. Whitewater-to-Grand-Junction.",
+          "source": "USGS NWIS",
+          "riverMile": 149.33
+        }
+      ]
+    },
+    "yampa": {
+      "corridorIds": [
+        "yampa-corridor"
+      ],
+      "_summary": "Yampa from Stagecoach Dam tailwater through Steamboat (town play park) to Cross Mountain Gorge and into Dinosaur National Monument (permit). 20 APs, 0 impassable mainstem dams (Stagecoach is headwater anchor), 5 gauges (4 new).",
+      "accessPoints": [
+        {
+          "name": "Stagecoach Dam (tailwater)",
+          "altNames": [
+            "Below Stagecoach Reservoir"
+          ],
+          "kind": "put-in",
+          "latitude": 40.282,
+          "longitude": -106.864,
+          "fee": "CO State Parks pass",
+          "vehicleAccess": true,
+          "notes": "Upper Yampa headwater anchor; short tailwater fishing reach.",
+          "source": "CPW Stagecoach State Park",
+          "_confidence": "medium",
+          "riverMile": 0
+        },
+        {
+          "name": "Chuck Lewis State Wildlife Area",
+          "altNames": [
+            "Chuck Lewis SWA"
+          ],
+          "kind": "both",
+          "latitude": 40.394,
+          "longitude": -106.886,
+          "fee": "CPW SWA pass",
+          "vehicleAccess": true,
+          "notes": "South of Steamboat off US-40/CO-131 then CR 14F.",
+          "source": "CPW",
+          "_confidence": "medium",
+          "riverMile": 16.33
+        },
+        {
+          "name": "River Creek Park",
+          "altNames": [
+            "Walton Creek access"
+          ],
+          "kind": "put-in",
+          "latitude": 40.45,
+          "longitude": -106.823,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Top of Steamboat town section.",
+          "source": "Friends of the Yampa",
+          "_confidence": "low",
+          "riverMile": 20.92
+        },
+        {
+          "name": "Rotary Park",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 40.47,
+          "longitude": -106.825,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "City park with Core Trail access. Mid-town.",
+          "source": "City of Steamboat Springs",
+          "_confidence": "low",
+          "riverMile": 23.1
+        },
+        {
+          "name": "D-Hole",
+          "altNames": [
+            "D Hole play wave"
+          ],
+          "kind": "both",
+          "latitude": 40.479,
+          "longitude": -106.827,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town section play wave downstream of Charlie's Hole.",
+          "source": "Outdoor Project; Endless Waves",
+          "_confidence": "low",
+          "riverMile": 23.97
+        },
+        {
+          "name": "Charlie's Hole",
+          "altNames": [
+            "C-Hole"
+          ],
+          "kind": "both",
+          "latitude": 40.483,
+          "longitude": -106.832,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Man-made play wave at 13th St Bridge / Bud Werner Library. Co-located with USGS gauge 09239500.",
+          "source": "Outdoor Project; AW",
+          "_confidence": "medium",
+          "riverMile": 24.4
+        },
+        {
+          "name": "Pamela Park",
+          "altNames": [
+            "Pamela Lane access"
+          ],
+          "kind": "both",
+          "latitude": 40.488,
+          "longitude": -106.838,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "End of Pamela Lane near Yampa River Botanic Park.",
+          "source": "City of Steamboat",
+          "_confidence": "low",
+          "riverMile": 24.87
+        },
+        {
+          "name": "James Brown Bridge",
+          "altNames": [
+            "Steamboat town take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 40.498,
+          "longitude": -106.847,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Bottom of Steamboat play park run.",
+          "source": "Friends of the Yampa",
+          "_confidence": "low",
+          "riverMile": 25.87
+        },
+        {
+          "name": "Yampa Valley Golf Course access",
+          "altNames": [
+            "Site 4"
+          ],
+          "kind": "both",
+          "latitude": 40.479,
+          "longitude": -107.529,
+          "fee": "CO State Parks pass",
+          "vehicleAccess": true,
+          "notes": "Yampa River SP site south of Craig.",
+          "source": "CPW Yampa River SP",
+          "_confidence": "low",
+          "riverMile": 77.07
+        },
+        {
+          "name": "Loudy-Simpson Park",
+          "altNames": [
+            "Site 5"
+          ],
+          "kind": "both",
+          "latitude": 40.495,
+          "longitude": -107.555,
+          "fee": "CO State Parks pass",
+          "vehicleAccess": true,
+          "notes": "Moffat County park on CO-394 south of Craig with concrete ramp.",
+          "source": "CPW Yampa River SP; City of Craig",
+          "_confidence": "medium",
+          "riverMile": 79.52
+        },
+        {
+          "name": "South Beach",
+          "altNames": [
+            "Yampa Project Pump Station",
+            "Site 6"
+          ],
+          "kind": "both",
+          "latitude": 40.482,
+          "longitude": -107.566,
+          "fee": "CO State Parks pass",
+          "vehicleAccess": true,
+          "notes": "Boat ramp ~3 mi south of Craig on CO-13.",
+          "source": "CPW Yampa River SP",
+          "_confidence": "medium",
+          "riverMile": 80.63
+        },
+        {
+          "name": "Duffy Mountain",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 40.495,
+          "longitude": -107.94,
+          "fee": "CO State Parks pass",
+          "vehicleAccess": true,
+          "notes": "Yampa River SP access. Top of Juniper/Maybell stretch.",
+          "source": "CPW Yampa River SP",
+          "_confidence": "low",
+          "riverMile": 127.94
+        },
+        {
+          "name": "Juniper Canyon access",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 40.495,
+          "longitude": -108.02,
+          "fee": "CO State Parks pass",
+          "vehicleAccess": true,
+          "notes": "Between Duffy and Maybell.",
+          "source": "CPW Yampa River SP",
+          "_confidence": "low",
+          "riverMile": 134.57
+        },
+        {
+          "name": "Maybell Bridge",
+          "altNames": [
+            "Maybell"
+          ],
+          "kind": "both",
+          "latitude": 40.503,
+          "longitude": -108.034,
+          "fee": "CO State Parks pass",
+          "vehicleAccess": true,
+          "notes": "Yampa River SP at CO-394 bridge. Co-located with USGS 09251000.",
+          "source": "CPW Yampa River SP",
+          "_confidence": "high",
+          "riverMile": 135.82
+        },
+        {
+          "name": "Sunbeam access",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 40.495,
+          "longitude": -108.14,
+          "fee": "CO State Parks pass",
+          "vehicleAccess": true,
+          "notes": "Between Maybell and Cross Mountain.",
+          "source": "CPW Yampa River SP",
+          "_confidence": "low",
+          "riverMile": 145.4
+        },
+        {
+          "name": "East Cross Mountain (Cross Mountain Gorge put-in)",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 40.51,
+          "longitude": -108.38,
+          "fee": "CO State Parks pass",
+          "vehicleAccess": true,
+          "notes": "Yampa River SP at head of Cross Mountain Gorge. Class III-IV.",
+          "source": "CPW Yampa River SP; AW",
+          "_confidence": "low",
+          "riverMile": 163.07
+        },
+        {
+          "name": "West Cross Mountain (Cross Mountain Gorge take-out)",
+          "altNames": [],
+          "kind": "take-out",
+          "latitude": 40.52,
+          "longitude": -108.45,
+          "fee": "CO State Parks pass",
+          "vehicleAccess": true,
+          "notes": "Yampa River SP at bottom of Cross Mountain Gorge.",
+          "source": "CPW Yampa River SP",
+          "_confidence": "low"
+        },
+        {
+          "name": "Deerlodge Park",
+          "altNames": [
+            "Deerlodge Park Campground"
+          ],
+          "kind": "put-in",
+          "latitude": 40.45,
+          "longitude": -108.537,
+          "fee": "NPS Dinosaur permit",
+          "vehicleAccess": true,
+          "notes": "Top of Yampa-through-Dinosaur permit trip. 12 mi north of US-40 at MP 44.",
+          "source": "NPS Dinosaur; USGS 09260050",
+          "_confidence": "high",
+          "riverMile": 179.4
+        },
+        {
+          "name": "Echo Park",
+          "altNames": [
+            "Yampa-Green confluence"
+          ],
+          "kind": "both",
+          "latitude": 40.521,
+          "longitude": -108.991,
+          "fee": "NPS Dinosaur permit",
+          "vehicleAccess": true,
+          "notes": "Yampa-Green confluence inside Dinosaur NM. 4WD via Echo Park Rd.",
+          "source": "NPS Dinosaur",
+          "_confidence": "low",
+          "riverMile": 224.65
+        },
+        {
+          "name": "Split Mountain Boat Ramp",
+          "altNames": [
+            "Split Mountain take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 40.444,
+          "longitude": -109.255,
+          "fee": "NPS Dinosaur permit",
+          "vehicleAccess": true,
+          "notes": "End of Yampa-through-Dinosaur and Lodore trips. ~15 mi NE of Jensen, UT.",
+          "source": "NPS Dinosaur; AW",
+          "_confidence": "medium"
+        }
+      ],
+      "impassableDams": [],
+      "gauges": [
+        {
+          "id": "usgs-09239500",
+          "name": "Yampa River at Steamboat Springs, CO",
+          "latitude": 40.483,
+          "longitude": -106.832,
+          "notes": "NEW. Steamboat town section anchor. Co-located with Charlie's Hole.",
+          "source": "USGS NWIS",
+          "riverMile": 24.4
+        },
+        {
+          "id": "usgs-09244410",
+          "name": "Yampa River below Diversion, near Hayden, CO",
+          "latitude": 40.488,
+          "longitude": -107.16,
+          "notes": "NEW. Mid-valley between Steamboat and Craig.",
+          "source": "USGS NWIS",
+          "riverMile": 46.79
+        },
+        {
+          "id": "usgs-09247600",
+          "name": "Yampa River below Craig, CO",
+          "latitude": 40.481,
+          "longitude": -107.614,
+          "notes": "NEW. Anchor for Craig-to-Maybell.",
+          "source": "USGS NWIS",
+          "riverMile": 84.63
+        },
+        {
+          "id": "usgs-09251000",
+          "name": "Yampa River near Maybell, CO",
+          "latitude": 40.503,
+          "longitude": -108.033,
+          "notes": "Existing. Maybell-to-Cross Mountain.",
+          "source": "USGS NWIS",
+          "riverMile": 135.86
+        },
+        {
+          "id": "usgs-09260050",
+          "name": "Yampa River at Deerlodge Park, CO",
+          "latitude": 40.452,
+          "longitude": -108.525,
+          "notes": "Existing. Dinosaur trip-planning anchor.",
+          "source": "USGS NWIS",
+          "riverMile": 178.87
+        }
+      ]
+    },
+    "animas": {
+      "corridorIds": [
+        "animas-corridor"
+      ],
+      "_summary": "Animas from Silverton (Upper Animas wilderness Class IV-V) through Rockwood Box, Animas Valley flatwater, Durango town run (Smelter Rapid), to Bondad / Cedar Hill NM. 13 APs, 0 impassable dams, 5 gauges (3 new).",
+      "accessPoints": [
+        {
+          "name": "Silverton (Mineral Creek)",
+          "altNames": [
+            "CR31 gauge access"
+          ],
+          "kind": "put-in",
+          "latitude": 37.811,
+          "longitude": -107.665,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Top of Upper Animas wilderness (Class IV-V). Dirt access (CR31) off Hwy 550 at Mineral Creek crossing.",
+          "source": "AW reach 346; USGS 09358000",
+          "_confidence": "high",
+          "riverMile": 0
+        },
+        {
+          "name": "Tacoma Power Plant",
+          "altNames": [
+            "Tall Timber take-out area"
+          ],
+          "kind": "take-out",
+          "latitude": 37.5974,
+          "longitude": -107.777,
+          "fee": "free / private (railroad)",
+          "vehicleAccess": false,
+          "notes": "End of Upper Animas wilderness. No road access — D&SNG train pickup or rail-line hike.",
+          "source": "AW reach 346; USGS 09359500",
+          "_confidence": "medium",
+          "riverMile": 19.83
+        },
+        {
+          "name": "Rockwood Depot",
+          "altNames": [
+            "Rockwood Box take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 37.5905,
+          "longitude": -107.753,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Train depot via CR200, 1 mi off US-550. Hike up rail line to egress.",
+          "source": "awetstate.com; D&SNG",
+          "_confidence": "medium",
+          "riverMile": 19.05
+        },
+        {
+          "name": "Tall Timber Resort",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 37.5974,
+          "longitude": -107.777,
+          "fee": "private",
+          "vehicleAccess": false,
+          "notes": "Private fly-in/train-in resort. Not a public access. Co-located with USGS Tall Timber gauge.",
+          "source": "USGS 09359500",
+          "_confidence": "medium",
+          "riverMile": 19.83
+        },
+        {
+          "name": "Bakers Bridge",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 37.4573,
+          "longitude": -107.7998,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Put-in below the unrunnable Middle Box. Top of Animas Valley flatwater. CR250 access.",
+          "source": "AW reach 348; USGS 372728107475701",
+          "_confidence": "high",
+          "riverMile": 31.34
+        },
+        {
+          "name": "Trimble Bridge",
+          "altNames": [
+            "Trimble Lane"
+          ],
+          "kind": "both",
+          "latitude": 37.3893,
+          "longitude": -107.8492,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Mid-valley access ~8 river miles below Bakers Bridge. Approx coords from CR252.",
+          "source": "AW reach 348; 4Corners Riversports",
+          "_confidence": "low",
+          "riverMile": 38.64
+        },
+        {
+          "name": "Oxbow Park & Preserve",
+          "altNames": [
+            "500 Animas View Dr"
+          ],
+          "kind": "both",
+          "latitude": 37.3214,
+          "longitude": -107.8635,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Lower Valley access ~13 mi below Trimble.",
+          "source": "durangoco.gov; 4Corners guide",
+          "_confidence": "low",
+          "riverMile": 46.47
+        },
+        {
+          "name": "32nd Street",
+          "altNames": [
+            "33rd Street",
+            "Memorial Park"
+          ],
+          "kind": "put-in",
+          "latitude": 37.2962,
+          "longitude": -107.8761,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town Run put-in / tube launch.",
+          "source": "durango.com; AW reach 351",
+          "_confidence": "medium",
+          "riverMile": 49.57
+        },
+        {
+          "name": "29th Street",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 37.292,
+          "longitude": -107.8783,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town-run put-in with manufactured feature, upstream of Santa Rita.",
+          "source": "4Corners Riversports",
+          "_confidence": "low",
+          "riverMile": 49.75
+        },
+        {
+          "name": "Santa Rita Park (Whitewater Park)",
+          "altNames": [
+            "Durango Whitewater Park",
+            "Smelter Rapid"
+          ],
+          "kind": "both",
+          "latitude": 37.2667,
+          "longitude": -107.878,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Durango WW park with Smelter Rapid (II-IV depending on flow), Corner Pocket, Ponderosa, Clocktower. Permanent slalom course.",
+          "source": "durangoco.gov",
+          "_confidence": "medium",
+          "riverMile": 52.33
+        },
+        {
+          "name": "Dallabetta Park",
+          "altNames": [],
+          "kind": "take-out",
+          "latitude": 37.2213,
+          "longitude": -107.8596,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "ADA-accessible river access in south Durango. Two ramps (tube + trailer).",
+          "source": "durango.com",
+          "_confidence": "medium",
+          "riverMile": 56.16
+        },
+        {
+          "name": "Bondad Bridge",
+          "altNames": [
+            "US-550 Bondad bridge"
+          ],
+          "kind": "both",
+          "latitude": 37.0511,
+          "longitude": -107.875,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "US-550 bridge ~15.5 mi downstream of Dallabetta. Animas flows through Southern Ute / private land between — Bondad is the only legal mid-run access.",
+          "source": "4Corners; Animas Paddle Trail Guide",
+          "_confidence": "medium",
+          "riverMile": 71.76
+        },
+        {
+          "name": "Cedar Hill (NM)",
+          "altNames": [
+            "Tico Time RV Resort"
+          ],
+          "kind": "take-out",
+          "latitude": 37.0367,
+          "longitude": -107.875,
+          "fee": "free / private (Tico Time)",
+          "vehicleAccess": true,
+          "notes": "Just south of CO/NM line. USGS Cedar Hill gauge anchors.",
+          "source": "USGS 09363500; 4Corners guide",
+          "_confidence": "medium",
+          "riverMile": 72.82
+        }
+      ],
+      "impassableDams": [],
+      "gauges": [
+        {
+          "id": "usgs-09357500",
+          "name": "Animas River at Howardsville",
+          "latitude": 37.8331,
+          "longitude": -107.5995,
+          "notes": "Existing. Headwaters ~4 mi NE of Silverton.",
+          "source": "USGS NWIS"
+        },
+        {
+          "id": "usgs-09358000",
+          "name": "Animas River at Silverton",
+          "latitude": 37.8111,
+          "longitude": -107.6592,
+          "notes": "NEW. At Silverton put-in.",
+          "source": "USGS NWIS",
+          "riverMile": 0
+        },
+        {
+          "id": "usgs-09359500",
+          "name": "Animas River at Tall Timber above Tacoma",
+          "latitude": 37.5974,
+          "longitude": -107.777,
+          "notes": "NEW. Critical Rockwood Box gauge.",
+          "source": "USGS NWIS",
+          "riverMile": 19.83
+        },
+        {
+          "id": "usgs-09361500",
+          "name": "Animas River at Durango",
+          "latitude": 37.2792,
+          "longitude": -107.8803,
+          "notes": "Existing. Durango town-run reference.",
+          "source": "USGS NWIS",
+          "riverMile": 51.12
+        },
+        {
+          "id": "usgs-09363500",
+          "name": "Animas River near Cedar Hill, NM",
+          "latitude": 37.0367,
+          "longitude": -107.875,
+          "notes": "NEW. Bottom of CO floatable.",
+          "source": "USGS NWIS",
+          "riverMile": 72.82
+        }
+      ]
+    },
+    "dolores": {
+      "corridorIds": [
+        "dolores-canyon"
+      ],
+      "_summary": "Dolores below McPhee Dam through Slick Rock Canyon (Bradfield→Bedrock) and Gateway Canyon (Bedrock→Gateway) to Dewey Bridge UT. Entirely dam-release dependent; often only days-weeks of boatable flow per year. 8 APs, 1 impassable mainstem dam (McPhee), 4 gauges.",
+      "accessPoints": [
+        {
+          "name": "McPhee Dam outlet (Bradfield area)",
+          "altNames": [
+            "Below McPhee",
+            "head of Ponderosa Gorge"
+          ],
+          "kind": "put-in",
+          "latitude": 37.5732,
+          "longitude": -108.57,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Dam coordinates. Actual paddleable put-in downstream at Bradfield. ALL releases below the dam dictate flow.",
+          "source": "USBR McPhee Dam",
+          "_confidence": "high",
+          "riverMile": 0
+        },
+        {
+          "name": "Bradfield Bridge",
+          "altNames": [
+            "Bradfield Recreation Site",
+            "Bradfield Launch"
+          ],
+          "kind": "put-in",
+          "latitude": 37.6286,
+          "longitude": -108.6829,
+          "fee": "free launch / $8 camping",
+          "vehicleAccess": true,
+          "notes": "BLM Bradfield Rec Site. Boat ramp 1/4 mi downstream of bridge. Primary Slick Rock Canyon launch (47 mi to Slick Rock).",
+          "source": "BLM Bradfield; AW reach 385",
+          "_confidence": "high",
+          "riverMile": 8.42
+        },
+        {
+          "name": "Dove Creek Pump Station",
+          "altNames": [],
+          "kind": "take-out",
+          "latitude": 37.7,
+          "longitude": -108.78,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Intermediate take-out / put-in between Bradfield and Slick Rock. Approx coords.",
+          "source": "AW reach 385",
+          "_confidence": "low",
+          "riverMile": 15.84
+        },
+        {
+          "name": "Slick Rock",
+          "altNames": [
+            "Hwy 141 bridge"
+          ],
+          "kind": "both",
+          "latitude": 38.0386,
+          "longitude": -108.88,
+          "fee": "$10/day parking (private)",
+          "vehicleAccess": true,
+          "notes": "Cleared put-in just east of Hwy 141 bridge on private land. Take-out for Bradfield run; put-in for Slick Rock Canyon to Bedrock (48.8 mi).",
+          "source": "AW reach 387",
+          "_confidence": "medium",
+          "riverMile": 59.89
+        },
+        {
+          "name": "Gypsum Valley (Big Gypsum)",
+          "altNames": [
+            "Big Gypsum Valley Recreation Site"
+          ],
+          "kind": "both",
+          "latitude": 38.17,
+          "longitude": -108.89,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Alt access ~13 mi downriver of Slick Rock (25 road mi via CR 20R).",
+          "source": "AW reach 387; BLM",
+          "_confidence": "low",
+          "riverMile": 80.73
+        },
+        {
+          "name": "Bedrock",
+          "altNames": [
+            "Hwy 90 bridge"
+          ],
+          "kind": "both",
+          "latitude": 38.3098,
+          "longitude": -108.8856,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "River-left access upstream of CO-90 bridge. Take-out for Slick Rock Canyon; put-in for Paradox/Mesa Canyon to Gateway.",
+          "source": "AW reaches 387+388; USGS 09169500",
+          "_confidence": "high",
+          "riverMile": 109.04
+        },
+        {
+          "name": "Gateway",
+          "altNames": [
+            "Gateway Resort",
+            "Hwy 141 bridge"
+          ],
+          "kind": "both",
+          "latitude": 38.419,
+          "longitude": -108.8217,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Put-in/take-out upstream river right of Hwy 141 bridge at Gateway Resort. Put-in for 32-mi run to Dewey (UT).",
+          "source": "AW reach 389; recreation.gov 621749",
+          "_confidence": "high",
+          "riverMile": 123.39
+        },
+        {
+          "name": "Dewey Bridge (UT)",
+          "altNames": [
+            "Dewey Bridge Recreation Site"
+          ],
+          "kind": "take-out",
+          "latitude": 38.812,
+          "longitude": -109.306,
+          "fee": "free / fee site",
+          "vehicleAccess": true,
+          "notes": "On Colorado River just downstream of Dolores confluence (Utah). Standard Gateway take-out.",
+          "source": "BLM Moab Dolores River map; AW reach 389",
+          "_confidence": "medium",
+          "riverMile": 184.55
+        }
+      ],
+      "impassableDams": [
+        {
+          "name": "McPhee Dam",
+          "latitude": 37.5732,
+          "longitude": -108.57,
+          "notes": "USBR (Dolores Project), rolled earth/rockfill, 5,000 cfs outlet. Splits Dolores into a non-floated headwaters reach (above) and the entire downstream corridor (below). ALL releases dictate flow — usually only days-weeks boatable per year.",
+          "source": "USBR McPhee Dam id=153",
+          "_confidence": "high",
+          "riverMile": 0
+        }
+      ],
+      "gauges": [
+        {
+          "id": "usgs-09166500",
+          "name": "Dolores River at Dolores, CO",
+          "latitude": 37.4725,
+          "longitude": -108.4976,
+          "notes": "Town of Dolores, ABOVE McPhee. Reservoir inflow indicator.",
+          "source": "USGS NWIS",
+          "riverMile": null
+        },
+        {
+          "id": "usgs-09169500",
+          "name": "Dolores River at Bedrock, CO",
+          "latitude": 38.3103,
+          "longitude": -108.8854,
+          "notes": "Existing. Co-located with Bedrock access.",
+          "source": "USGS NWIS",
+          "riverMile": 109.07
+        },
+        {
+          "id": "usgs-09171100",
+          "name": "Dolores River near Bedrock, CO",
+          "latitude": 38.3569,
+          "longitude": -108.8334,
+          "notes": "Existing. Distinct from 09169500 — below West Paradox Creek.",
+          "source": "USGS NWIS",
+          "riverMile": 115.24
+        },
+        {
+          "id": "usgs-09179500",
+          "name": "Dolores River at Gateway, CO",
+          "latitude": 38.675,
+          "longitude": -108.981,
+          "notes": "NEW. Bottom of Paradox/Mesa; top of Gateway-to-Dewey.",
+          "source": "USGS NWIS",
+          "riverMile": 153.1
+        }
+      ]
+    },
+    "san-miguel": {
+      "corridorIds": [
+        "san-miguel-corridor"
+      ],
+      "_summary": "San Miguel from Telluride through Placerville, Norwood Canyon, Naturita, Uravan to Dolores confluence. 8 APs, 0 impassable mainstem dams (3 portage-required diversion dams flagged in notes), 5 gauges (4 new).",
+      "accessPoints": [
+        {
+          "name": "Telluride Town Park",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 37.9367,
+          "longitude": -107.8067,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Top of San Miguel paddleable corridor. Town Park between San Miguel and Bear Creek.",
+          "source": "telluride-co.gov",
+          "_confidence": "medium",
+          "riverMile": 0
+        },
+        {
+          "name": "Sawpit",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 37.9953,
+          "longitude": -108.0017,
+          "fee": "free (BLM frontage)",
+          "vehicleAccess": true,
+          "notes": "Tiny town NW of Telluride on Hwy 145 with BLM stream-bank access.",
+          "source": "Sawpit municipal; uncovercolorado.com",
+          "_confidence": "medium",
+          "riverMile": 13.32
+        },
+        {
+          "name": "Placerville",
+          "altNames": [
+            "Hwy 62/145 junction"
+          ],
+          "kind": "both",
+          "latitude": 38.0117,
+          "longitude": -108.0594,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Hwy 62/145 jct, elev ~7,320 ft. River becomes navigable here late April / early May.",
+          "source": "uncovercolorado.com; Wikipedia",
+          "_confidence": "medium",
+          "riverMile": 17
+        },
+        {
+          "name": "Caddis Flats Boat Ramp",
+          "altNames": [
+            "Caddis Flats Campground"
+          ],
+          "kind": "put-in",
+          "latitude": 38.0278,
+          "longitude": -108.0912,
+          "fee": "free / $ camping",
+          "vehicleAccess": true,
+          "notes": "BLM Caddis Flats CG ~1.8 mi west of Placerville on CO-145. Hand-carry launch. Co-located with USGS Placerville gauge.",
+          "source": "thedyrt.com; nationalriversproject.com",
+          "_confidence": "high",
+          "riverMile": 19.67
+        },
+        {
+          "name": "Norwood Bridge",
+          "altNames": [
+            "Specie Creek / Norwood Bridge"
+          ],
+          "kind": "both",
+          "latitude": 38.1633,
+          "longitude": -108.3,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Take-out for Specie Creek to Norwood Bridge; put-in for Norwood Canyon to Naturita. Limited parking.",
+          "source": "dreamflows.com rid=697",
+          "_confidence": "low",
+          "riverMile": 36.82
+        },
+        {
+          "name": "Naturita",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 38.2178,
+          "longitude": -108.5665,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Town access — common Norwood Canyon take-out. WARNING: 3 diversion dams between Naturita and the Hwy 145 bridge east of Norwood require portage.",
+          "source": "uncovercolorado.com; USGS 09175500",
+          "_confidence": "medium",
+          "riverMile": 59.34
+        },
+        {
+          "name": "Uravan",
+          "altNames": [
+            "Hwy 141 / Hwy 90 area"
+          ],
+          "kind": "both",
+          "latitude": 38.3855,
+          "longitude": -108.7584,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Former uranium-mill townsite (reclaimed). From Naturita: east Hwy 145, left Hwy 90.",
+          "source": "USGS 09177100",
+          "_confidence": "medium",
+          "riverMile": 78.19
+        },
+        {
+          "name": "Confluence with Dolores",
+          "altNames": [
+            "San Miguel/Dolores confluence"
+          ],
+          "kind": "take-out",
+          "latitude": 38.44,
+          "longitude": -108.85,
+          "fee": "free",
+          "vehicleAccess": false,
+          "notes": "Confluence ~15 mi east of UT line. Paddlers typically continue down Dolores to Gateway. Approx coords.",
+          "source": "Wikipedia San Miguel River",
+          "_confidence": "low"
+        }
+      ],
+      "impassableDams": [],
+      "gauges": [
+        {
+          "id": "usgs-09172500",
+          "name": "San Miguel River near Placerville, CO",
+          "latitude": 38.0307,
+          "longitude": -108.1103,
+          "notes": "Existing. Co-located with Caddis Flats.",
+          "source": "USGS NWIS",
+          "riverMile": 20.99
+        },
+        {
+          "id": "usgs-09174600",
+          "name": "San Miguel River at Brooks Bridge near Nucla, CO",
+          "latitude": null,
+          "longitude": null,
+          "notes": "NEW. Mid-corridor — coords not confirmed.",
+          "source": "USGS NWIS"
+        },
+        {
+          "id": "usgs-09175500",
+          "name": "San Miguel River at Naturita, CO",
+          "latitude": 38.2178,
+          "longitude": -108.5665,
+          "notes": "NEW.",
+          "source": "USGS NWIS",
+          "riverMile": 59.34
+        },
+        {
+          "id": "usgs-09177000",
+          "name": "San Miguel River at Uravan, CO",
+          "latitude": 38.3572,
+          "longitude": -108.7122,
+          "notes": "NEW. NAD27 site.",
+          "source": "USGS NWIS",
+          "riverMile": 74.65
+        },
+        {
+          "id": "usgs-09177100",
+          "name": "San Miguel River below Uravan, CO",
+          "latitude": 38.3855,
+          "longitude": -108.7584,
+          "notes": "NEW. Bottom before Dolores confluence.",
+          "source": "USGS NWIS",
+          "riverMile": 78.19
+        }
+      ]
+    },
+    "piedra": {
+      "corridorIds": [
+        "piedra-corridor"
+      ],
+      "_summary": "Piedra Upper Box (Second Box) and Lower Box (First Box) — short snowmelt season. 4 APs, 0 impassable dams, 1 gauge.",
+      "accessPoints": [
+        {
+          "name": "Piedra Bridge / Upper Piedra CG",
+          "altNames": [
+            "FR 631 / Piedra Road bridge"
+          ],
+          "kind": "put-in",
+          "latitude": 37.3667,
+          "longitude": -107.27,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Top put-in for Upper Piedra (Second Box). ~16 mi up Piedra Rd (FR 631) from US-160. Road often closed until mid-May.",
+          "source": "AW reach 409; pagosatrails.net",
+          "_confidence": "low",
+          "riverMile": 0
+        },
+        {
+          "name": "First Fork Bridge",
+          "altNames": [
+            "1st Fork"
+          ],
+          "kind": "both",
+          "latitude": 37.327,
+          "longitude": -107.34,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Mid-river access between Second Box (upper) and First Box (lower). De facto put-in when upper road closed.",
+          "source": "pagosatrails.net",
+          "_confidence": "low",
+          "riverMile": 5.59
+        },
+        {
+          "name": "Lower Piedra Box take-out",
+          "altNames": [
+            "Hwy 160 area"
+          ],
+          "kind": "take-out",
+          "latitude": 37.23,
+          "longitude": -107.34,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Standard take-out below First Box. Near US-160 crossing.",
+          "source": "4Corners Riversports",
+          "_confidence": "low",
+          "riverMile": 13.62
+        },
+        {
+          "name": "Arboles / Navajo Reservoir inflow",
+          "altNames": [
+            "Arboles take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 37.0883,
+          "longitude": -107.3972,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Take-out for Class II-III lower stretch from US-160 to Navajo Lake.",
+          "source": "USGS 09349800; 4Corners guide",
+          "_confidence": "medium",
+          "riverMile": 28.02
+        }
+      ],
+      "impassableDams": [],
+      "gauges": [
+        {
+          "id": "usgs-09349800",
+          "name": "Piedra River near Arboles, CO",
+          "latitude": 37.0883,
+          "longitude": -107.3972,
+          "notes": "Existing. Bottom of Piedra at Navajo Reservoir inflow.",
+          "source": "USGS NWIS",
+          "riverMile": 28.02
+        }
+      ]
+    },
+    "san-juan": {
+      "corridorIds": [
+        "san-juan-corridor"
+      ],
+      "_summary": "San Juan in Colorado — Pagosa Springs town section (whitewater park + Mesa Canyon) to Navajo Reservoir inflow. Below Navajo Dam (in NM) is a separate, famous tailwater. 5 APs, 1 impassable dam (Navajo, just inside NM), 1 gauge.",
+      "accessPoints": [
+        {
+          "name": "Above Pagosa Springs (Williams Creek)",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 37.34,
+          "longitude": -106.93,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Williams Creek tributary area NE of Pagosa via US-160 / Williams Creek Rd. Informal upper access in high-water years.",
+          "source": "Pagosa fishing/WW guides",
+          "_confidence": "low",
+          "riverMile": 0
+        },
+        {
+          "name": "Pagosa Springs Town / Yamaguchi Park",
+          "altNames": [
+            "Yamaguchi Park",
+            "Pagosa WW Park"
+          ],
+          "kind": "both",
+          "latitude": 37.2622,
+          "longitude": -107.0125,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Pagosa Springs whitewater park — kayak/raft launch + two WW features adjacent to Riverwalk.",
+          "source": "visitpagosasprings.com",
+          "_confidence": "medium",
+          "riverMile": 9.58
+        },
+        {
+          "name": "Malt Shoppe put-in",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 37.2699,
+          "longitude": -107.0016,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "WW put-in 'behind the Malt Shoppe' — cited for Pagosa-to-Trujillo run.",
+          "source": "uncovercolorado.com",
+          "_confidence": "medium",
+          "riverMile": 8.43
+        },
+        {
+          "name": "Trujillo Road take-out",
+          "altNames": [
+            "Mesa Canyon take-out",
+            "500 Rd"
+          ],
+          "kind": "take-out",
+          "latitude": 37.126,
+          "longitude": -107.0511,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Standard take-out after Mesa Canyon (13.5 mi Class III) on Trujillo / 500 Rd south of Pagosa.",
+          "source": "uncovercolorado.com",
+          "_confidence": "medium",
+          "riverMile": 22.5
+        },
+        {
+          "name": "Navajo Reservoir inflow (CO)",
+          "altNames": [
+            "Carracas / Arboles SJ inflow"
+          ],
+          "kind": "take-out",
+          "latitude": 37.02,
+          "longitude": -107.44,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Where SJ flattens into Navajo Reservoir on CO/NM line. Approx coords.",
+          "source": "Wikipedia San Juan River",
+          "_confidence": "low",
+          "riverMile": 55.2
+        }
+      ],
+      "impassableDams": [
+        {
+          "name": "Navajo Dam",
+          "latitude": 36.8003,
+          "longitude": -107.6126,
+          "notes": "USBR (CRSP), 402 ft tall, 1.71 MAF capacity. ~34 mi east of Farmington, NM. Reservoir backs into southern CO. Terminates SJ's CO floatable run. Below the dam (in NM) is the famous Quality Waters tailwater.",
+          "source": "USBR Navajo Dam id=310",
+          "_confidence": "high"
+        }
+      ],
+      "gauges": [
+        {
+          "id": "usgs-09342500",
+          "name": "San Juan River at Pagosa Springs, CO",
+          "latitude": 37.2655,
+          "longitude": -107.011,
+          "notes": "Existing. Pagosa WW park reference.",
+          "source": "USGS NWIS",
+          "riverMile": 9.14
+        }
+      ]
+    },
+    "clear-creek": {
+      "corridorIds": [
+        "clear-creek-canyon"
+      ],
+      "_summary": "Clear Creek from Empire through Idaho Springs / Dumont, Clear Creek Canyon (Tunnel 1, Black Rock, Hells Corner, Mayhem), Golden WW Park, ending at the Coors low-head dam (mandatory take-out). 16 APs, 1 corridor-breaking diversion dam (Coors low-head), 3 gauges.",
+      "accessPoints": [
+        {
+          "name": "Empire",
+          "altNames": [
+            "Above Lawson"
+          ],
+          "kind": "put-in",
+          "latitude": 39.7592,
+          "longitude": -105.6839,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Expert section above Lawson; West Fork confluence. Spring runoff only.",
+          "source": "AW; CPW Open Space",
+          "_confidence": "low",
+          "riverMile": 0
+        },
+        {
+          "name": "Lawson",
+          "altNames": [
+            "Clear Creek Whitewater Park (Lawson)"
+          ],
+          "kind": "both",
+          "latitude": 39.7595,
+          "longitude": -105.6189,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Top of Lawson/Dumont section. Prime ~800 cfs.",
+          "source": "AW Dumont; Clear Creek County",
+          "_confidence": "medium",
+          "riverMile": 3.96
+        },
+        {
+          "name": "Dumont Put-In",
+          "altNames": [
+            "Upper Dumont"
+          ],
+          "kind": "put-in",
+          "latitude": 39.7634,
+          "longitude": -105.6018,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Busy commercial put-in, limited parking, 2.14 mi downstream of Lawson.",
+          "source": "AW Dumont (river-detail/2819)",
+          "_confidence": "medium",
+          "riverMile": 4.81
+        },
+        {
+          "name": "Lower Dumont Put-In",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 39.7641,
+          "longitude": -105.5852,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Preferred private put-in; better parking; cuts ~2 mi of boogie water.",
+          "source": "AW Dumont",
+          "_confidence": "medium",
+          "riverMile": 5.71
+        },
+        {
+          "name": "Idaho Springs (I-70 / Hwy 103)",
+          "altNames": [
+            "Clear Creek Open Space"
+          ],
+          "kind": "both",
+          "latitude": 39.7475,
+          "longitude": -105.5147,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Two large lots at I-70/Hwy 103 intersection; primary Dumont take-out.",
+          "source": "AW Dumont; RiverBent",
+          "_confidence": "high",
+          "riverMile": 10.26
+        },
+        {
+          "name": "Idaho Springs Town Park",
+          "altNames": [],
+          "kind": "take-out",
+          "latitude": 39.7423,
+          "longitude": -105.5132,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Small free lot, raft ramp; mid-town option.",
+          "source": "AW Dumont",
+          "_confidence": "medium",
+          "riverMile": 10.2
+        },
+        {
+          "name": "Two Bears (Kermits)",
+          "altNames": [
+            "Kermits Put-In"
+          ],
+          "kind": "put-in",
+          "latitude": 39.7415,
+          "longitude": -105.4943,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Top of Upper Clear Creek (Kermits) Class IV creeking. Across from Two Bears Tap & Grill.",
+          "source": "AW Upper Clear Creek (river-detail/4257)",
+          "_confidence": "medium",
+          "riverMile": 11.24
+        },
+        {
+          "name": "Clear Creek Open Space (Kermits Take-Out)",
+          "altNames": [
+            "Beaver Brook take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 39.7372,
+          "longitude": -105.4309,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "~4.4 mi downstream of Two Bears; standard Kermits take-out.",
+          "source": "AW Upper Clear Creek",
+          "_confidence": "medium",
+          "riverMile": 15.96
+        },
+        {
+          "name": "Black Rock",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 39.7406,
+          "longitude": -105.4045,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Class V; entrance horseshoe hole + back-to-back holes. Hwy 6 pullout.",
+          "source": "AW; merelyafleshwound.com",
+          "_confidence": "low",
+          "riverMile": 17.67
+        },
+        {
+          "name": "Hells Corner (scout)",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 39.7445,
+          "longitude": -105.382,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Class V rapid in Lower Canyon; commonly scouted from Hwy 6.",
+          "source": "AW Lower Canyon",
+          "_confidence": "low",
+          "riverMile": 19.14
+        },
+        {
+          "name": "Mayhem Gulch Trailhead",
+          "altNames": [
+            "Mayhem"
+          ],
+          "kind": "both",
+          "latitude": 39.7506,
+          "longitude": -105.3567,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "32447 US Hwy 6. Major Lower Canyon commercial take-out.",
+          "source": "Jeffco Open Space; AW",
+          "_confidence": "high",
+          "riverMile": 22.11
+        },
+        {
+          "name": "Tunnel 1 (above)",
+          "altNames": [
+            "Big Easy",
+            "Diversion Dam put-in"
+          ],
+          "kind": "put-in",
+          "latitude": 39.7505,
+          "longitude": -105.3137,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "22122 US Hwy 6. Walk down below diversion dam; Class III oxbow around the tunnel.",
+          "source": "AW Tunnel One Down (river-detail/11178)",
+          "_confidence": "high",
+          "riverMile": 25.48
+        },
+        {
+          "name": "Tunnel 1 (below)",
+          "altNames": [
+            "Lower Tunnel 1"
+          ],
+          "kind": "put-in",
+          "latitude": 39.751,
+          "longitude": -105.3098,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Large dirt pullout east of tunnel; bypasses hardest rapids.",
+          "source": "AW Tunnel One Down",
+          "_confidence": "medium",
+          "riverMile": 25.57
+        },
+        {
+          "name": "Golden Whitewater Park (upper)",
+          "altNames": [
+            "Lions Park put-in"
+          ],
+          "kind": "put-in",
+          "latitude": 39.7556,
+          "longitude": -105.228,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "North bank across from Lions Park; ~7 city blocks of constructed features.",
+          "source": "AW Golden Play Park (river-detail/11179); City of Golden",
+          "_confidence": "high",
+          "riverMile": 31.3
+        },
+        {
+          "name": "Vanover Park",
+          "altNames": [
+            "10th Street take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 39.756,
+          "longitude": -105.222,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "MANDATORY take-out — dangerous low-head dam (Coors diversion) immediately downstream.",
+          "source": "City of Golden; AW",
+          "_confidence": "high",
+          "riverMile": 31.66
+        },
+        {
+          "name": "6th Avenue / Tucker Gulch",
+          "altNames": [
+            "6th Street"
+          ],
+          "kind": "both",
+          "latitude": 39.7568,
+          "longitude": -105.2128,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Below Coors diversion; access to lower Clear Creek Trail.",
+          "source": "Visit Golden; Jeffco",
+          "_confidence": "low",
+          "riverMile": 32.07
+        }
+      ],
+      "impassableDams": [
+        {
+          "name": "Coors / Golden Diversion Dam",
+          "latitude": 39.7562,
+          "longitude": -105.2206,
+          "notes": "Immediately downstream of Vanover Park; dangerous low-head keeper hydraulic. Portageable but corridor-breaking for floaters — Vanover is the mandatory take-out.",
+          "source": "City of Golden Clear Creek Recreation Guide",
+          "_confidence": "medium",
+          "riverMile": 31.74
+        }
+      ],
+      "gauges": [
+        {
+          "id": "usgs-06716500",
+          "name": "Clear Creek near Lawson",
+          "latitude": 39.7589,
+          "longitude": -105.6228,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": 3.35
+        },
+        {
+          "id": "usgs-06718000",
+          "name": "Clear Creek above Johnson Gulch near Idaho Springs",
+          "latitude": 39.7444,
+          "longitude": -105.5306,
+          "notes": "NEW.",
+          "source": "USGS NWIS",
+          "riverMile": 9.17
+        },
+        {
+          "id": "usgs-06719505",
+          "name": "Clear Creek at Golden",
+          "latitude": 39.7556,
+          "longitude": -105.2233,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": 31.59
+        }
+      ]
+    },
+    "cache-la-poudre": {
+      "corridorIds": [
+        "poudre-canyon"
+      ],
+      "_summary": "Colorado's only Wild & Scenic river. Big South / Narrows / Upper-Lower Mishawaka / Filter Plant commercial run to Fort Collins. 15 APs, 0 impassable mainstem dams (free-flowing through W&S section), 3 gauges.",
+      "accessPoints": [
+        {
+          "name": "Big South Trailhead",
+          "altNames": [
+            "Peter H. Dominick Wild River"
+          ],
+          "kind": "put-in",
+          "latitude": 40.6614,
+          "longitude": -105.7975,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Top of W&S Wild segment; portaged/hiked Class V+ near Hwy 14 MP 73.",
+          "source": "USFS Roosevelt NF",
+          "_confidence": "medium",
+          "riverMile": 0
+        },
+        {
+          "name": "Spencer Heights / Pingree Park Rd",
+          "altNames": [
+            "Diamond Rock"
+          ],
+          "kind": "put-in",
+          "latitude": 40.684,
+          "longitude": -105.6024,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Upper Narrows access near Hwy 14 MP 96; Class IV-V.",
+          "source": "AW Narrows; USFS",
+          "_confidence": "low",
+          "riverMile": 14.24
+        },
+        {
+          "name": "Lower Narrows Campground Put-In",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 40.6912,
+          "longitude": -105.5642,
+          "fee": "$ (campground)",
+          "vehicleAccess": true,
+          "notes": "USFS walk-in tent CG; start of The Narrows Class V.",
+          "source": "AW Narrows (river-detail/370)",
+          "_confidence": "medium",
+          "riverMile": 16.92
+        },
+        {
+          "name": "Upper Narrows Put-In",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 40.692,
+          "longitude": -105.561,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Hwy 14 pullout, 0.67 mi from Lower Narrows CG.",
+          "source": "AW Narrows",
+          "_confidence": "low",
+          "riverMile": 16.94
+        },
+        {
+          "name": "Middle Narrows Put-In",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 40.6925,
+          "longitude": -105.5555,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Narrow Hwy 14 pullout.",
+          "source": "AW Narrows",
+          "_confidence": "low",
+          "riverMile": 17.2
+        },
+        {
+          "name": "Stevens Gulch Picnic Area",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 40.692,
+          "longitude": -105.535,
+          "fee": "$ (day-use)",
+          "vehicleAccess": true,
+          "notes": "USFS picnic area, Hwy 14 MP 104.7. Take-out for Narrows; put-in for Upper Mishawaka.",
+          "source": "AW Narrows + Upper Mishawaka; USFS",
+          "_confidence": "high",
+          "riverMile": 18.54
+        },
+        {
+          "name": "Upper Landing",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 40.691,
+          "longitude": -105.529,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Hwy 14 MP 105 alternate launch.",
+          "source": "AW Upper Mishawaka",
+          "_confidence": "low",
+          "riverMile": 18.69
+        },
+        {
+          "name": "Mishawaka Inn",
+          "altNames": [
+            "The Mish"
+          ],
+          "kind": "both",
+          "latitude": 40.6873,
+          "longitude": -105.4892,
+          "fee": "private",
+          "vehicleAccess": true,
+          "notes": "Hwy 14 MP 108.2; private venue access with permission.",
+          "source": "AW Upper Mishawaka",
+          "_confidence": "high",
+          "riverMile": 21.37
+        },
+        {
+          "name": "Dead Deer",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 40.6855,
+          "longitude": -105.4865,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Hwy 14 MP 108.8; paved pullout w/ concrete stairs. Upper Mishawaka take-out, Lower Mishawaka put-in.",
+          "source": "AW Dead Deer to Poudre Park (river-detail/3368)",
+          "_confidence": "high",
+          "riverMile": 22.01
+        },
+        {
+          "name": "Poudre Park Day Use Area",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 40.6783,
+          "longitude": -105.452,
+          "fee": "$ (day-use)",
+          "vehicleAccess": true,
+          "notes": "Hwy 14 MP 110.7; Class III put-in / Lower Mishawaka take-out.",
+          "source": "AW; USFS",
+          "_confidence": "high",
+          "riverMile": 24.74
+        },
+        {
+          "name": "Stove Prairie Bridge",
+          "altNames": [
+            "Hwy 27 / Stove Prairie Landing"
+          ],
+          "kind": "put-in",
+          "latitude": 40.6938,
+          "longitude": -105.4126,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "CR-27 meets Hwy 14; Filter Plant overflow put-in. USFS Stove Prairie CG nearby.",
+          "source": "USFS; Mountain Whitewater",
+          "_confidence": "medium",
+          "riverMile": 30.45
+        },
+        {
+          "name": "Filter Plant Put-In",
+          "altNames": [
+            "Gateway Natural Area"
+          ],
+          "kind": "put-in",
+          "latitude": 40.6919,
+          "longitude": -105.2381,
+          "fee": "$7/vehicle",
+          "vehicleAccess": true,
+          "notes": "Old Fort Collins filtration plant. Start of beginner commercial Class II/III. Day-use only.",
+          "source": "AW Filter Plant to Picnic Rock (river-detail/372); City of Fort Collins",
+          "_confidence": "high",
+          "riverMile": 44.48
+        },
+        {
+          "name": "Picnic Rock",
+          "altNames": [],
+          "kind": "take-out",
+          "latitude": 40.6631,
+          "longitude": -105.2058,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Larimer County Open Space; standard Filter Plant take-out, 2.4 mi downstream.",
+          "source": "AW; Larimer County",
+          "_confidence": "high",
+          "riverMile": 48.67
+        },
+        {
+          "name": "Watson Lake State Wildlife Area",
+          "altNames": [
+            "Watson Lake"
+          ],
+          "kind": "both",
+          "latitude": 40.6586,
+          "longitude": -105.1872,
+          "fee": "$ (CPW)",
+          "vehicleAccess": true,
+          "notes": "CPW SWA below Picnic Rock.",
+          "source": "CPW; visitftcollins.com",
+          "_confidence": "medium",
+          "riverMile": 49.92
+        },
+        {
+          "name": "Lions Park / Fort Collins",
+          "altNames": [
+            "Lee Martinez Park"
+          ],
+          "kind": "take-out",
+          "latitude": 40.5934,
+          "longitude": -105.0763,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Urban Fort Collins access on Poudre Trail.",
+          "source": "City of Fort Collins",
+          "_confidence": "medium",
+          "riverMile": 58.54
+        }
+      ],
+      "impassableDams": [],
+      "gauges": [
+        {
+          "id": "usgs-06747500",
+          "name": "Cache la Poudre near Rustic",
+          "latitude": 40.6955,
+          "longitude": -105.6903,
+          "notes": "NEW.",
+          "source": "USGS NWIS",
+          "riverMile": 9.01
+        },
+        {
+          "id": "usgs-06752000",
+          "name": "Cache la Poudre at Mouth of Canyon near Fort Collins",
+          "latitude": 40.6647,
+          "longitude": -105.2225,
+          "notes": "NEW.",
+          "source": "USGS NWIS / CDSS (CLAFTCCO)",
+          "riverMile": 47.62
+        },
+        {
+          "id": "usgs-06752260",
+          "name": "Cache la Poudre at Fort Collins",
+          "latitude": 40.5897,
+          "longitude": -105.0744,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": 58.56
+        }
+      ]
+    },
+    "south-platte": {
+      "corridorIds": [
+        "south-platte-corridor"
+      ],
+      "_summary": "South Platte: Deckers/Trumbull/Nighthawk corridor between Cheesman Dam and Strontia Springs, Waterton Canyon (hike-in only), then Denver urban corridor (River Run Park, Confluence Park). 15 APs, 3 impassable dams (Cheesman, Strontia Springs, Chatfield), 3 gauges.",
+      "accessPoints": [
+        {
+          "name": "Wigwam Club (private)",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 39.2435,
+          "longitude": -105.281,
+          "fee": "private (members only)",
+          "vehicleAccess": false,
+          "notes": "Private fishing club immediately below Cheesman Dam; no public access.",
+          "source": "Wikipedia South Platte; Denver Water",
+          "_confidence": "low",
+          "riverMile": 0
+        },
+        {
+          "name": "Deckers",
+          "altNames": [
+            "Deckers Bridge"
+          ],
+          "kind": "put-in",
+          "latitude": 39.2659,
+          "longitude": -105.2231,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Most popular Class II-III put-in. Deckers Chutes named rapid downstream.",
+          "source": "AW; CPW; RiverBent",
+          "_confidence": "high",
+          "riverMile": 5.51
+        },
+        {
+          "name": "Trumbull",
+          "altNames": [
+            "Below Brush Creek"
+          ],
+          "kind": "both",
+          "latitude": 39.2601,
+          "longitude": -105.2214,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "~0.7 mi NE of Deckers; gauge site. Pike NF pullouts along Hwy 67.",
+          "source": "USGS NWIS 06701900",
+          "_confidence": "high",
+          "riverMile": 4.67
+        },
+        {
+          "name": "Scraggy View",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 39.284,
+          "longitude": -105.1893,
+          "fee": "$ (USFS)",
+          "vehicleAccess": true,
+          "notes": "Pike NF picnic area / SWA between Deckers and Nighthawk.",
+          "source": "AW; USFS Pike NF",
+          "_confidence": "medium",
+          "riverMile": 8.33
+        },
+        {
+          "name": "Nighthawk",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 39.3155,
+          "longitude": -105.1573,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Hwy 67 pullout; mid-corridor.",
+          "source": "AW; USFS",
+          "_confidence": "medium",
+          "riverMile": 11.67
+        },
+        {
+          "name": "South Platte (Foxton confluence)",
+          "altNames": [
+            "Foxton"
+          ],
+          "kind": "take-out",
+          "latitude": 39.4174,
+          "longitude": -105.223,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "North Fork + South Platte confluence. End of Deckers-Nighthawk corridor.",
+          "source": "AW; USGS",
+          "_confidence": "medium",
+          "riverMile": 19.59
+        },
+        {
+          "name": "Buffalo Creek Put-In (North Fork)",
+          "altNames": [],
+          "kind": "put-in",
+          "latitude": 39.3892,
+          "longitude": -105.3009,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "North Fork section; multiple roadside pullouts on CR-96 / Hwy 285. Watch for No Trespassing.",
+          "source": "AW (river-detail/426)",
+          "_confidence": "low"
+        },
+        {
+          "name": "Strontia Springs Dam outflow",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 39.4347,
+          "longitude": -105.1233,
+          "fee": "closed",
+          "vehicleAccess": false,
+          "notes": "Top of Waterton Canyon; no public access at dam — Denver Water restricted.",
+          "source": "Denver Water",
+          "_confidence": "high",
+          "riverMile": 23.08
+        },
+        {
+          "name": "Waterton Canyon Trailhead",
+          "altNames": [
+            "Kassler",
+            "Colorado Trail Segment 1"
+          ],
+          "kind": "both",
+          "latitude": 39.4998,
+          "longitude": -105.0903,
+          "fee": "free",
+          "vehicleAccess": false,
+          "notes": "Off Waterton Rd, south of Chatfield. 6.2 mi hike/bike to Strontia Springs Dam — NO vehicle access. No dogs.",
+          "source": "Denver Water; USFS PSICC",
+          "_confidence": "high",
+          "riverMile": 30.27
+        },
+        {
+          "name": "Chatfield State Park (S. Platte inflow)",
+          "altNames": [],
+          "kind": "both",
+          "latitude": 39.5333,
+          "longitude": -105.0744,
+          "fee": "$ (state park)",
+          "vehicleAccess": true,
+          "notes": "South Platte enters Chatfield Reservoir here.",
+          "source": "CPW",
+          "_confidence": "medium",
+          "riverMile": 32.87
+        },
+        {
+          "name": "Below Chatfield Dam (C-470)",
+          "altNames": [
+            "Chatfield outflow"
+          ],
+          "kind": "put-in",
+          "latitude": 39.5523,
+          "longitude": -105.0606,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Tailwater put-in below Chatfield Dam; start of Denver urban corridor.",
+          "source": "CPW; Denver Water",
+          "_confidence": "medium",
+          "riverMile": 34.59
+        },
+        {
+          "name": "River Run Park",
+          "altNames": [
+            "Englewood Whitewater Park",
+            "Union Ave"
+          ],
+          "kind": "both",
+          "latitude": 39.6429,
+          "longitude": -105.0179,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Englewood/Sheridan WW play park.",
+          "source": "Merrick Whitewater; AW",
+          "_confidence": "high",
+          "riverMile": 42.68
+        },
+        {
+          "name": "Confluence Park",
+          "altNames": [
+            "16th Street Wave",
+            "Cherry Creek Confluence"
+          ],
+          "kind": "both",
+          "latitude": 39.7547,
+          "longitude": -105.0066,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Downtown Denver WW park at South Platte / Cherry Creek confluence. 100-yard course with two drops.",
+          "source": "City of Denver; Confluence Kayaks; AW",
+          "_confidence": "high",
+          "riverMile": 51.9
+        },
+        {
+          "name": "Globeville Landing",
+          "altNames": [],
+          "kind": "take-out",
+          "latitude": 39.7793,
+          "longitude": -104.9805,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Lower Denver South Platte access on the Greenway.",
+          "source": "Denver Parks",
+          "_confidence": "medium",
+          "riverMile": 54.34
+        },
+        {
+          "name": "Brighton (Bromley Lane)",
+          "altNames": [
+            "Brighton put-in"
+          ],
+          "kind": "both",
+          "latitude": 39.965,
+          "longitude": -104.8128,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "Brighton SWA / Bromley Lane bridge; downstream of Denver metro.",
+          "source": "CPW; Adams County Open Space",
+          "_confidence": "low",
+          "riverMile": 74.37
+        }
+      ],
+      "impassableDams": [
+        {
+          "name": "Cheesman Dam",
+          "latitude": 39.2226,
+          "longitude": -105.2756,
+          "notes": "Denver Water; 221 ft granite arch-gravity dam. Separates Upper South Platte from Deckers corridor. Impassable.",
+          "source": "Wikipedia Cheesman Dam; Denver Water",
+          "_confidence": "high",
+          "riverMile": null
+        },
+        {
+          "name": "Strontia Springs Dam",
+          "latitude": 39.4347,
+          "longitude": -105.1233,
+          "notes": "Denver Water; 243 ft concrete double-curvature arch dam. Separates Deckers/Nighthawk corridor from Waterton Canyon.",
+          "source": "Denver Water",
+          "_confidence": "high",
+          "riverMile": 23.08
+        },
+        {
+          "name": "Chatfield Dam",
+          "latitude": 39.5472,
+          "longitude": -105.065,
+          "notes": "USACE flood-control dam. Separates Waterton Canyon from Denver urban corridor.",
+          "source": "USACE; CPW Chatfield State Park",
+          "_confidence": "high",
+          "riverMile": 34.19
+        }
+      ],
+      "gauges": [
+        {
+          "id": "usgs-06701900",
+          "name": "South Platte below Brush Creek near Trumbull (Deckers)",
+          "latitude": 39.26,
+          "longitude": -105.2214,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": 4.67
+        },
+        {
+          "id": "usgs-06710247",
+          "name": "South Platte below Union Ave at Englewood (River Run Park)",
+          "latitude": 39.6431,
+          "longitude": -105.0178,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": 42.69
+        },
+        {
+          "id": "usgs-06714000",
+          "name": "South Platte at Denver (near Confluence Park)",
+          "latitude": 39.7553,
+          "longitude": -105.0072,
+          "notes": "NEW.",
+          "source": "USGS NWIS",
+          "riverMile": 51.9
+        }
+      ]
+    },
+    "north-platte": {
+      "corridorIds": [
+        "north-platte-corridor"
+      ],
+      "_summary": "North Platte: only Colorado section is Northgate Canyon (North Park / Walden area) before entering Wyoming. 2 APs, 0 impassable dams, 1 gauge.",
+      "accessPoints": [
+        {
+          "name": "Routt Access",
+          "altNames": [
+            "USFS Routt Access",
+            "Northgate put-in"
+          ],
+          "kind": "put-in",
+          "latitude": 40.992,
+          "longitude": -106.3398,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "USFS Medicine Bow-Routt; top of Northgate Canyon, just south of WY border. Concrete steps to ledge ~10 ft above river. Platte River Wilderness.",
+          "source": "USFS MBR; AW (river-detail/2464); Wikipedia Northgate Canyon",
+          "_confidence": "high",
+          "riverMile": 0
+        },
+        {
+          "name": "Six Mile Gap (WY)",
+          "altNames": [
+            "Sixmile Gap",
+            "6-Mile take-out"
+          ],
+          "kind": "take-out",
+          "latitude": 41.0824,
+          "longitude": -106.3478,
+          "fee": "free",
+          "vehicleAccess": true,
+          "notes": "BLM access in Wyoming ~6 mi north of CO border. Standard Northgate take-out.",
+          "source": "BLM; AW; Poudre Paddlers",
+          "_confidence": "high",
+          "riverMile": 7.07
+        }
+      ],
+      "impassableDams": [],
+      "gauges": [
+        {
+          "id": "usgs-06620000",
+          "name": "North Platte near Northgate",
+          "latitude": 40.9758,
+          "longitude": -106.3539,
+          "notes": "Existing.",
+          "source": "USGS NWIS",
+          "riverMile": null
+        }
+      ]
+    }
+  }
+}

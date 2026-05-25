@@ -1,9 +1,10 @@
 import { Resource, tables } from 'harper';
-import { RIVERS, SECTIONS, GAUGES, RESERVOIRS, SNOWPACK_BASINS, DATA_SOURCES, FLOW_BANDS, WATERSHEDS, CORRIDORS } from '../lib/seed-data.ts';
+import { RIVERS, SECTIONS, GAUGES, RESERVOIRS, SNOWPACK_BASINS, DATA_SOURCES, FLOW_BANDS, WATERSHEDS, CORRIDORS, ACCESS_POINTS, IMPASSABLE_POINTS } from '../lib/seed-data.ts';
 import { invalidateFlowBandsCache } from '../lib/flow-bands.ts';
 import { invalidateWatershedsCache } from '../lib/watersheds.ts';
 import { invalidateCorridorsCache } from '../lib/corridors.ts';
 import { invalidateDashboardCache } from './Dashboard.ts';
+import { invalidateCorridorTilesCache } from './CorridorTiles.ts';
 import { compositeId } from '../lib/utils.ts';
 import { loadWorldRivers } from '../lib/world-rivers.ts';
 
@@ -22,6 +23,8 @@ async function fullSeed(): Promise<Record<string, number>> {
 	for (const w of WATERSHEDS) await tables.Watershed.put(w.id, w);
 	for (const c of CORRIDORS) await tables.RiverCorridor.put(c.id, c);
 	for (const r of RIVERS) await tables.River.put(r.id, r);
+	for (const ap of ACCESS_POINTS) await tables.AccessPoint.put(ap.id, ap);
+	for (const ip of IMPASSABLE_POINTS) await tables.ImpassablePoint.put(ip.id, ip);
 	for (const s of SECTIONS) await tables.RiverSection.put(s.id, s);
 	for (const g of GAUGES) await tables.Gauge.put(g.id, g);
 	for (const r of RESERVOIRS) await tables.Reservoir.put(r.id, r);
@@ -34,6 +37,8 @@ async function fullSeed(): Promise<Record<string, number>> {
 		rivers: RIVERS.length,
 		sections: SECTIONS.length,
 		gauges: GAUGES.length,
+		accessPoints: ACCESS_POINTS.length,
+		impassablePoints: IMPASSABLE_POINTS.length,
 		reservoirs: RESERVOIRS.length,
 		basins: SNOWPACK_BASINS.length,
 		sources: DATA_SOURCES.length,
@@ -78,13 +83,24 @@ async function backfillMissingSeeds(): Promise<{ backfilled: Record<string, numb
 			for (const c of CORRIDORS) await tables.RiverCorridor.put(c.id, c);
 			backfilled.corridors = CORRIDORS.length;
 		}
-		// Re-upsert rivers/sections so newly-added denormalized fields
-		// (watershedId, corridorId, driver) land on existing rows.
-		if (backfilled.watersheds || backfilled.corridors) {
+		if ((await count(tables.AccessPoint)) === 0) {
+			for (const ap of ACCESS_POINTS) await tables.AccessPoint.put(ap.id, ap);
+			backfilled.accessPoints = ACCESS_POINTS.length;
+		}
+		if ((await count(tables.ImpassablePoint)) === 0) {
+			for (const ip of IMPASSABLE_POINTS) await tables.ImpassablePoint.put(ip.id, ip);
+			backfilled.impassablePoints = IMPASSABLE_POINTS.length;
+		}
+		// Re-upsert rivers/sections/gauges so newly-added denormalized fields
+		// (watershedId, corridorId, driver, fromAccessPointId, toAccessPointId,
+		// gauge sortIndex) land on existing rows.
+		if (backfilled.watersheds || backfilled.corridors || backfilled.accessPoints || backfilled.impassablePoints) {
 			for (const r of RIVERS) await tables.River.put(r.id, r);
 			for (const s of SECTIONS) await tables.RiverSection.put(s.id, s);
+			for (const g of GAUGES) await tables.Gauge.put(g.id, g);
 			backfilled.rivers = RIVERS.length;
 			backfilled.sections = SECTIONS.length;
+			backfilled.gauges = GAUGES.length;
 		}
 	}
 
@@ -99,6 +115,7 @@ async function backfillMissingSeeds(): Promise<{ backfilled: Record<string, numb
 	invalidateCorridorsCache();
 	invalidateFlowBandsCache();
 	invalidateDashboardCache();
+	invalidateCorridorTilesCache();
 	return { backfilled, alreadySeeded: false };
 }
 
@@ -200,6 +217,8 @@ export class Seed extends Resource {
 			rivers: await count(tables.River),
 			sections: await count(tables.RiverSection),
 			gauges: await count(tables.Gauge),
+			accessPoints: await count(tables.AccessPoint),
+			impassablePoints: await count(tables.ImpassablePoint),
 			reservoirs: await count(tables.Reservoir),
 			basins: await count(tables.SnowpackBasin),
 			sources: await count(tables.DataSource),
@@ -216,6 +235,7 @@ export class Seed extends Resource {
 			for (const b of FLOW_BANDS) await tables.FlowBand.put(b.id, b);
 			invalidateFlowBandsCache();
 			invalidateDashboardCache();
+			invalidateCorridorTilesCache();
 			return { ok: true, flowBands: FLOW_BANDS.length, action };
 		}
 
@@ -231,14 +251,26 @@ export class Seed extends Resource {
 		if (action === 'hierarchy') {
 			// Forced idempotent re-seed of the watershed/corridor hierarchy plus
 			// the denormalized watershedId / corridorId / driver fields on rivers
-			// and sections.
+			// and sections, plus AccessPoints and ImpassablePoints from curated data.
+			// AccessPoint IDs changed (auto-derived → curated) so clear stale rows
+			// before re-adding.
+			const curatedApIds = new Set(ACCESS_POINTS.map(a => a.id));
+			for await (const row of tables.AccessPoint.search({ conditions: [] })) {
+				if (!curatedApIds.has((row as any).id)) {
+					await tables.AccessPoint.delete((row as any).id);
+				}
+			}
 			for (const w of WATERSHEDS) await tables.Watershed.put(w.id, w);
 			for (const c of CORRIDORS) await tables.RiverCorridor.put(c.id, c);
+			for (const ap of ACCESS_POINTS) await tables.AccessPoint.put(ap.id, ap);
+			for (const ip of IMPASSABLE_POINTS) await tables.ImpassablePoint.put(ip.id, ip);
 			for (const r of RIVERS) await tables.River.put(r.id, r);
 			for (const s of SECTIONS) await tables.RiverSection.put(s.id, s);
+			for (const g of GAUGES) await tables.Gauge.put(g.id, g);
 			invalidateWatershedsCache();
 			invalidateCorridorsCache();
 			invalidateDashboardCache();
+			invalidateCorridorTilesCache();
 			return {
 				ok: true,
 				action,
@@ -246,6 +278,9 @@ export class Seed extends Resource {
 				corridors: CORRIDORS.length,
 				rivers: RIVERS.length,
 				sections: SECTIONS.length,
+				gauges: GAUGES.length,
+				accessPoints: ACCESS_POINTS.length,
+				impassablePoints: IMPASSABLE_POINTS.length,
 			};
 		}
 

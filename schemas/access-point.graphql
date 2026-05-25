@@ -1,0 +1,17 @@
+type AccessPoint @table @export {
+	id: ID @primaryKey
+	corridorId: ID @indexed
+	corridor: RiverCorridor @relationship(from: "corridorId")
+	riverId: ID @indexed
+	river: River @relationship(from: "riverId")
+	name: String
+	altNames: String
+	kind: String
+	sortIndex: Int @indexed
+	latitude: Float
+	longitude: Float
+	riverMile: Float
+	fee: String
+	vehicleAccess: Boolean
+	notes: String
+}
