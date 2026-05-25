@@ -52,26 +52,8 @@ export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'logs
 				</nav>
 			</div>
 			<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-				{activePage === 'rivers' && (
-					<div style={{
-						display: 'flex', alignItems: 'center', gap: 8,
-						padding: '8px 12px', borderRadius: 'var(--r-pill)',
-						background: 'var(--bg-sunken)', border: '1px solid var(--rule)',
-						color: 'var(--ink-3)', width: 280,
-					}}>
-						<Icon name="search" size={15} color="var(--ink-3)" />
-						<span style={{ fontSize: 13 }}>Search rivers, sections, gauges…</span>
-					</div>
-				)}
 				{auth.isAuthenticated ? (
 					<>
-						<button onClick={() => navigate('/log/new')} style={{
-							display: 'flex', alignItems: 'center', gap: 4,
-							padding: '8px 12px', borderRadius: 'var(--r-pill)',
-							background: 'var(--river-700)', border: '1px solid var(--river-700)',
-							color: '#fff', fontSize: 12, fontWeight: 600,
-							fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', cursor: 'pointer',
-						}}>+ Log</button>
 						<button onClick={() => navigate('/profile')} style={{
 							display: 'flex', alignItems: 'center',
 							padding: '8px 12px', borderRadius: 'var(--r-pill)',
