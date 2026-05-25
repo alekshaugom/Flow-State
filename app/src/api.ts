@@ -266,10 +266,9 @@ export interface SearchHit {
 	kind: 'section' | 'river' | 'watershed' | 'corridor' | 'world-river';
 	id: string;
 	name: string;
-	subtitle: string;
+	right: string;
 	href: string;
 	rank: number;
-	flowStatus?: string | null;
 	country?: string;
 	isoCountry?: string;
 	region?: string | null;

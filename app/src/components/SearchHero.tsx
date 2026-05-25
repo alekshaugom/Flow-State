@@ -13,8 +13,9 @@ const heroWrap: React.CSSProperties = {
 	position: 'relative',
 	width: '100%',
 	flexShrink: 0,
-	isolation: 'isolate',
 	minHeight: 360,
+	// No `isolation: isolate` — the dropdown needs to escape this stacking
+	// context to render above sibling content (river tiles) below the hero.
 };
 
 // The image + overlay are clipped by overflow:hidden on their own container so
@@ -54,17 +55,6 @@ const heroContent: React.CSSProperties = {
 	textAlign: 'center',
 };
 
-const eyebrow: React.CSSProperties = {
-	fontFamily: 'var(--font-mono)',
-	fontSize: 11,
-	letterSpacing: '0.22em',
-	textTransform: 'uppercase',
-	color: 'rgba(255,255,255,0.85)',
-	fontWeight: 600,
-	textShadow: '0 1px 12px rgba(0,0,0,0.4)',
-	marginBottom: 12,
-};
-
 const headline: React.CSSProperties = {
 	fontFamily: 'var(--font-sans)',
 	fontSize: 'clamp(28px, 5vw, 48px)',
@@ -89,6 +79,7 @@ const glassBoxWrap: React.CSSProperties = {
 	width: '100%',
 	maxWidth: 720,
 	marginTop: 28,
+	zIndex: 1000,
 };
 
 const glassBox: React.CSSProperties = {
@@ -134,22 +125,23 @@ const glassClearBtn: React.CSSProperties = {
 	transition: 'transform 120ms',
 };
 
-// Dropdown styling
+// Dropdown styling — sits above all sibling page content.
 const dropdownBase: React.CSSProperties = {
 	position: 'absolute',
 	top: 'calc(100% + 10px)',
 	left: 0,
 	right: 0,
-	background: 'rgba(255,255,255,0.92)',
+	background: 'rgba(255,255,255,0.96)',
 	backdropFilter: 'blur(24px) saturate(180%)',
 	WebkitBackdropFilter: 'blur(24px) saturate(180%)',
 	border: '1px solid rgba(255,255,255,0.7)',
 	borderRadius: 20,
-	boxShadow: '0 16px 60px rgba(0,30,50,0.25)',
+	boxShadow: '0 16px 60px rgba(0,30,50,0.28), 0 2px 8px rgba(0,30,50,0.08)',
 	maxHeight: 520,
 	overflow: 'auto',
-	zIndex: 50,
+	zIndex: 1000,
 	padding: 8,
+	textAlign: 'left',
 };
 
 const sectionLabelBase: React.CSSProperties = {
@@ -162,6 +154,7 @@ const sectionLabelBase: React.CSSProperties = {
 	display: 'flex',
 	alignItems: 'center',
 	gap: 8,
+	textAlign: 'left',
 };
 
 const hitRowBase: React.CSSProperties = {
@@ -172,6 +165,7 @@ const hitRowBase: React.CSSProperties = {
 	borderRadius: 12,
 	cursor: 'pointer',
 	gap: 14,
+	textAlign: 'left',
 };
 
 // Compact variant — small inline search box for non-home pages or below-the-fold callouts.
@@ -287,7 +281,6 @@ export function SearchHero({ variant = 'hero' }: SearchHeroProps) {
 								startIndex={0}
 								focusIdx={focusIdx}
 								go={go}
-								showCountry={false}
 							/>
 							<BucketSection
 								label="United States"
@@ -297,8 +290,6 @@ export function SearchHero({ variant = 'hero' }: SearchHeroProps) {
 								startIndex={(query.data.colorado || []).length}
 								focusIdx={focusIdx}
 								go={go}
-								showCountry={false}
-								showState
 							/>
 							<BucketSection
 								label="Worldwide"
@@ -308,7 +299,6 @@ export function SearchHero({ variant = 'hero' }: SearchHeroProps) {
 								startIndex={(query.data.colorado || []).length + (query.data.america || []).length}
 								focusIdx={focusIdx}
 								go={go}
-								showCountry
 							/>
 						</>
 					)}
@@ -356,10 +346,9 @@ export function SearchHero({ variant = 'hero' }: SearchHeroProps) {
 				<div style={heroOverlay} aria-hidden />
 			</div>
 			<div style={heroContent}>
-				<div style={eyebrow}>Flow State</div>
 				<h1 style={headline}>Find your next river</h1>
 				<p style={subhead}>
-					Real-time Colorado flows, plus 4,766 paddling rivers worldwide.
+					Real-time flows for Colorado, more coming soon.
 				</p>
 				<div ref={wrapRef} style={glassBoxWrap}>
 					<div style={glassBox}>
@@ -372,7 +361,7 @@ export function SearchHero({ variant = 'hero' }: SearchHeroProps) {
 							onKeyDown={onKeyDown}
 							placeholder="Search rivers, sections, watersheds, countries…"
 							aria-label="Search rivers"
-							style={glassInput}
+							style={{ ...glassInput, textAlign: 'left' }}
 						/>
 						{q.length > 0 ? (
 							<button
@@ -407,11 +396,9 @@ interface BucketSectionProps {
 	startIndex: number;
 	focusIdx: number;
 	go: (hit: SearchHit) => void;
-	showCountry?: boolean;
-	showState?: boolean;
 }
 
-function BucketSection({ label, color, dot, hits, startIndex, focusIdx, go, showCountry, showState }: BucketSectionProps) {
+function BucketSection({ label, color, dot, hits, startIndex, focusIdx, go }: BucketSectionProps) {
 	if (hits.length === 0) return null;
 	return (
 		<div>
@@ -428,7 +415,6 @@ function BucketSection({ label, color, dot, hits, startIndex, focusIdx, go, show
 			{hits.map((h, idx) => {
 				const globalIdx = startIndex + idx;
 				const focused = globalIdx === focusIdx;
-				const right = rightColumn(h, { showCountry, showState });
 				return (
 					<div
 						key={`${h.kind}:${h.id}`}
@@ -440,39 +426,22 @@ function BucketSection({ label, color, dot, hits, startIndex, focusIdx, go, show
 							background: focused ? 'rgba(31, 81, 124, 0.08)' : 'transparent',
 						}}
 					>
-						<div style={{ minWidth: 0 }}>
-							<div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-0)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-								{h.name}
-							</div>
-							<div style={{ fontSize: 12, color: 'var(--ink-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-								{h.subtitle}
-							</div>
+						<div style={{
+							fontSize: 14, fontWeight: 600, color: 'var(--ink-0)',
+							whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+							textAlign: 'left',
+						}}>
+							{h.name}
 						</div>
 						<div style={{
 							fontSize: 12, color: 'var(--ink-2)', fontWeight: 500,
 							whiteSpace: 'nowrap', textAlign: 'right',
 						}}>
-							{right}
+							{h.right}
 						</div>
 					</div>
 				);
 			})}
 		</div>
 	);
-}
-
-function rightColumn(h: SearchHit, opts: { showCountry?: boolean; showState?: boolean }): string {
-	if (opts.showCountry) {
-		return h.country || '—';
-	}
-	if (opts.showState) {
-		return h.region || 'USA';
-	}
-	switch (h.kind) {
-		case 'section': return 'Section';
-		case 'river': return 'River';
-		case 'watershed': return 'Watershed';
-		case 'corridor': return 'Corridor';
-		case 'world-river': return h.country || 'Worldwide';
-	}
 }
