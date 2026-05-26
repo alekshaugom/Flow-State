@@ -169,7 +169,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 80,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 11.11,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA developed campground on CR 371 north of BV. Standard Numbers take-out."
@@ -244,7 +244,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 130,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 24.5,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA site at US-285 MP 144.7, east on CR 301. TOP of Browns Canyon. UPSTREAM Fisherman's Bridge (distinct from the downstream one)."
@@ -445,19 +445,19 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"notes": "AHRA site along US-50 in Bighorn Sheep Canyon with ~0.5 mi river trail."
 	},
 	{
-		"id": "ap_arkansas-headwaters_five-points",
+		"id": "ap_arkansas-headwaters_ford-s-landing",
 		"corridorId": "arkansas-headwaters",
 		"riverId": "arkansas",
-		"name": "Five Points",
-		"altNames": "Five Points Recreation Site,Five Points Campground",
+		"name": "Ford's Landing",
+		"altNames": "Ford Crossing",
 		"kind": "both",
 		"sortIndex": 270,
-		"latitude": 38.45295,
-		"longitude": -105.49319,
-		"riverMile": 87.24,
+		"latitude": 38.4097,
+		"longitude": -105.59084,
+		"riverMile": 79.42,
 		"fee": "fee",
 		"vehicleAccess": true,
-		"notes": "AHRA developed campground at US-50 MP 260 (~20 mi west of Cañon City). 20 sites + bighorn sheep watchable wildlife area."
+		"notes": "AHRA boat ramp ~0.35 mi upstream/west of Texas Creek confluence. Note: previous note said 'east' — that was incorrect per OSM coords."
 	},
 	{
 		"id": "ap_arkansas-headwaters_texas-creek",
@@ -475,19 +475,19 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"notes": "AHRA site at confluence of Texas Creek and Arkansas on US-50."
 	},
 	{
-		"id": "ap_arkansas-headwaters_ford-s-landing",
+		"id": "ap_arkansas-headwaters_five-points",
 		"corridorId": "arkansas-headwaters",
 		"riverId": "arkansas",
-		"name": "Ford's Landing",
-		"altNames": "Ford Crossing",
+		"name": "Five Points",
+		"altNames": "Five Points Recreation Site,Five Points Campground",
 		"kind": "both",
 		"sortIndex": 290,
-		"latitude": 38.4097,
-		"longitude": -105.59084,
-		"riverMile": 79.42,
+		"latitude": 38.45295,
+		"longitude": -105.49319,
+		"riverMile": 87.24,
 		"fee": "fee",
 		"vehicleAccess": true,
-		"notes": "AHRA boat ramp east of Texas Creek."
+		"notes": "AHRA developed campground at US-50 MP 260 (~20 mi west of Cañon City). 20 sites + bighorn sheep watchable wildlife area."
 	},
 	{
 		"id": "ap_arkansas-headwaters_pinnacle-rock",
@@ -610,11 +610,11 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"notes": "Lake Pueblo State Park boat ramp where the Arkansas enters Lake Pueblo. Practical lower take-out before the dam."
 	},
 	{
-		"id": "ap_arkansas-headwaters_arkansas-river-below-pueblo-dam",
-		"corridorId": "arkansas-headwaters",
+		"id": "ap_arkansas-pueblo-plains_pueblo-mup-put-in",
+		"corridorId": "arkansas-pueblo-plains",
 		"riverId": "arkansas",
-		"name": "Arkansas River below Pueblo Dam",
-		"altNames": "Below Pueblo Dam put-in,Arkansas River Trail put-in",
+		"name": "Pueblo MUP put-in",
+		"altNames": "Arkansas River below Pueblo Dam,Below Pueblo Dam put-in,Arkansas River Trail put-in",
 		"kind": "put-in",
 		"sortIndex": 380,
 		"latitude": 38.26991,
@@ -623,6 +623,21 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Slipway on Arkansas River MUP in Pueblo, below Pueblo Dam. Resumes the river corridor downstream of the impassable dam. Class I-II."
+	},
+	{
+		"id": "ap_arkansas-pueblo-plains_pueblo-whitewater-park",
+		"corridorId": "arkansas-pueblo-plains",
+		"riverId": "arkansas",
+		"name": "Pueblo Whitewater Park",
+		"altNames": "Pueblo Whitewater Park (Tom Glasgow Boat Ramp),Tom Glasgow Boat Ramp,Pueblo MUP take-out,Moffat Street access",
+		"kind": "take-out",
+		"sortIndex": 390,
+		"latitude": 38.2533,
+		"longitude": -104.6044,
+		"riverMile": 150.36,
+		"fee": "free",
+		"vehicleAccess": true,
+		"notes": "Pueblo Whitewater Park play features and Tom Glasgow Boat Ramp at Moffat Street. Standard take-out for the Class I-II float below Pueblo Dam. Pueblo Parks & Rec."
 	},
 	{
 		"id": "ap_upper-colorado_confluence-river-access-kremmling",
@@ -874,7 +889,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 170,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 102.5,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Public ramp in New Castle; 10.7 mi above Silt."
@@ -889,7 +904,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 180,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 111,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Cement ramp SE corner of Silt I-70 bridge."
@@ -904,7 +919,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 190,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 119.7,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Public ramp in Rifle."
@@ -919,7 +934,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 200,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 158.75,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "DeBeque Canyon access."
@@ -934,7 +949,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 210,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 182,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Town of Palisade ramp off G Rd/Hwy 6."
@@ -949,7 +964,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 220,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 190,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "CPW state park ramp at 32 Rd / Hwy 141 in Clifton."
@@ -979,7 +994,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 240,
 		"latitude": 39.0264,
 		"longitude": -109.0586,
-		"riverMile": null,
+		"riverMile": 228.9,
 		"fee": "permit-required",
 		"vehicleAccess": true,
 		"notes": "BLM Moab FO at I-70 exit 227 (Utah); take-out for Ruby-Horsethief."
@@ -992,9 +1007,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Stevens Park",
 		"kind": "put-in",
 		"sortIndex": 10,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 39.607,
+		"longitude": -106.4468,
+		"riverMile": 0,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Town of Minturn informal access above Dowd Chutes."
@@ -1009,7 +1024,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 20,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 1.4,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Take-out for Class III-IV Dowd Chutes between Vail and Avon."
@@ -1022,9 +1037,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Bob the Bridge",
 		"kind": "both",
 		"sortIndex": 30,
-		"latitude": 39.6314,
-		"longitude": -106.5223,
-		"riverMile": 0,
+		"latitude": 39.6321,
+		"longitude": -106.5221,
+		"riverMile": 3,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Town of Avon WW park beside Avon Road bridge. Coordinates approximate."
@@ -1052,9 +1067,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Wolcott Campground",
 		"kind": "both",
 		"sortIndex": 50,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 39.7124,
+		"longitude": -106.6969,
+		"riverMile": 18,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "BLM Wolcott Campground at I-70 exit 157."
@@ -1067,9 +1082,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Eagle Whitewater Park,Eagle Fairgrounds",
 		"kind": "both",
 		"sortIndex": 60,
-		"latitude": 39.6553,
-		"longitude": -106.8287,
-		"riverMile": 21.83,
+		"latitude": 39.6581,
+		"longitude": -106.8298,
+		"riverMile": 27.4,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Town of Eagle whitewater park at fairgrounds. Coords are Eagle town centroid."
@@ -1099,25 +1114,10 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 80,
 		"latitude": 39.649,
 		"longitude": -107.063,
-		"riverMile": 38.03,
+		"riverMile": 43.6,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Dotsero Landing on Colorado just below Eagle confluence."
-	},
-	{
-		"id": "ap_roaring-fork-corridor_upper-woody-creek-bridge",
-		"corridorId": "roaring-fork-corridor",
-		"riverId": "roaring-fork",
-		"name": "Upper Woody Creek Bridge",
-		"altNames": "Slaughterhouse Put-in,Woody Creek",
-		"kind": "put-in",
-		"sortIndex": 10,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
-		"fee": "free",
-		"vehicleAccess": true,
-		"notes": "Put-in for Slaughterhouse Class IV; Smith Way off CO-82 / McLain Flats Rd."
 	},
 	{
 		"id": "ap_roaring-fork-corridor_henry-stein-park-slaughterhouse-bridge",
@@ -1125,14 +1125,29 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"riverId": "roaring-fork",
 		"name": "Henry Stein Park (Slaughterhouse Bridge)",
 		"altNames": "Stein Park,Cemetery Lane Bridge,Slaughterhouse Bridge",
-		"kind": "both",
-		"sortIndex": 20,
+		"kind": "put-in",
+		"sortIndex": 10,
 		"latitude": null,
 		"longitude": null,
 		"riverMile": null,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "City of Aspen park at Cemetery Lane bridge; Slaughterhouse take-out, Toothache/Cemetery put-in."
+	},
+	{
+		"id": "ap_roaring-fork-corridor_upper-woody-creek-bridge",
+		"corridorId": "roaring-fork-corridor",
+		"riverId": "roaring-fork",
+		"name": "Upper Woody Creek Bridge",
+		"altNames": "Slaughterhouse Put-in,Woody Creek",
+		"kind": "take-out",
+		"sortIndex": 20,
+		"latitude": null,
+		"longitude": null,
+		"riverMile": null,
+		"fee": "free",
+		"vehicleAccess": true,
+		"notes": "Put-in for Slaughterhouse Class IV; Smith Way off CO-82 / McLain Flats Rd."
 	},
 	{
 		"id": "ap_roaring-fork-corridor_wingo-junction-river-access",
@@ -1262,9 +1277,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Silverthorne Put-in",
 		"kind": "put-in",
 		"sortIndex": 10,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 39.72604,
+		"longitude": -106.13053,
+		"riverMile": 6.5,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "USFS Blue River CG / Hwy 9 access just below Dillon Dam in Silverthorne. Upper Blue Class III-IV put-in."
@@ -1277,9 +1292,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Silverthorne Take-out",
 		"kind": "take-out",
 		"sortIndex": 20,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 39.75944,
+		"longitude": -106.135,
+		"riverMile": 10,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Town of Silverthorne river-access park ~2.5 mi below Blue River CG."
@@ -1294,7 +1309,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 30,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 26,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "USBR/USFS access immediately below Green Mountain Dam. Lower Blue put-in."
@@ -1309,7 +1324,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 40,
 		"latitude": null,
 		"longitude": null,
-		"riverMile": null,
+		"riverMile": 29.8,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Informal mid-run access on Spring Creek Rd between Green Mountain Dam and Kremmling."
@@ -1324,7 +1339,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 50,
 		"latitude": 40.042469,
 		"longitude": -106.394698,
-		"riverMile": 0,
+		"riverMile": 39.8,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Same BLM Confluence site as Colorado put-in for Gore Canyon; Lower Blue take-out."
@@ -1412,27 +1427,12 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Almont Bridge",
 		"kind": "put-in",
 		"sortIndex": 60,
-		"latitude": 38.667,
-		"longitude": -106.846,
+		"latitude": 38.663,
+		"longitude": -106.847,
 		"riverMile": 0,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Taylor + East River confluence forms the Gunnison. Top of Upper Gunnison, bottom of Taylor."
-	},
-	{
-		"id": "ap_gunnison-headwaters_gunnison-whitewater-park",
-		"corridorId": "gunnison-headwaters",
-		"riverId": "gunnison",
-		"name": "Gunnison Whitewater Park",
-		"altNames": "Gunny Play Park",
-		"kind": "both",
-		"sortIndex": 70,
-		"latitude": 38.547,
-		"longitude": -106.91,
-		"riverMile": 11.13,
-		"fee": "free",
-		"vehicleAccess": true,
-		"notes": "Town park with three surf features ~1 mi east of downtown Gunnison off US-50."
 	},
 	{
 		"id": "ap_gunnison-headwaters_town-of-gunnison-us-50-access",
@@ -1441,13 +1441,28 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"name": "Town of Gunnison (US-50 access)",
 		"altNames": "Gunnison take-out",
 		"kind": "take-out",
-		"sortIndex": 80,
+		"sortIndex": 70,
 		"latitude": 38.545,
 		"longitude": -106.925,
 		"riverMile": 11.13,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Common bottom of Almont-to-Gunnison float, before Blue Mesa backwater."
+	},
+	{
+		"id": "ap_gunnison-headwaters_gunnison-whitewater-park",
+		"corridorId": "gunnison-headwaters",
+		"riverId": "gunnison",
+		"name": "Gunnison Whitewater Park",
+		"altNames": "Gunny Play Park",
+		"kind": "both",
+		"sortIndex": 80,
+		"latitude": 38.5333,
+		"longitude": -106.9491,
+		"riverMile": 12.5,
+		"fee": "free",
+		"vehicleAccess": true,
+		"notes": "Town park with three surf features ~1 mi east of downtown Gunnison off US-50."
 	},
 	{
 		"id": "ap_gunnison-headwaters_blue-mesa-reservoir-inflow-corridor-end",
@@ -1472,9 +1487,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Chukar Trailhead",
 		"kind": "put-in",
 		"sortIndex": 100,
-		"latitude": 38.7,
-		"longitude": -107.738,
-		"riverMile": null,
+		"latitude": 38.6129,
+		"longitude": -107.8361,
+		"riverMile": 73,
 		"fee": "BLM permit (self-issue) + day-use",
 		"vehicleAccess": true,
 		"notes": "Primary Gunnison Gorge Wilderness access. 1.1-mi pack trail (~600 ft drop); horses haul gear. Off Peach Valley Rd from Olathe."
@@ -1487,9 +1502,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Bobcat Trailhead",
 		"kind": "both",
 		"sortIndex": 110,
-		"latitude": 38.69,
-		"longitude": -107.77,
-		"riverMile": null,
+		"latitude": 38.63,
+		"longitude": -107.8702,
+		"riverMile": 75,
 		"fee": "BLM permit (self-issue)",
 		"vehicleAccess": true,
 		"notes": "Steep 1.5-mi pack trail (~800 ft drop). Mostly fishing."
@@ -1502,9 +1517,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "",
 		"kind": "both",
 		"sortIndex": 120,
-		"latitude": 38.68,
-		"longitude": -107.79,
-		"riverMile": 82.47,
+		"latitude": 38.6486,
+		"longitude": -107.867,
+		"riverMile": 79.5,
 		"fee": "BLM permit (self-issue)",
 		"vehicleAccess": true,
 		"notes": "Foot/horse trail into Gunnison Gorge Wilderness."
@@ -1517,9 +1532,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Ute Park Trail",
 		"kind": "both",
 		"sortIndex": 130,
-		"latitude": 38.665,
-		"longitude": -107.815,
-		"riverMile": 80.42,
+		"latitude": 38.6826,
+		"longitude": -107.864,
+		"riverMile": 82.47,
 		"fee": "BLM permit (self-issue)",
 		"vehicleAccess": true,
 		"notes": "Longest of the four wilderness trails (4.5 mi, ~1,200 ft drop)."
@@ -1532,9 +1547,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Pleasure Park,North Fork Confluence",
 		"kind": "take-out",
 		"sortIndex": 140,
-		"latitude": 38.793,
-		"longitude": -107.879,
-		"riverMile": 93.92,
+		"latitude": 38.7848,
+		"longitude": -107.8366,
+		"riverMile": 86,
 		"fee": "BLM free day-use; private outfitter",
 		"vehicleAccess": true,
 		"notes": "Standard take-out for Gunnison Gorge trips at North Fork confluence. BLM Gunnison Forks + private Pleasure Park."
@@ -1547,8 +1562,8 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "",
 		"kind": "both",
 		"sortIndex": 150,
-		"latitude": 38.748,
-		"longitude": -108.073,
+		"latitude": 38.753,
+		"longitude": -108.0784,
 		"riverMile": 106.5,
 		"fee": "free",
 		"vehicleAccess": true,
@@ -1622,8 +1637,8 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Below Stagecoach Reservoir",
 		"kind": "put-in",
 		"sortIndex": 10,
-		"latitude": 40.282,
-		"longitude": -106.864,
+		"latitude": 40.2865,
+		"longitude": -106.8291,
 		"riverMile": 0,
 		"fee": "CO State Parks pass",
 		"vehicleAccess": true,
@@ -1675,40 +1690,40 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"notes": "City park with Core Trail access. Mid-town."
 	},
 	{
-		"id": "ap_yampa-corridor_d-hole",
-		"corridorId": "yampa-corridor",
-		"riverId": "yampa",
-		"name": "D-Hole",
-		"altNames": "D Hole play wave",
-		"kind": "both",
-		"sortIndex": 50,
-		"latitude": 40.479,
-		"longitude": -106.827,
-		"riverMile": 23.97,
-		"fee": "free",
-		"vehicleAccess": true,
-		"notes": "Town section play wave downstream of Charlie's Hole."
-	},
-	{
 		"id": "ap_yampa-corridor_charlie-s-hole",
 		"corridorId": "yampa-corridor",
 		"riverId": "yampa",
 		"name": "Charlie's Hole",
 		"altNames": "C-Hole",
 		"kind": "both",
-		"sortIndex": 60,
-		"latitude": 40.483,
-		"longitude": -106.832,
-		"riverMile": 24.4,
+		"sortIndex": 50,
+		"latitude": 40.4889,
+		"longitude": -106.8403,
+		"riverMile": 23.97,
 		"fee": "free",
 		"vehicleAccess": true,
-		"notes": "Man-made play wave at 13th St Bridge / Bud Werner Library. Co-located with USGS gauge 09239500."
+		"notes": "Man-made play wave at 13th St Bridge / Bud Werner Library. Co-located with USGS gauge 09239500. Located at 13th St / Bud Werner Memorial Library (NOT co-located with USGS 09239500 which is at 5th St Bridge)."
 	},
 	{
-		"id": "ap_yampa-corridor_pamela-park",
+		"id": "ap_yampa-corridor_d-hole",
 		"corridorId": "yampa-corridor",
 		"riverId": "yampa",
-		"name": "Pamela Park",
+		"name": "D-Hole",
+		"altNames": "D Hole play wave",
+		"kind": "both",
+		"sortIndex": 60,
+		"latitude": 40.479,
+		"longitude": -106.827,
+		"riverMile": 24.5,
+		"fee": "free",
+		"vehicleAccess": true,
+		"notes": "Town section play wave downstream of Charlie's Hole."
+	},
+	{
+		"id": "ap_yampa-corridor_yampa-river-botanic-park-access",
+		"corridorId": "yampa-corridor",
+		"riverId": "yampa",
+		"name": "Yampa River Botanic Park access",
 		"altNames": "Pamela Lane access",
 		"kind": "both",
 		"sortIndex": 70,
@@ -1717,7 +1732,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"riverMile": 24.87,
 		"fee": "free",
 		"vehicleAccess": true,
-		"notes": "End of Pamela Lane near Yampa River Botanic Park."
+		"notes": "End of Pamela Lane near Yampa River Botanic Park. Address 1000 Pamela Ln. Parking on Pamela Ln is prohibited; use Botanic Park lot."
 	},
 	{
 		"id": "ap_yampa-corridor_james-brown-bridge",
@@ -1864,7 +1879,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 170,
 		"latitude": 40.52,
 		"longitude": -108.45,
-		"riverMile": null,
+		"riverMile": 171.2,
 		"fee": "CO State Parks pass",
 		"vehicleAccess": true,
 		"notes": "Yampa River SP at bottom of Cross Mountain Gorge."
@@ -1909,7 +1924,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 200,
 		"latitude": 40.444,
 		"longitude": -109.255,
-		"riverMile": null,
+		"riverMile": 250.7,
 		"fee": "NPS Dinosaur permit",
 		"vehicleAccess": true,
 		"notes": "End of Yampa-through-Dinosaur and Lodore trips. ~15 mi NE of Jensen, UT."
@@ -1930,34 +1945,34 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"notes": "Top of Upper Animas wilderness (Class IV-V). Dirt access (CR31) off Hwy 550 at Mineral Creek crossing."
 	},
 	{
-		"id": "ap_animas-corridor_tacoma-power-plant",
-		"corridorId": "animas-corridor",
-		"riverId": "animas",
-		"name": "Tacoma Power Plant",
-		"altNames": "Tall Timber take-out area",
-		"kind": "take-out",
-		"sortIndex": 20,
-		"latitude": 37.5974,
-		"longitude": -107.777,
-		"riverMile": 19.83,
-		"fee": "free / private (railroad)",
-		"vehicleAccess": false,
-		"notes": "End of Upper Animas wilderness. No road access — D&SNG train pickup or rail-line hike."
-	},
-	{
 		"id": "ap_animas-corridor_rockwood-depot",
 		"corridorId": "animas-corridor",
 		"riverId": "animas",
 		"name": "Rockwood Depot",
 		"altNames": "Rockwood Box take-out",
 		"kind": "take-out",
-		"sortIndex": 30,
+		"sortIndex": 20,
 		"latitude": 37.5905,
 		"longitude": -107.753,
 		"riverMile": 19.05,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Train depot via CR200, 1 mi off US-550. Hike up rail line to egress."
+	},
+	{
+		"id": "ap_animas-corridor_tacoma-power-plant",
+		"corridorId": "animas-corridor",
+		"riverId": "animas",
+		"name": "Tacoma Power Plant",
+		"altNames": "Tall Timber take-out area",
+		"kind": "take-out",
+		"sortIndex": 30,
+		"latitude": 37.5974,
+		"longitude": -107.777,
+		"riverMile": 19.83,
+		"fee": "free / private (railroad)",
+		"vehicleAccess": false,
+		"notes": "End of Upper Animas wilderness. No road access — D&SNG train pickup or rail-line hike."
 	},
 	{
 		"id": "ap_animas-corridor_tall-timber-resort",
@@ -2132,27 +2147,27 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Bradfield Recreation Site,Bradfield Launch",
 		"kind": "put-in",
 		"sortIndex": 20,
-		"latitude": 37.6286,
-		"longitude": -108.6829,
+		"latitude": 37.65015,
+		"longitude": -108.73666,
 		"riverMile": 8.42,
 		"fee": "free launch / $8 camping",
 		"vehicleAccess": true,
 		"notes": "BLM Bradfield Rec Site. Boat ramp 1/4 mi downstream of bridge. Primary Slick Rock Canyon launch (47 mi to Slick Rock)."
 	},
 	{
-		"id": "ap_dolores-canyon_dove-creek-pump-station",
+		"id": "ap_dolores-canyon_mountain-sheep-point-recreation-site",
 		"corridorId": "dolores-canyon",
 		"riverId": "dolores",
-		"name": "Dove Creek Pump Station",
-		"altNames": "",
+		"name": "Mountain Sheep Point Recreation Site",
+		"altNames": "Dove Creek Pumps,Dove Creek Pump Station",
 		"kind": "take-out",
 		"sortIndex": 30,
-		"latitude": 37.7,
-		"longitude": -108.78,
-		"riverMile": 15.84,
+		"latitude": 37.79732,
+		"longitude": -108.8267,
+		"riverMile": 27.4,
 		"fee": "free",
 		"vehicleAccess": true,
-		"notes": "Intermediate take-out / put-in between Bradfield and Slick Rock. Approx coords."
+		"notes": "BLM Tres Rios District. Standard top of Slick Rock Canyon trips (Bradfield→Mountain Sheep is the 19-mile Class II 'Ponderosa Gorge' run; Mountain Sheep→Slick Rock continues through Snaggletooth)."
 	},
 	{
 		"id": "ap_dolores-canyon_slick-rock",
@@ -2207,9 +2222,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Gateway Resort,Hwy 141 bridge",
 		"kind": "both",
 		"sortIndex": 70,
-		"latitude": 38.419,
-		"longitude": -108.8217,
-		"riverMile": 123.39,
+		"latitude": 38.6804,
+		"longitude": -108.9797,
+		"riverMile": 150,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Put-in/take-out upstream river right of Hwy 141 bridge at Gateway Resort. Put-in for 32-mi run to Dewey (UT)."
@@ -2342,8 +2357,8 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "San Miguel/Dolores confluence",
 		"kind": "take-out",
 		"sortIndex": 80,
-		"latitude": 38.44,
-		"longitude": -108.85,
+		"latitude": 38.38,
+		"longitude": -108.803,
 		"riverMile": null,
 		"fee": "free",
 		"vehicleAccess": false,
@@ -2357,8 +2372,8 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "FR 631 / Piedra Road bridge",
 		"kind": "put-in",
 		"sortIndex": 10,
-		"latitude": 37.3667,
-		"longitude": -107.27,
+		"latitude": 37.35376,
+		"longitude": -107.32351,
 		"riverMile": 0,
 		"fee": "free",
 		"vehicleAccess": true,
@@ -2372,8 +2387,8 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "1st Fork",
 		"kind": "both",
 		"sortIndex": 20,
-		"latitude": 37.327,
-		"longitude": -107.34,
+		"latitude": 37.24297,
+		"longitude": -107.34124,
 		"riverMile": 5.59,
 		"fee": "free",
 		"vehicleAccess": true,
@@ -2410,11 +2425,11 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"notes": "Take-out for Class II-III lower stretch from US-160 to Navajo Lake."
 	},
 	{
-		"id": "ap_san-juan-corridor_above-pagosa-springs-williams-creek",
+		"id": "ap_san-juan-corridor_above-pagosa-springs-east-west-fork-confluence",
 		"corridorId": "san-juan-corridor",
 		"riverId": "san-juan",
-		"name": "Above Pagosa Springs (Williams Creek)",
-		"altNames": "",
+		"name": "Above Pagosa Springs (East/West Fork confluence)",
+		"altNames": "East-West Fork confluence,Upper San Juan US-160",
 		"kind": "put-in",
 		"sortIndex": 10,
 		"latitude": 37.34,
@@ -2422,22 +2437,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"riverMile": 0,
 		"fee": "free",
 		"vehicleAccess": true,
-		"notes": "Williams Creek tributary area NE of Pagosa via US-160 / Williams Creek Rd. Informal upper access in high-water years."
-	},
-	{
-		"id": "ap_san-juan-corridor_pagosa-springs-town-yamaguchi-park",
-		"corridorId": "san-juan-corridor",
-		"riverId": "san-juan",
-		"name": "Pagosa Springs Town / Yamaguchi Park",
-		"altNames": "Yamaguchi Park,Pagosa WW Park",
-		"kind": "both",
-		"sortIndex": 20,
-		"latitude": 37.2622,
-		"longitude": -107.0125,
-		"riverMile": 9.58,
-		"fee": "free",
-		"vehicleAccess": true,
-		"notes": "Pagosa Springs whitewater park — kayak/raft launch + two WW features adjacent to Riverwalk."
+		"notes": "Mainstem San Juan ~2.5 mi below the East Fork / West Fork confluence (the East and West Forks join NW of Pagosa Springs near Bear/Hidden Valley). Note: 'Williams Creek' name in prior notes was incorrect — Williams Creek is a Piedra River tributary in the Weminuche Wilderness, not San Juan."
 	},
 	{
 		"id": "ap_san-juan-corridor_malt-shoppe-put-in",
@@ -2446,13 +2446,28 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"name": "Malt Shoppe put-in",
 		"altNames": "",
 		"kind": "put-in",
-		"sortIndex": 30,
+		"sortIndex": 20,
 		"latitude": 37.2699,
 		"longitude": -107.0016,
 		"riverMile": 8.43,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "WW put-in 'behind the Malt Shoppe' — cited for Pagosa-to-Trujillo run."
+	},
+	{
+		"id": "ap_san-juan-corridor_pagosa-springs-town-yamaguchi-park",
+		"corridorId": "san-juan-corridor",
+		"riverId": "san-juan",
+		"name": "Pagosa Springs Town / Yamaguchi Park",
+		"altNames": "Yamaguchi Park,Pagosa WW Park",
+		"kind": "both",
+		"sortIndex": 30,
+		"latitude": 37.2622,
+		"longitude": -107.0125,
+		"riverMile": 9.58,
+		"fee": "free",
+		"vehicleAccess": true,
+		"notes": "Pagosa Springs whitewater park — kayak/raft launch + two WW features adjacent to Riverwalk."
 	},
 	{
 		"id": "ap_san-juan-corridor_trujillo-road-take-out",
@@ -2545,34 +2560,34 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"notes": "Preferred private put-in; better parking; cuts ~2 mi of boogie water."
 	},
 	{
-		"id": "ap_clear-creek-canyon_idaho-springs-i-70-hwy-103",
-		"corridorId": "clear-creek-canyon",
-		"riverId": "clear-creek",
-		"name": "Idaho Springs (I-70 / Hwy 103)",
-		"altNames": "Clear Creek Open Space",
-		"kind": "both",
-		"sortIndex": 50,
-		"latitude": 39.7475,
-		"longitude": -105.5147,
-		"riverMile": 10.26,
-		"fee": "free",
-		"vehicleAccess": true,
-		"notes": "Two large lots at I-70/Hwy 103 intersection; primary Dumont take-out."
-	},
-	{
 		"id": "ap_clear-creek-canyon_idaho-springs-town-park",
 		"corridorId": "clear-creek-canyon",
 		"riverId": "clear-creek",
 		"name": "Idaho Springs Town Park",
 		"altNames": "",
 		"kind": "take-out",
-		"sortIndex": 60,
+		"sortIndex": 50,
 		"latitude": 39.7423,
 		"longitude": -105.5132,
 		"riverMile": 10.2,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Small free lot, raft ramp; mid-town option."
+	},
+	{
+		"id": "ap_clear-creek-canyon_idaho-springs-i-70-hwy-103",
+		"corridorId": "clear-creek-canyon",
+		"riverId": "clear-creek",
+		"name": "Idaho Springs (I-70 / Hwy 103)",
+		"altNames": "Clear Creek Open Space",
+		"kind": "both",
+		"sortIndex": 60,
+		"latitude": 39.7475,
+		"longitude": -105.5147,
+		"riverMile": 10.26,
+		"fee": "free",
+		"vehicleAccess": true,
+		"notes": "Two large lots at I-70/Hwy 103 intersection; primary Dumont take-out."
 	},
 	{
 		"id": "ap_clear-creek-canyon_two-bears-kermits",
@@ -2965,34 +2980,34 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"notes": "Private fishing club immediately below Cheesman Dam; no public access."
 	},
 	{
-		"id": "ap_south-platte-corridor_deckers",
-		"corridorId": "south-platte-corridor",
-		"riverId": "south-platte",
-		"name": "Deckers",
-		"altNames": "Deckers Bridge",
-		"kind": "put-in",
-		"sortIndex": 20,
-		"latitude": 39.2659,
-		"longitude": -105.2231,
-		"riverMile": 5.51,
-		"fee": "free",
-		"vehicleAccess": true,
-		"notes": "Most popular Class II-III put-in. Deckers Chutes named rapid downstream."
-	},
-	{
 		"id": "ap_south-platte-corridor_trumbull",
 		"corridorId": "south-platte-corridor",
 		"riverId": "south-platte",
 		"name": "Trumbull",
 		"altNames": "Below Brush Creek",
 		"kind": "both",
-		"sortIndex": 30,
+		"sortIndex": 20,
 		"latitude": 39.2601,
 		"longitude": -105.2214,
 		"riverMile": 4.67,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "~0.7 mi NE of Deckers; gauge site. Pike NF pullouts along Hwy 67."
+	},
+	{
+		"id": "ap_south-platte-corridor_deckers",
+		"corridorId": "south-platte-corridor",
+		"riverId": "south-platte",
+		"name": "Deckers",
+		"altNames": "Deckers Bridge",
+		"kind": "put-in",
+		"sortIndex": 30,
+		"latitude": 39.2659,
+		"longitude": -105.2231,
+		"riverMile": 5.51,
+		"fee": "free",
+		"vehicleAccess": true,
+		"notes": "Most popular Class II-III put-in. Deckers Chutes named rapid downstream."
 	},
 	{
 		"id": "ap_south-platte-corridor_scraggy-view",
@@ -3211,7 +3226,7 @@ export const CURATED_IMPASSABLE_POINTS: CuratedImpassablePoint[] = [
 		"id": "dam_pueblo-dam",
 		"riverId": "arkansas",
 		"upstreamCorridorId": "arkansas-headwaters",
-		"downstreamCorridorId": null,
+		"downstreamCorridorId": "arkansas-pueblo-plains",
 		"name": "Pueblo Dam",
 		"kind": "impassable-dam",
 		"latitude": 38.26883,
@@ -3252,7 +3267,7 @@ export const CURATED_IMPASSABLE_POINTS: CuratedImpassablePoint[] = [
 		"kind": "impassable-dam",
 		"latitude": 39.6151,
 		"longitude": -106.0586,
-		"riverMile": null,
+		"riverMile": 0,
 		"notes": "Denver Water earthfill dam at Silverthorne; impounds Dillon Reservoir. Splits Upper Blue from the rafted reach starting at Blue River CG tailwater."
 	},
 	{
@@ -3264,7 +3279,7 @@ export const CURATED_IMPASSABLE_POINTS: CuratedImpassablePoint[] = [
 		"kind": "impassable-dam",
 		"latitude": 39.8776,
 		"longitude": -106.3305,
-		"riverMile": null,
+		"riverMile": 26,
 		"notes": "309-ft USBR dam (1943) between Silverthorne and Kremmling. Splits Upper Blue (Silverthorne reach) from Lower Blue (Kremmling reach)."
 	},
 	{
@@ -3274,8 +3289,8 @@ export const CURATED_IMPASSABLE_POINTS: CuratedImpassablePoint[] = [
 		"downstreamCorridorId": "gunnison-gorge-corridor",
 		"name": "Blue Mesa Dam",
 		"kind": "impassable-dam",
-		"latitude": 38.458,
-		"longitude": -107.324,
+		"latitude": 38.4531,
+		"longitude": -107.3375,
 		"riverMile": 40.09,
 		"notes": "Top of Aspinall Unit. Breaks Gunnison between Upper Gunnison/Blue Mesa inflow and Morrow Point Reservoir."
 	},
@@ -3286,8 +3301,8 @@ export const CURATED_IMPASSABLE_POINTS: CuratedImpassablePoint[] = [
 		"downstreamCorridorId": "gunnison-gorge-corridor",
 		"name": "Morrow Point Dam",
 		"kind": "impassable-dam",
-		"latitude": 38.451,
-		"longitude": -107.534,
+		"latitude": 38.4519,
+		"longitude": -107.5683,
 		"riverMile": 52.3,
 		"notes": "Middle Aspinall dam inside Black Canyon. Between Blue Mesa tailrace and Crystal Reservoir."
 	},
@@ -3298,8 +3313,8 @@ export const CURATED_IMPASSABLE_POINTS: CuratedImpassablePoint[] = [
 		"downstreamCorridorId": "gunnison-gorge-corridor",
 		"name": "Crystal Dam",
 		"kind": "impassable-dam",
-		"latitude": 38.499,
-		"longitude": -107.625,
+		"latitude": 38.5057,
+		"longitude": -107.6428,
 		"riverMile": 58.97,
 		"notes": "Bottom of Aspinall Unit. Releases feed lower Black Canyon and Gunnison Gorge below Gunnison Tunnel."
 	},
@@ -3346,8 +3361,8 @@ export const CURATED_IMPASSABLE_POINTS: CuratedImpassablePoint[] = [
 		"downstreamCorridorId": "south-platte-corridor",
 		"name": "Cheesman Dam",
 		"kind": "impassable-dam",
-		"latitude": 39.2226,
-		"longitude": -105.2756,
+		"latitude": 39.2077,
+		"longitude": -105.2721,
 		"riverMile": null,
 		"notes": "Denver Water; 221 ft granite arch-gravity dam. Separates Upper South Platte from Deckers corridor. Impassable."
 	},
@@ -3438,7 +3453,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"corridorId": "arkansas-headwaters",
 		"latitude": 38.84916,
 		"longitude": -106.12474,
-		"riverMile": 17.63,
+		"riverMile": 17.18,
 		"parameter": "discharge",
 		"unit": "cfs",
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=07087200",
@@ -3546,7 +3561,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=07099400",
 		"active": true,
 		"notes": "NEW. Just upstream of Pueblo Dam — measures inflow to Lake Pueblo.",
-		"sortIndex": 385
+		"sortIndex": 375
 	},
 	{
 		"id": "usgs-07099970",
@@ -3554,7 +3569,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"source": "usgs",
 		"sourceId": "07099970",
 		"riverId": "arkansas",
-		"corridorId": "arkansas-headwaters",
+		"corridorId": "arkansas-pueblo-plains",
 		"latitude": 38.25361,
 		"longitude": -104.60556,
 		"riverMile": 150.36,
@@ -3563,7 +3578,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=07099970",
 		"active": true,
 		"notes": "NEW. Below Pueblo Dam in Pueblo city.",
-		"sortIndex": 385
+		"sortIndex": 395
 	},
 	{
 		"id": "usgs-09034500",
@@ -3699,7 +3714,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=09064600",
 		"active": true,
 		"notes": "Existing.",
-		"sortIndex": 45
+		"sortIndex": 20
 	},
 	{
 		"id": "usgs-09070000",
@@ -3710,7 +3725,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"corridorId": "eagle-corridor",
 		"latitude": 39.64942954,
 		"longitude": -106.9536554,
-		"riverMile": 30.29,
+		"riverMile": 35.8,
 		"parameter": "discharge",
 		"unit": "cfs",
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=09070000",
@@ -3761,13 +3776,13 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"corridorId": "blue-corridor",
 		"latitude": 39.625556,
 		"longitude": -106.065833,
-		"riverMile": null,
+		"riverMile": 0.5,
 		"parameter": "discharge",
 		"unit": "cfs",
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=09050700",
 		"active": true,
 		"notes": "Existing.",
-		"sortIndex": 55
+		"sortIndex": 15
 	},
 	{
 		"id": "usgs-09110000",
@@ -3988,7 +4003,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=09359500",
 		"active": true,
 		"notes": "NEW. Critical Rockwood Box gauge.",
-		"sortIndex": 25
+		"sortIndex": 35
 	},
 	{
 		"id": "usgs-09361500",
@@ -4073,7 +4088,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=09171100",
 		"active": true,
 		"notes": "Existing. Distinct from 09169500 — below West Paradox Creek.",
-		"sortIndex": 75
+		"sortIndex": 65
 	},
 	{
 		"id": "usgs-09179500",
@@ -4116,15 +4131,15 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"sourceId": "09174600",
 		"riverId": "san-miguel",
 		"corridorId": "san-miguel-corridor",
-		"latitude": null,
-		"longitude": null,
+		"latitude": 38.244167,
+		"longitude": -108.501389,
 		"riverMile": null,
 		"parameter": "discharge",
 		"unit": "cfs",
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=09174600",
 		"active": true,
 		"notes": "NEW. Mid-corridor — coords not confirmed.",
-		"sortIndex": 999
+		"sortIndex": 65
 	},
 	{
 		"id": "usgs-09175500",
@@ -4157,7 +4172,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"unit": "cfs",
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=09177000",
 		"active": true,
-		"notes": "NEW. NAD27 site.",
+		"notes": "NEW. NAD83 datum.",
 		"sortIndex": 75
 	},
 	{
@@ -4209,7 +4224,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=09342500",
 		"active": true,
 		"notes": "Existing. Pagosa WW park reference.",
-		"sortIndex": 25
+		"sortIndex": 35
 	},
 	{
 		"id": "usgs-06716500",
@@ -4218,8 +4233,8 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"sourceId": "06716500",
 		"riverId": "clear-creek",
 		"corridorId": "clear-creek-canyon",
-		"latitude": 39.7589,
-		"longitude": -105.6228,
+		"latitude": 39.7658,
+		"longitude": -105.6256,
 		"riverMile": 3.35,
 		"parameter": "discharge",
 		"unit": "cfs",
@@ -4230,14 +4245,14 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 	},
 	{
 		"id": "usgs-06718000",
-		"name": "Clear Creek above Johnson Gulch near Idaho Springs",
+		"name": "Clear Creek below 23rd Avenue at Idaho Springs",
 		"source": "usgs",
 		"sourceId": "06718000",
 		"riverId": "clear-creek",
 		"corridorId": "clear-creek-canyon",
-		"latitude": 39.7444,
-		"longitude": -105.5306,
-		"riverMile": 9.17,
+		"latitude": 39.7424,
+		"longitude": -105.5075,
+		"riverMile": 10.5,
 		"parameter": "discharge",
 		"unit": "cfs",
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=06718000",
@@ -4252,15 +4267,15 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"sourceId": "06719505",
 		"riverId": "clear-creek",
 		"corridorId": "clear-creek-canyon",
-		"latitude": 39.7556,
-		"longitude": -105.2233,
-		"riverMile": 31.59,
+		"latitude": 39.7531,
+		"longitude": -105.2347,
+		"riverMile": 30.5,
 		"parameter": "discharge",
 		"unit": "cfs",
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=06719505",
 		"active": true,
 		"notes": "Existing.",
-		"sortIndex": 155
+		"sortIndex": 145
 	},
 	{
 		"id": "usgs-06747500",
@@ -4328,7 +4343,7 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"url": "https://waterdata.usgs.gov/nwis/uv?site_no=06701900",
 		"active": true,
 		"notes": "Existing.",
-		"sortIndex": 35
+		"sortIndex": 25
 	},
 	{
 		"id": "usgs-06710247",
@@ -4371,8 +4386,8 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 		"sourceId": "06620000",
 		"riverId": "north-platte",
 		"corridorId": "north-platte-corridor",
-		"latitude": 40.9758,
-		"longitude": -106.3539,
+		"latitude": 40.9366,
+		"longitude": -106.3392,
 		"riverMile": null,
 		"parameter": "discharge",
 		"unit": "cfs",
@@ -4403,6 +4418,38 @@ export const SECTION_LEG_MAPPING: Record<string, SectionLeg> = {
 	"arkansas-royal-gorge": {
 		"fromAccessPointId": "ap_arkansas-headwaters_parkdale",
 		"toAccessPointId": "ap_arkansas-headwaters_centennial-park"
+	},
+	"arkansas-canon-to-reservoir": {
+		"fromAccessPointId": "ap_arkansas-headwaters_centennial-park",
+		"toAccessPointId": "ap_arkansas-headwaters_pueblo-reservoir-inlet-west"
+	},
+	"arkansas-pueblo-mup": {
+		"fromAccessPointId": "ap_arkansas-pueblo-plains_pueblo-mup-put-in",
+		"toAccessPointId": "ap_arkansas-pueblo-plains_pueblo-whitewater-park"
+	},
+	"arkansas-pine-creek": {
+		"fromAccessPointId": "ap_arkansas-headwaters_granite",
+		"toAccessPointId": "ap_arkansas-headwaters_clear-creek"
+	},
+	"arkansas-town-boat-chute": {
+		"fromAccessPointId": "ap_arkansas-headwaters_railroad-bridge",
+		"toAccessPointId": "ap_arkansas-headwaters_buena-vista-whitewater-park"
+	},
+	"arkansas-milk-run": {
+		"fromAccessPointId": "ap_arkansas-headwaters_fisherman-s-bridge-browns-top",
+		"toAccessPointId": "ap_arkansas-headwaters_ruby-mountain"
+	},
+	"arkansas-browns-upper": {
+		"fromAccessPointId": "ap_arkansas-headwaters_ruby-mountain",
+		"toAccessPointId": "ap_arkansas-headwaters_hecla-junction"
+	},
+	"arkansas-browns-lower": {
+		"fromAccessPointId": "ap_arkansas-headwaters_hecla-junction",
+		"toAccessPointId": "ap_arkansas-headwaters_stone-bridge"
+	},
+	"arkansas-big-bend": {
+		"fromAccessPointId": "ap_arkansas-headwaters_stone-bridge",
+		"toAccessPointId": "ap_arkansas-headwaters_cotopaxi"
 	},
 	"colorado-gore-canyon": {
 		"fromAccessPointId": "ap_upper-colorado_confluence-river-access-kremmling",
@@ -4450,7 +4497,7 @@ export const SECTION_LEG_MAPPING: Record<string, SectionLeg> = {
 	},
 	"clear-creek-lower": {
 		"fromAccessPointId": "ap_clear-creek-canyon_tunnel-1-above",
-		"toAccessPointId": "ap_clear-creek-canyon_vanover-park"
+		"toAccessPointId": "ap_clear-creek-canyon_6th-avenue-tucker-gulch"
 	},
 	"poudre-upper-narrows": {
 		"fromAccessPointId": "ap_poudre-canyon_lower-narrows-campground-put-in",
@@ -4462,7 +4509,7 @@ export const SECTION_LEG_MAPPING: Record<string, SectionLeg> = {
 	},
 	"animas-upper-silverton": {
 		"fromAccessPointId": "ap_animas-corridor_silverton-mineral-creek",
-		"toAccessPointId": "ap_animas-corridor_rockwood-depot"
+		"toAccessPointId": "ap_animas-corridor_tall-timber-resort"
 	},
 	"animas-durango": {
 		"fromAccessPointId": "ap_animas-corridor_bakers-bridge",
@@ -4527,5 +4574,109 @@ export const SECTION_LEG_MAPPING: Record<string, SectionLeg> = {
 	"south-platte-waterton": {
 		"fromAccessPointId": "ap_south-platte-corridor_strontia-springs-dam-outflow",
 		"toAccessPointId": "ap_south-platte-corridor_waterton-canyon-trailhead"
+	},
+	"colorado-state-bridge-to-dotsero": {
+		"fromAccessPointId": "ap_upper-colorado_state-bridge-recreation-site",
+		"toAccessPointId": "ap_upper-colorado_dotsero-landing"
+	},
+	"gunnison-town-to-blue-mesa": {
+		"fromAccessPointId": "ap_gunnison-headwaters_town-of-gunnison-us-50-access",
+		"toAccessPointId": "ap_gunnison-headwaters_blue-mesa-reservoir-inflow-corridor-end"
+	},
+	"gunnison-lower": {
+		"fromAccessPointId": "ap_gunnison-headwaters_gunnison-forks-pleasure-park",
+		"toAccessPointId": "ap_gunnison-headwaters_whitewater-boat-ramp"
+	},
+	"clear-creek-headwaters": {
+		"fromAccessPointId": "ap_clear-creek-canyon_empire",
+		"toAccessPointId": "ap_clear-creek-canyon_two-bears-kermits"
+	},
+	"clear-creek-canyon-mid": {
+		"fromAccessPointId": "ap_clear-creek-canyon_clear-creek-open-space-kermits-take-out",
+		"toAccessPointId": "ap_clear-creek-canyon_tunnel-1-above"
+	},
+	"poudre-headwaters-to-narrows": {
+		"fromAccessPointId": "ap_poudre-canyon_big-south-trailhead",
+		"toAccessPointId": "ap_poudre-canyon_lower-narrows-campground-put-in"
+	},
+	"poudre-mid-canyon": {
+		"fromAccessPointId": "ap_poudre-canyon_stevens-gulch-picnic-area",
+		"toAccessPointId": "ap_poudre-canyon_filter-plant-put-in"
+	},
+	"poudre-front-range": {
+		"fromAccessPointId": "ap_poudre-canyon_picnic-rock",
+		"toAccessPointId": "ap_poudre-canyon_lions-park-fort-collins"
+	},
+	"animas-lower": {
+		"fromAccessPointId": "ap_animas-corridor_dallabetta-park",
+		"toAccessPointId": "ap_animas-corridor_cedar-hill-nm"
+	},
+	"dolores-tailwater": {
+		"fromAccessPointId": "ap_dolores-canyon_mcphee-dam-outlet-bradfield-area",
+		"toAccessPointId": "ap_dolores-canyon_bradfield-bridge"
+	},
+	"dolores-mesa-canyon": {
+		"fromAccessPointId": "ap_dolores-canyon_gateway",
+		"toAccessPointId": "ap_dolores-canyon_dewey-bridge-ut"
+	},
+	"san-miguel-upper": {
+		"fromAccessPointId": "ap_san-miguel-corridor_telluride-town-park",
+		"toAccessPointId": "ap_san-miguel-corridor_caddis-flats-boat-ramp"
+	},
+	"san-miguel-lower": {
+		"fromAccessPointId": "ap_san-miguel-corridor_naturita",
+		"toAccessPointId": "ap_san-miguel-corridor_uravan"
+	},
+	"eagle-vail-to-eagle-river-park": {
+		"fromAccessPointId": "ap_eagle-corridor_dowd-junction-eagle-vail",
+		"toAccessPointId": "ap_eagle-corridor_eagle-river-park"
+	},
+	"roaring-fork-wingo-to-hooks": {
+		"fromAccessPointId": "ap_roaring-fork-corridor_wingo-junction-river-access",
+		"toAccessPointId": "ap_roaring-fork-corridor_hooks-bridge"
+	},
+	"blue-columbine-to-confluence": {
+		"fromAccessPointId": "ap_blue-corridor_columbine-landing",
+		"toAccessPointId": "ap_blue-corridor_blue-colorado-confluence-kremmling"
+	},
+	"piedra-upper": {
+		"fromAccessPointId": "ap_piedra-corridor_piedra-bridge-upper-piedra-cg",
+		"toAccessPointId": "ap_piedra-corridor_first-fork-bridge"
+	},
+	"piedra-arboles": {
+		"fromAccessPointId": "ap_piedra-corridor_lower-piedra-box-take-out",
+		"toAccessPointId": "ap_piedra-corridor_arboles-navajo-reservoir-inflow"
+	},
+	"san-juan-headwaters": {
+		"fromAccessPointId": "ap_san-juan-corridor_above-pagosa-springs-east-west-fork-confluence",
+		"toAccessPointId": "ap_san-juan-corridor_malt-shoppe-put-in"
+	},
+	"san-juan-navajo-inflow": {
+		"fromAccessPointId": "ap_san-juan-corridor_trujillo-road-take-out",
+		"toAccessPointId": "ap_san-juan-corridor_navajo-reservoir-inflow-co"
+	},
+	"south-platte-upper": {
+		"fromAccessPointId": "ap_south-platte-corridor_wigwam-club-private",
+		"toAccessPointId": "ap_south-platte-corridor_deckers"
+	},
+	"south-platte-denver": {
+		"fromAccessPointId": "ap_south-platte-corridor_waterton-canyon-trailhead",
+		"toAccessPointId": "ap_south-platte-corridor_brighton-bromley-lane"
+	},
+	"colorado-new-castle-to-cameo": {
+		"fromAccessPointId": "ap_grand-valley_new-castle-boat-ramp",
+		"toAccessPointId": "ap_grand-valley_cameo-boat-ramp"
+	},
+	"colorado-palisade-to-corn-lake": {
+		"fromAccessPointId": "ap_grand-valley_riverbend-park-palisade",
+		"toAccessPointId": "ap_grand-valley_corn-lake-james-m-robb-state-park"
+	},
+	"yampa-stagecoach-to-craig": {
+		"fromAccessPointId": "ap_yampa-corridor_stagecoach-dam-tailwater",
+		"toAccessPointId": "ap_yampa-corridor_south-beach"
+	},
+	"yampa-little-yampa": {
+		"fromAccessPointId": "ap_yampa-corridor_duffy-mountain",
+		"toAccessPointId": "ap_yampa-corridor_east-cross-mountain-cross-mountain-gorge-put-in"
 	}
 };

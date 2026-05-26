@@ -122,6 +122,9 @@ export class CorridorTiles extends Resource {
 			}
 		}
 
+		const apByIdLookup = new Map<string, any>();
+		for (const ap of accessPoints) apByIdLookup.set((ap as any).id, ap);
+
 		const buildLeg = (section: any) => {
 			const snap = section.primaryGaugeId ? snapshotMap.get(section.primaryGaugeId) : null;
 			const currentFlow = snap?.currentFlow ?? null;
@@ -147,15 +150,19 @@ export class CorridorTiles extends Resource {
 			const difficultyLabel = section.difficultyMax && section.difficultyMin && section.difficultyMax !== section.difficultyMin
 				? `${section.difficultyMin}–${section.difficultyMax}`
 				: (section.difficultyMin || section.difficultyMax || '');
+			const fromAp = section.fromAccessPointId ? apByIdLookup.get(section.fromAccessPointId) : null;
+			const toAp = section.toAccessPointId ? apByIdLookup.get(section.toAccessPointId) : null;
 			return {
 				sectionId: section.id,
 				name: section.name,
+				parentSectionId: section.parentSectionId || null,
 				difficultyMin: section.difficultyMin,
 				difficultyMax: section.difficultyMax,
 				difficultyLabel,
 				lengthMiles: section.lengthMiles,
 				fromAccessPointId: section.fromAccessPointId || null,
 				toAccessPointId: section.toAccessPointId || null,
+				corridorMileSpan: { startMile: fromAp?.riverMile ?? null, endMile: toAp?.riverMile ?? null },
 				sortIndex: section.sortIndex ?? 999,
 				status,
 				statusLabel,

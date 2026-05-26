@@ -2,20 +2,22 @@
 
 Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies and explicit user priority. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
-**Last updated:** 2026-05-18
-**Active slice:** [12c-river-log-sharing](slices/12c-river-log-sharing/intent.md) *(promote intent → plan as the first move when ready)*
-**Next initiative:** Admin + log-form + card polish done (12h + 12i + 12j + 12k + 12l + 12m). **12c active** → 12f photos → 12g sparkline+map → forecast (03b → 03d → 04 → 05).
+**Last updated:** 2026-05-25
+**Active slice:** [13a-river-corridor-spine](slices/13a-river-corridor-spine/plan.md)
+**Next initiative:** **13a active** (river-shaped corridor spine for Arkansas + Upper Colorado, hierarchical sections, scroll-locked active section + gauge) → 13b (multi-section logs) → resume 12c (river-log-sharing) → 12f photos → 12g sparkline+map → forecast (03b → 03d → 04 → 05).
 
 ## Active
 
 | # | Slice | Value | Effort | Goal |
 |---|---|---|---|---|
-| 12c | [river-log-sharing](slices/12c-river-log-sharing/intent.md) | 7 | M | *(currently intent.md — first task is to expand into plan.md in context of the shipped 12 / 12b / 12d / 12e / 12h state)* Per-log invite links + opt-in bidirectional friendships. Logs become shareable to specific people; never fully public. Privacy invariant: no `"public"` visibility value ever exists in the schema. |
+| 13a | [river-corridor-spine](slices/13a-river-corridor-spine/plan.md) | 9 | L | Replace abstract corridor rail with a vertical SVG river-spine derived from NHDPlus polylines. Hierarchical sections (Browns/Milk Run get Upper/Lower children; Pine Creek nests in Numbers; new Town/Boat Chute + Big Bend). Scroll-driven active section + sticky right-side detail pane with gauge readout that locks per section. Arkansas + Upper Colorado in first ship; other corridors keep current `SectionRow` fallback. |
 
 ## Queued — detailed plans
 
 | # | Slice | Value | Effort | Depends | Goal |
 |---|---|---|---|---|---|
+| 13b | [multi-section-logs](slices/13b-multi-section-logs/plan.md) | 8 | M | 13a | Add `putInAccessPointId` + `takeOutAccessPointId` to `RiverLog`; sections traversed derive from AP mile range. SectionLogs returns any log whose AP mile range overlaps. Backwards-compatible with existing single-section logs. |
+| 12c | [river-log-sharing](slices/12c-river-log-sharing/intent.md) | 7 | M | 13b | *(intent.md — re-queued behind 13a/13b 2026-05-25)* Per-log invite links + opt-in bidirectional friendships. Logs become shareable to specific people; never fully public. Privacy invariant: no `"public"` visibility value ever exists in the schema. |
 
 ## Queued — lighter plans
 

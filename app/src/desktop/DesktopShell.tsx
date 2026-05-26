@@ -1,5 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useMemo } from 'react';
 import { useDashboard } from '../hooks/useDashboard';
 import { useCorridorTiles } from '../hooks/useCorridorTiles';
 import { AppHeader } from '../components/AppHeader';
@@ -7,8 +6,7 @@ import { Skeleton } from '../components/Skeleton';
 import { WatershedGroupHeader } from '../components/WatershedGroupHeader';
 import { CraftSkillControl } from '../components/CraftSkillControl';
 import { SummaryStat } from './SummaryStat';
-import { CorridorTile } from '../components/CorridorTile';
-import { DesktopDetail } from './DesktopDetail';
+import { HomeCorridorSpineTile } from '../components/HomeCorridorSpineTile';
 import { SearchHero } from '../components/SearchHero';
 import { useScrollProgress, lerpStyle } from '../hooks/useStuck';
 import { mapStatusToDesign } from '../constants';
@@ -16,28 +14,14 @@ import { mapStatusToDesign } from '../constants';
 type DashboardFilter = 'all' | 'running' | 'ideal' | 'rising' | 'low';
 
 export function DesktopShell() {
-	const { sectionId: urlSectionId } = useParams<{ sectionId?: string }>();
-	const navigate = useNavigate();
 	const { data, isLoading, error } = useDashboard();
 	const { data: tilesData, isLoading: tilesLoading } = useCorridorTiles();
 	const [filter, setFilter] = useState<DashboardFilter>('all');
-	const [selectedId, setSelectedId] = useState<string | null>(urlSectionId || null);
 	const { ref: titleRef, progress: titleProgress } = useScrollProgress<HTMLDivElement>(64, 140);
 
 	const sections = data?.sections || [];
 	const tiles = useMemo(() => tilesData?.tiles || [], [tilesData]);
 	const [collapsedWatersheds, setCollapsedWatersheds] = useState<Set<string>>(new Set());
-
-	useEffect(() => {
-		if (urlSectionId) setSelectedId(urlSectionId);
-	}, [urlSectionId]);
-
-	useEffect(() => {
-		if (!selectedId && tiles.length > 0) {
-			const firstLeg = tiles.find(t => t.legs.length > 0)?.legs[0];
-			if (firstLeg) setSelectedId(firstLeg.sectionId);
-		}
-	}, [tiles, selectedId]);
 
 	const tileMatchesFilter = (tile: typeof tiles[number], f: DashboardFilter): boolean => {
 		if (f === 'all') return true;
@@ -174,78 +158,48 @@ export function DesktopShell() {
 				</div>
 			</div>
 
-			{/* Main split: sidebar + detail. The aside flows in the page; the main
-			    detail panel is sticky on the right so it stays visible while the
-			    list scrolls past underneath. */}
+			{/* Stacked corridor tiles — each tile is an integrated card with the
+			    river spine on the left and active-section detail on the right.
+			    Watershed group headers separate runs by basin. */}
 			<div style={{
-				display: 'grid',
-				gridTemplateColumns: 'minmax(320px, 440px) minmax(0, 1fr)',
-				gap: 20, padding: '16px 28px 48px',
-				alignItems: 'start',
+				display: 'flex', flexDirection: 'column', gap: 28,
+				padding: '20px 28px 96px',
+				maxWidth: 1180, margin: '0 auto', width: '100%',
 			}}>
-				<aside style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingRight: 4, minWidth: 0 }}>
-					{tilesLoading || isLoading ? (
-						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-							{[1,2,3,4,5,6].map(i => <Skeleton key={i} height={220} borderRadius="var(--r-lg)" />)}
-						</div>
-					) : (
-						watershedOrder.map(([slug, name]) => {
-							const items = groupedTilesByWatershed[slug];
-							if (!items || items.length === 0) return null;
-							const collapsed = collapsedWatersheds.has(slug);
-							return (
-								<section key={slug}>
-									<WatershedGroupHeader
-										slug={slug}
-										name={name}
-										count={items.reduce((s, t) => s + t.legs.length, 0)}
-										collapsed={collapsed}
-										onToggle={() => toggleWatershed(slug)}
-									/>
-									{!collapsed && (
-										<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-											{items.map(t => (
-												<CorridorTile key={t.corridorId} tile={t} density="desktop" />
-											))}
-										</div>
-									)}
-								</section>
-							);
-						})
-					)}
-				</aside>
-
-				<main style={{
-					background: 'var(--bg-card)', border: '1px solid var(--rule)',
-					borderRadius: 'var(--r-xl)', boxShadow: 'var(--shadow-card)',
-					padding: 28,
-					minWidth: 0,
-					// Sticky so the detail stays visible while the river list scrolls
-					// past. Top offset = AppHeader (64) + compact title block (~118).
-					position: 'sticky',
-					top: 182,
-					maxHeight: 'calc(100vh - 200px)',
-					overflowY: 'auto',
-				}}>
-					{isLoading ? (
-						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-							<Skeleton width="60%" height={24} />
-							<Skeleton width="40%" height={14} />
-							<Skeleton height={200} borderRadius="var(--r-lg)" style={{ marginTop: 8 }} />
-							<div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-								<Skeleton width="30%" height={60} borderRadius="var(--r-lg)" />
-								<Skeleton width="30%" height={60} borderRadius="var(--r-lg)" />
-								<Skeleton width="30%" height={60} borderRadius="var(--r-lg)" />
-							</div>
-						</div>
-					) : selectedId ? (
-						<DesktopDetail sectionId={selectedId} />
-					) : (
-						<div style={{ padding: 40, textAlign: 'center', color: 'var(--ink-3)' }}>
-							Select a section from the sidebar
-						</div>
-					)}
-				</main>
+				{tilesLoading || isLoading ? (
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+						{[1,2,3].map(i => <Skeleton key={i} height={520} borderRadius="var(--r-xl)" />)}
+					</div>
+				) : (
+					watershedOrder.map(([slug, name]) => {
+						const items = groupedTilesByWatershed[slug];
+						if (!items || items.length === 0) return null;
+						const collapsed = collapsedWatersheds.has(slug);
+						return (
+							<section key={slug} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+								<WatershedGroupHeader
+									slug={slug}
+									name={name}
+									count={items.reduce((s, t) => s + t.legs.length, 0)}
+									collapsed={collapsed}
+									onToggle={() => toggleWatershed(slug)}
+								/>
+								{!collapsed && (
+									<div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+										{items.map(t => (
+											<HomeCorridorSpineTile key={t.corridorId} tile={t as any} density="desktop" />
+										))}
+									</div>
+								)}
+							</section>
+						);
+					})
+				)}
+				{!isLoading && filteredTiles.length === 0 && (
+					<div style={{ padding: 64, textAlign: 'center', color: 'var(--ink-3)' }}>
+						No corridors match the current filter.
+					</div>
+				)}
 			</div>
 		</div>
 	);

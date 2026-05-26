@@ -15,6 +15,7 @@ type RiverSection @table @export {
 	riverId: ID @indexed
 	river: River @relationship(from: "riverId")
 	corridorId: ID @indexed
+	parentSectionId: ID @indexed
 	driver: String @indexed
 	sortIndex: Int @indexed
 	name: String

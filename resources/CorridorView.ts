@@ -21,10 +21,13 @@ export class CorridorView extends Resource {
 
 		const watershed = corridor.watershedId ? await getWatershedById(corridor.watershedId) : null;
 
-		const [allSections, allSnapshots, allBands] = await Promise.all([
+		const [allSections, allSnapshots, allBands, allAps, allDams, allGauges] = await Promise.all([
 			collect(tables.RiverSection.search({ conditions: [] })),
 			collect(tables.GaugeSnapshot.search({ conditions: [] })),
 			loadAllBands(),
+			collect(tables.AccessPoint.search({ conditions: [] })),
+			collect(tables.ImpassablePoint.search({ conditions: [] })),
+			collect(tables.Gauge.search({ conditions: [] })),
 		]);
 		const snapshotMap = new Map<string, any>();
 		for (const s of allSnapshots) snapshotMap.set(s.id, s);
@@ -34,6 +37,66 @@ export class CorridorView extends Resource {
 			arr.push(b);
 			bandsBySection.set(b.sectionId, arr);
 		}
+		const apById = new Map<string, any>();
+		for (const ap of allAps) apById.set((ap as any).id, ap);
+
+		const corridorAps = allAps
+			.filter((ap: any) => ap.corridorId === id)
+			.sort((a: any, b: any) => (a.sortIndex ?? 999) - (b.sortIndex ?? 999))
+			.map((ap: any) => ({
+				id: ap.id,
+				name: ap.name,
+				altNames: ap.altNames || '',
+				kind: ap.kind,
+				sortIndex: ap.sortIndex ?? 0,
+				latitude: ap.latitude ?? null,
+				longitude: ap.longitude ?? null,
+				riverMile: ap.riverMile ?? null,
+				fee: ap.fee ?? null,
+				vehicleAccess: ap.vehicleAccess ?? null,
+				notes: ap.notes || '',
+			}));
+
+		const corridorDams = allDams
+			.filter((d: any) => d.upstreamCorridorId === id || d.downstreamCorridorId === id)
+			.map((d: any) => ({
+				id: d.id,
+				name: d.name,
+				kind: d.kind,
+				upstreamCorridorId: d.upstreamCorridorId ?? null,
+				downstreamCorridorId: d.downstreamCorridorId ?? null,
+				latitude: d.latitude ?? null,
+				longitude: d.longitude ?? null,
+				riverMile: d.riverMile ?? null,
+				notes: d.notes || '',
+				position: d.upstreamCorridorId === id ? 'downstream-end'
+					: d.downstreamCorridorId === id ? 'upstream-end'
+					: 'unknown',
+			}));
+
+		const corridorGauges = allGauges
+			.filter((g: any) => g.corridorId === id)
+			.sort((a: any, b: any) => (a.sortIndex ?? 999) - (b.sortIndex ?? 999))
+			.map((g: any) => {
+				const snap = snapshotMap.get(g.id);
+				let sparkline: number[] = [];
+				try { if (snap?.sparkline) sparkline = JSON.parse(snap.sparkline); } catch {}
+				return {
+					id: g.id,
+					name: g.name,
+					sortIndex: g.sortIndex ?? 0,
+					latitude: g.latitude ?? null,
+					longitude: g.longitude ?? null,
+					riverMile: g.riverMile ?? null,
+					source: g.source,
+					currentFlow: snap?.currentFlow ?? null,
+					unit: snap?.unit ?? 'cfs',
+					trend: snap?.trend ?? 'unknown',
+					change24h: snap?.change24h ?? null,
+					sparkline,
+					updatedAt: snap?.updatedAt ?? null,
+				};
+			});
 
 		const sections = allSections
 			.filter((s: any) => s.corridorId === id)
@@ -59,14 +122,25 @@ export class CorridorView extends Resource {
 				try {
 					if (snap?.sparkline) sparkline = JSON.parse(snap.sparkline);
 				} catch {}
+				const fromAp = section.fromAccessPointId ? apById.get(section.fromAccessPointId) : null;
+				const toAp = section.toAccessPointId ? apById.get(section.toAccessPointId) : null;
+				const startMile = fromAp?.riverMile ?? null;
+				const endMile = toAp?.riverMile ?? null;
 				return {
 					id: section.id,
 					name: section.name,
 					corridorId: section.corridorId,
+					parentSectionId: section.parentSectionId ?? null,
+					sortIndex: section.sortIndex ?? 0,
 					difficulty: section.difficultyMax !== section.difficultyMin
 						? `${section.difficultyMin}-${section.difficultyMax}`
 						: section.difficultyMin,
+					difficultyMin: section.difficultyMin,
+					difficultyMax: section.difficultyMax,
 					lengthMiles: section.lengthMiles,
+					fromAccessPointId: section.fromAccessPointId ?? null,
+					toAccessPointId: section.toAccessPointId ?? null,
+					corridorMileSpan: { startMile, endMile },
 					currentFlow,
 					unit: snap?.unit || 'cfs',
 					trend: snap?.trend || 'unknown',
@@ -82,6 +156,7 @@ export class CorridorView extends Resource {
 					flowBands: sectionBands,
 					putIn: section.putIn,
 					takeOut: section.takeOut,
+					notes: section.notes || '',
 				};
 			});
 
@@ -95,6 +170,9 @@ export class CorridorView extends Resource {
 			corridor,
 			watershed,
 			sections,
+			accessPoints: corridorAps,
+			impassableDams: corridorDams,
+			gauges: corridorGauges,
 			weatherSummary: null,
 			breadcrumb,
 		};

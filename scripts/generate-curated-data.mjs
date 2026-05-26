@@ -58,9 +58,19 @@ const COLORADO_DAM_CORRIDORS = {
 	'Shoshone Diversion Dam': { upstream: 'upper-colorado', downstream: 'glenwood-canyon' },
 };
 
+// Per-river AP corridor mappings for rivers with multiple corridors. Names not in
+// the map fall back to the river's defaultCorridor.
+const ARKANSAS_AP_CORRIDORS = {
+	'Pueblo MUP put-in': 'arkansas-pueblo-plains',
+	'Pueblo Whitewater Park': 'arkansas-pueblo-plains',
+};
+const ARKANSAS_GAUGE_CORRIDORS = {
+	'usgs-07099970': 'arkansas-pueblo-plains',
+};
+
 // Dam corridor mappings for other multi-corridor rivers.
 const DAM_CORRIDORS = {
-	'Pueblo Dam': { riverId: 'arkansas', upstream: 'arkansas-headwaters', downstream: null },
+	'Pueblo Dam': { riverId: 'arkansas', upstream: 'arkansas-headwaters', downstream: 'arkansas-pueblo-plains' },
 	'Dillon Dam': { riverId: 'blue', upstream: null, downstream: 'blue-corridor' },
 	'Green Mountain Dam': { riverId: 'blue', upstream: 'blue-corridor', downstream: 'blue-corridor' },
 	'Blue Mesa Dam': { riverId: 'gunnison', upstream: 'gunnison-headwaters', downstream: 'gunnison-gorge-corridor' },
@@ -78,12 +88,21 @@ const DAM_CORRIDORS = {
 // lib/seed-data.ts conflate multiple AHRA access points; this map resolves
 // each named section to the most representative pair of curated APs.
 const SECTION_LEGS = {
-	// Arkansas
+	// Arkansas — existing
 	'arkansas-numbers': { fromAP: 'Granite', toAP: 'Railroad Bridge' },
 	'arkansas-fractions': { fromAP: 'Buena Vista Whitewater Park', toAP: "Fisherman's Bridge (Browns top)" },
 	'arkansas-browns-canyon': { fromAP: 'Ruby Mountain', toAP: 'Stone Bridge' },
 	'arkansas-bighorn-sheep': { fromAP: 'Cotopaxi', toAP: 'Parkdale' },
 	'arkansas-royal-gorge': { fromAP: 'Parkdale', toAP: 'Centennial Park' },
+	'arkansas-canon-to-reservoir': { fromAP: 'Centennial Park', toAP: 'Pueblo Reservoir Inlet (West)' },
+	'arkansas-pueblo-mup': { fromAP: 'Pueblo MUP put-in', toAP: 'Pueblo Whitewater Park' },
+	// Arkansas — slice 13a hierarchical + new
+	'arkansas-pine-creek': { fromAP: 'Granite', toAP: 'Clear Creek' },
+	'arkansas-town-boat-chute': { fromAP: 'Railroad Bridge', toAP: 'Buena Vista Whitewater Park' },
+	'arkansas-milk-run': { fromAP: "Fisherman's Bridge (Browns top)", toAP: 'Ruby Mountain' },
+	'arkansas-browns-upper': { fromAP: 'Ruby Mountain', toAP: 'Hecla Junction' },
+	'arkansas-browns-lower': { fromAP: 'Hecla Junction', toAP: 'Stone Bridge' },
+	'arkansas-big-bend': { fromAP: 'Stone Bridge', toAP: 'Cotopaxi' },
 	// Colorado
 	'colorado-gore-canyon': { fromAP: 'Confluence River Access (Kremmling)', toAP: 'Pumphouse Recreation Site' },
 	'colorado-pumphouse': { fromAP: 'Pumphouse Recreation Site', toAP: 'State Bridge Recreation Site' },
@@ -98,12 +117,12 @@ const SECTION_LEGS = {
 	'taylor-river-below-dam': { fromAP: 'Taylor Park Dam (tailwater)', toAP: 'Almont (East + Taylor confluence)' },
 	// Clear Creek
 	'clear-creek-upper': { fromAP: 'Two Bears (Kermits)', toAP: 'Clear Creek Open Space (Kermits Take-Out)' },
-	'clear-creek-lower': { fromAP: 'Tunnel 1 (above)', toAP: 'Vanover Park' },
+	'clear-creek-lower': { fromAP: 'Tunnel 1 (above)', toAP: '6th Avenue / Tucker Gulch' },
 	// Poudre
 	'poudre-upper-narrows': { fromAP: 'Lower Narrows Campground Put-In', toAP: 'Stevens Gulch Picnic Area' },
 	'poudre-lower-canyon': { fromAP: 'Filter Plant Put-In', toAP: 'Picnic Rock' },
 	// Animas
-	'animas-upper-silverton': { fromAP: 'Silverton (Mineral Creek)', toAP: 'Rockwood Depot' },
+	'animas-upper-silverton': { fromAP: 'Silverton (Mineral Creek)', toAP: 'Tall Timber Resort' },
 	'animas-durango': { fromAP: 'Bakers Bridge', toAP: 'Dallabetta Park' },
 	// Dolores
 	'dolores-slick-rock': { fromAP: 'Bradfield Bridge', toAP: 'Bedrock' },
@@ -130,6 +149,34 @@ const SECTION_LEGS = {
 	// South Platte
 	'south-platte-deckers': { fromAP: 'Deckers', toAP: 'South Platte (Foxton confluence)' },
 	'south-platte-waterton': { fromAP: 'Strontia Springs Dam outflow', toAP: 'Waterton Canyon Trailhead' },
+	// Phase 5 — orphan-coverage sections
+	'colorado-state-bridge-to-dotsero': { fromAP: 'State Bridge Recreation Site', toAP: 'Dotsero Landing' },
+	'gunnison-town-to-blue-mesa': { fromAP: 'Town of Gunnison (US-50 access)', toAP: 'Blue Mesa Reservoir inflow (corridor end)' },
+	'gunnison-lower': { fromAP: 'Gunnison Forks / Pleasure Park', toAP: 'Whitewater Boat Ramp' },
+	'clear-creek-headwaters': { fromAP: 'Empire', toAP: 'Two Bears (Kermits)' },
+	'clear-creek-canyon-mid': { fromAP: 'Clear Creek Open Space (Kermits Take-Out)', toAP: 'Tunnel 1 (above)' },
+	'poudre-headwaters-to-narrows': { fromAP: 'Big South Trailhead', toAP: 'Lower Narrows Campground Put-In' },
+	'poudre-mid-canyon': { fromAP: 'Stevens Gulch Picnic Area', toAP: 'Filter Plant Put-In' },
+	'poudre-front-range': { fromAP: 'Picnic Rock', toAP: 'Lions Park / Fort Collins' },
+	'animas-lower': { fromAP: 'Dallabetta Park', toAP: 'Cedar Hill (NM)' },
+	'dolores-tailwater': { fromAP: 'McPhee Dam outlet (Bradfield area)', toAP: 'Bradfield Bridge' },
+	'dolores-mesa-canyon': { fromAP: 'Gateway', toAP: 'Dewey Bridge (UT)' },
+	'san-miguel-upper': { fromAP: 'Telluride Town Park', toAP: 'Caddis Flats Boat Ramp' },
+	'san-miguel-lower': { fromAP: 'Naturita', toAP: 'Uravan' },
+	'eagle-vail-to-eagle-river-park': { fromAP: 'Dowd Junction (Eagle-Vail)', toAP: 'Eagle River Park' },
+	'roaring-fork-wingo-to-hooks': { fromAP: 'Wingo Junction River Access', toAP: 'Hooks Bridge' },
+	'blue-columbine-to-confluence': { fromAP: 'Columbine Landing', toAP: 'Blue-Colorado Confluence (Kremmling)' },
+	'piedra-upper': { fromAP: 'Piedra Bridge / Upper Piedra CG', toAP: 'First Fork Bridge' },
+	'piedra-arboles': { fromAP: 'Lower Piedra Box take-out', toAP: 'Arboles / Navajo Reservoir inflow' },
+	'san-juan-headwaters': { fromAP: 'Above Pagosa Springs (East/West Fork confluence)', toAP: 'Malt Shoppe put-in' },
+	'san-juan-navajo-inflow': { fromAP: 'Trujillo Road take-out', toAP: 'Navajo Reservoir inflow (CO)' },
+	'south-platte-upper': { fromAP: 'Wigwam Club (private)', toAP: 'Deckers' },
+	'south-platte-denver': { fromAP: 'Waterton Canyon Trailhead', toAP: 'Brighton (Bromley Lane)' },
+	// Phase 5b — final orphan coverage
+	'colorado-new-castle-to-cameo': { fromAP: 'New Castle Boat Ramp', toAP: 'Cameo Boat Ramp' },
+	'colorado-palisade-to-corn-lake': { fromAP: 'Riverbend Park (Palisade)', toAP: 'Corn Lake (James M. Robb State Park)' },
+	'yampa-stagecoach-to-craig': { fromAP: 'Stagecoach Dam (tailwater)', toAP: 'South Beach' },
+	'yampa-little-yampa': { fromAP: 'Duffy Mountain', toAP: 'East Cross Mountain (Cross Mountain Gorge put-in)' },
 };
 
 const aps = [];
@@ -146,6 +193,8 @@ for (const [riverId, rd] of Object.entries(data.rivers)) {
 		let corridorId = defaultCorridor;
 		if (riverId === 'colorado') {
 			corridorId = COLORADO_AP_CORRIDORS[raw.name] || defaultCorridor;
+		} else if (riverId === 'arkansas') {
+			corridorId = ARKANSAS_AP_CORRIDORS[raw.name] || defaultCorridor;
 		}
 		const id = `ap_${corridorId}_${slugify(raw.name)}`;
 		const sortIndex = (i + 1) * 10;
@@ -193,6 +242,8 @@ for (const [riverId, rd] of Object.entries(data.rivers)) {
 		let corridorId = defaultCorridor;
 		if (riverId === 'colorado') {
 			corridorId = COLORADO_GAUGE_CORRIDORS[raw.id] || defaultCorridor;
+		} else if (riverId === 'arkansas') {
+			corridorId = ARKANSAS_GAUGE_CORRIDORS[raw.id] || defaultCorridor;
 		}
 		gauges.push({
 			id: raw.id,
