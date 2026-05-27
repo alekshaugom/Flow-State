@@ -4,7 +4,7 @@ status: queued
 value: 8
 confidence: 8
 effort: M
-depends_on: [13a-river-corridor-spine]
+depends_on: [13c-corridor-map-and-tiles]
 unlocks: []
 opened: 2026-05-25
 closed: null

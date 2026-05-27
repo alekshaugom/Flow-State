@@ -2,22 +2,22 @@
 
 Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies and explicit user priority. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
-**Last updated:** 2026-05-25
-**Active slice:** [13a-river-corridor-spine](slices/13a-river-corridor-spine/plan.md)
-**Next initiative:** **13a active** (river-shaped corridor spine for Arkansas + Upper Colorado, hierarchical sections, scroll-locked active section + gauge) → 13b (multi-section logs) → resume 12c (river-log-sharing) → 12f photos → 12g sparkline+map → forecast (03b → 03d → 04 → 05).
+**Last updated:** 2026-05-27
+**Active slice:** *(none — 13c is in-review pending browser verification)*
+**Next initiative:** **13c → in-review** (code-complete; 301/301 tests green, build clean; visual verification blocked by pre-existing local Harper env issue — workarounds noted in `slices/13c-corridor-map-and-tiles/status.md`). Once verified, close 13c → start 13b (multi-section logs) → resume 12c (river-log-sharing) → 12f photos → 12g sparkline+map → forecast (03b → 03d → 04 → 05).
 
-## Active
+## In-review
 
 | # | Slice | Value | Effort | Goal |
 |---|---|---|---|---|
-| 13a | [river-corridor-spine](slices/13a-river-corridor-spine/plan.md) | 9 | L | Replace abstract corridor rail with a vertical SVG river-spine derived from NHDPlus polylines. Hierarchical sections (Browns/Milk Run get Upper/Lower children; Pine Creek nests in Numbers; new Town/Boat Chute + Big Bend). Scroll-driven active section + sticky right-side detail pane with gauge readout that locks per section. Arkansas + Upper Colorado in first ship; other corridors keep current `SectionRow` fallback. |
+| 13c | [corridor-map-and-tiles](slices/13c-corridor-map-and-tiles/plan.md) | 9 | L | Replace the 13a SVG spine on `/corridor/arkansas-headwaters` with a styled MapLibre basemap (OpenFreeMap positron + Esri hillshade + OpenTopoMap contours, sage land, 3-tier navy water, Arkansas River halo+main). Sticky-left map + scrollable-right tile stack; each tile compact-by-default and expands inline to the full `/section/:id` content (chart + forecast + weather + dams + past trips). Scroll-driven dot floats along the real river; APs dim/light by progress; right-pointing DOM callout names the active section. Other corridors keep the 13a spine fallback. |
 
 ## Queued — detailed plans
 
 | # | Slice | Value | Effort | Depends | Goal |
 |---|---|---|---|---|---|
-| 13b | [multi-section-logs](slices/13b-multi-section-logs/plan.md) | 8 | M | 13a | Add `putInAccessPointId` + `takeOutAccessPointId` to `RiverLog`; sections traversed derive from AP mile range. SectionLogs returns any log whose AP mile range overlaps. Backwards-compatible with existing single-section logs. |
-| 12c | [river-log-sharing](slices/12c-river-log-sharing/intent.md) | 7 | M | 13b | *(intent.md — re-queued behind 13a/13b 2026-05-25)* Per-log invite links + opt-in bidirectional friendships. Logs become shareable to specific people; never fully public. Privacy invariant: no `"public"` visibility value ever exists in the schema. |
+| 13b | [multi-section-logs](slices/13b-multi-section-logs/plan.md) | 8 | M | 13c | Add `putInAccessPointId` + `takeOutAccessPointId` to `RiverLog`; sections traversed derive from AP mile range. SectionLogs returns any log whose AP mile range overlaps. Backwards-compatible with existing single-section logs. |
+| 12c | [river-log-sharing](slices/12c-river-log-sharing/intent.md) | 7 | M | 13b | *(intent.md — re-queued behind 13a/13b/13c 2026-05-25)* Per-log invite links + opt-in bidirectional friendships. Logs become shareable to specific people; never fully public. Privacy invariant: no `"public"` visibility value ever exists in the schema. |
 
 ## Queued — lighter plans
 
@@ -45,6 +45,7 @@ Single source of truth for what ships next. Sorted by value × confidence ÷ eff
 
 | # | Slice | Closed | Notes |
 |---|---|---|---|
+| 13a | [river-corridor-spine](completed/13a-river-corridor-spine/plan.md) | 2026-05-27 | 11/11 acceptance criteria met. Shipped vertical SVG spine for `/corridor/:slug` on both Arkansas + Upper Colorado, hierarchical sections (Pine Creek under Numbers, Upper/Lower Browns under Browns Canyon, +6 new Arkansas sections), scroll-driven activeMile with child-over-parent precedence, sticky compact detail pane with primary-gauge lock per section. Pure helpers: `corridor-spine-pure.ts` (23 tests) + `corridor-assembly-pure.ts` (5 tests). Visually superseded by 13c on `/corridor/arkansas-headwaters`; remains the fallback for every other corridor. |
 | 12m | [log-card-density](completed/12m-log-card-density/plan.md) | 2026-05-18 | Visual density pass on `<RiverLogCard>`. Dropped the craft-type chip (Oar-Raft/Paddle Boat/Kayak/SUP) and the `3.5h` duration — both redundant given the craft name in the eyebrow and crew size on the subtitle. Replaced the inline `ran at 435 cfs` river-blue chip with `<BigCFS size="card" />` + `<StatusPill size="sm" />`, matching the home-page sidebar's per-section row styling. Conditions tag chips moved to the LAST body block (after notes, before the profile footer) — quiet tag-cloud tail. Threaded full `flowThresholds` (all 7) through `DetailViewModel` + `PastTripsStrip` so the status pill resolves correctly via `getFlowStatus` + `mapStatusToDesign`. **203 / 203 tests still green**, Vite build clean. Verified in browser: card shows `435` in BigCFS mono with a green Runnable pill, no craft chip, no duration, conditions at the bottom. |
 | 12l | [card-and-flow-polish](completed/12l-card-and-flow-polish/plan.md) | 2026-05-18 | Four card + section-layout refinements. **PastTripsStrip moved to the bottom** of `/section/:id` on both mobile + desktop. **RiverLogCard eyebrow** dropped the `// LOGGED` prefix and now reads `May 16th, 2026 · Slippery Pickle (Frame) · 2 nights` with ordinal-suffix formatting; craft name promoted from the body row. **Flow CFS auto-populates** via new `GaugeReading` fallback in `lib/log/flow-resolver.ts` (computes the daily average for the section's primary gauge on the trip date); the 7-day retry cap is gone so historical logs resolve too. New pure helpers `trip-date-pure.ts` (12 tests) + `dayWindowUtc`/`averageReadings` in `flow-resolver-pure.ts` (6 new). Bug surfaced + fixed: Harper's `tables.RiverLog.search()` returns read-only proxies; `Object.assign(r, patch)` threw — fixed by spreading rows into plain objects in `RiverDetail.ts` + `RiverLog.ts` before mutating. Verified in browser: card chip shows `ran at 435 cfs` (daily average from real GaugeReading rows), eyebrow + position match spec. **203 / 203 tests green**. |
 | 12k | [saved-craft-only](completed/12k-saved-craft-only/plan.md) | 2026-05-18 | Log form simplification. Dropped the redundant `// CRAFT` fieldset on `/log/new` and `/log/:id/edit`; the only craft surface is now `// SAVED CRAFT`. Crew size moved into its own per-trip input alongside Duration. Submit requires a `craftId` (the picker's empty-state `+ New craft` flow gets the user there in one step). Deleted `CraftDetailsFieldset.tsx`. To rename a boat, users edit the craft itself at `/logs/crafts`. No backend or schema changes. 185/185 tests still green, Vite build clean. |

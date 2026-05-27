@@ -1,13 +1,13 @@
 ---
 slice: 13a-river-corridor-spine
-status: active
+status: done
 value: 9
 confidence: 7
 effort: L
 depends_on: [02-watershed-corridor-ia]
-unlocks: [13b-multi-section-logs, 06-map-layering]
+unlocks: [13b-multi-section-logs, 06-map-layering, 13c-corridor-map-and-tiles]
 opened: 2026-05-25
-closed: null
+closed: 2026-05-27
 ---
 
 # Slice 13a — River corridor spine (Arkansas + Upper Colorado)

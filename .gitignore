@@ -154,3 +154,6 @@ data/cache/
 
 # Claude Code
 .claude/
+
+# Isolated dev Harper root (slice 13c verification)
+.harper-dev/

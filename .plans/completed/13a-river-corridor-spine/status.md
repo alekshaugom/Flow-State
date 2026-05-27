@@ -45,4 +45,9 @@
 - NHDPlus polylines for Town/Boat Chute, Milk Run, Big Bend (currently straight bridges). Run `npx tsx scripts/generate-geometries.ts` extended to read new SECTION_LEG_MAPPING entries.
 - Curated intermediate AP between Fisherman's Bridge (mile 33.95) and Ruby Mountain (mile 37.58) to unlock Milk Run Upper/Lower split.
 - Frog Rock AP currently has null lat/lng/riverMile; populate via `scripts/compute-river-miles.mjs` after field-curating coords.
-- 13b: multi-section RiverLog schema + UI (next slice in queue).
+- 13b: multi-section RiverLog schema + UI (now queued behind 13c).
+
+## Closed 2026-05-27
+- All 11 acceptance criteria met and verified in browser; spine shipped on `/corridor/:slug` for both Arkansas + Upper Colorado.
+- Visually superseded by 13c (real MapLibre basemap + full DesktopDetail tiles for `/corridor/arkansas-headwaters` specifically). 13a's hierarchical-sections + scroll-driven activeMile infrastructure is reused by 13c; only the visual layer changes.
+- Spine components (`CorridorSpine.tsx`, `CorridorSpineColumn.tsx`, `CorridorSpineDetailPane.tsx`) remain in place as the fallback for every non-Arkansas corridor.

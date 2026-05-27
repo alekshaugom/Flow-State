@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { mockCorridorPlugin } from './scripts/mock-corridor-server.ts';
 
-const harperTarget = 'http://localhost:9926';
+const harperTarget = process.env.HARPER_TARGET ?? 'http://localhost:9926';
 const harperAuth = 'Basic ' + Buffer.from('HDB_ADMIN:password').toString('base64');
+const useMock = process.env.MOCK_CORRIDOR_VIEW === '1';
 
 const proxyEntry = (path: string) => ({
 	[path]: {
@@ -12,7 +14,7 @@ const proxyEntry = (path: string) => ({
 });
 
 export default defineConfig({
-	plugins: [react()],
+	plugins: [react(), ...(useMock ? [mockCorridorPlugin()] : [])],
 	root: 'app',
 	build: {
 		outDir: '../web',
@@ -21,6 +23,7 @@ export default defineConfig({
 	},
 	server: {
 		port: 5173,
+		host: '127.0.0.1',
 		proxy: {
 			...proxyEntry('/Dashboard'),
 			...proxyEntry('/CorridorTiles'),

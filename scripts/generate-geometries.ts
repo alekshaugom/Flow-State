@@ -111,6 +111,31 @@ function lineLength(coords: Coord[]): number {
 	return total;
 }
 
+// Truncate a line to at most maxMeters of cumulative length from the start.
+// Safety net for sections where the take-out projection landed too far downstream
+// (e.g. when the main-stem trace over-runs the real take-out), preventing a 7-mi
+// run from rendering as 21 mi. Keeps the upstream portion intact.
+function truncateToLength(coords: Coord[], maxMeters: number): Coord[] {
+	if (coords.length < 2) return coords;
+	const out: Coord[] = [coords[0]];
+	let acc = 0;
+	for (let i = 1; i < coords.length; i++) {
+		const seg = haversineDistance(coords[i - 1], coords[i]);
+		if (acc + seg > maxMeters) {
+			// Interpolate the final point so the line ends exactly at maxMeters.
+			const remain = maxMeters - acc;
+			const t = seg > 0 ? remain / seg : 0;
+			const a = coords[i - 1];
+			const b = coords[i];
+			out.push([a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])]);
+			break;
+		}
+		acc += seg;
+		out.push(coords[i]);
+	}
+	return out;
+}
+
 interface Projection {
 	index: number;
 	fraction: number;
@@ -342,6 +367,35 @@ function featureClosestDist(f: NHDFeature, point: Coord): number {
 	return minDist;
 }
 
+// Removes backtrack spikes: vertices where the path reverses direction sharply
+// (turn angle > ~135 deg). NHDPlus main-stem flowlines don't make hairpin spikes at
+// this resolution, so a sharp reversal is almost always a wrong-segment artifact.
+// Runs a few passes to clear multi-vertex spikes. Endpoints are always preserved.
+function removeBacktrackSpikes(coords: Coord[]): Coord[] {
+	if (coords.length < 3) return coords;
+	let work = coords;
+	for (let pass = 0; pass < 4; pass++) {
+		const out: Coord[] = [work[0]];
+		let removed = 0;
+		for (let i = 1; i < work.length - 1; i++) {
+			const prev = out[out.length - 1];
+			const cur = work[i];
+			const next = work[i + 1];
+			const v1x = cur[0] - prev[0], v1y = cur[1] - prev[1];
+			const v2x = next[0] - cur[0], v2y = next[1] - cur[1];
+			const m1 = Math.hypot(v1x, v1y), m2 = Math.hypot(v2x, v2y);
+			if (m1 === 0) { removed++; continue; } // drop duplicate
+			const cos = (m2 === 0) ? 1 : (v1x * v2x + v1y * v2y) / (m1 * m2);
+			if (cos < -0.7) { removed++; continue; } // ~>134 deg reversal -> spike vertex
+			out.push(cur);
+		}
+		out.push(work[work.length - 1]);
+		work = out;
+		if (removed === 0) break;
+	}
+	return work;
+}
+
 function assembleFlowline(features: NHDFeature[], putIn: Coord, takeOut: Coord): Coord[] {
 	const valid = features.filter(f =>
 		(f.properties.ftype === 460 || f.properties.ftype === 558) &&
@@ -407,6 +461,7 @@ function assembleFlowline(features: NHDFeature[], putIn: Coord, takeOut: Coord):
 		for (const f of downstream) {
 			if (visited.has(f.properties.OBJECTID)) continue;
 			let score = f.properties.streamorde * 100;
+			if (f.properties.levelpathi === startFeature.properties.levelpathi) score += 5000;
 			if (f.properties.gnis_name === startFeature.properties.gnis_name) score += 1000;
 			if (score > nextScore) {
 				nextScore = score;
@@ -440,6 +495,7 @@ function assembleFlowline(features: NHDFeature[], putIn: Coord, takeOut: Coord):
 			for (const f of upstream) {
 				if (upVisited.has(f.properties.OBJECTID)) continue;
 				let score = f.properties.streamorde * 100;
+				if (f.properties.levelpathi === startFeature.properties.levelpathi) score += 5000;
 				if (f.properties.gnis_name === startFeature.properties.gnis_name) score += 1000;
 				if (score > nextScore) {
 					nextScore = score;
@@ -512,7 +568,7 @@ function assembleFlowline(features: NHDFeature[], putIn: Coord, takeOut: Coord):
 		}
 	}
 
-	return coords;
+	return removeBacktrackSpikes(coords);
 }
 
 // ── Section Config Builder ───────────────────────────────────────────
@@ -520,41 +576,141 @@ function assembleFlowline(features: NHDFeature[], putIn: Coord, takeOut: Coord):
 async function buildSectionConfigs(): Promise<SectionConfig[]> {
 	const geoPath = resolve(PROJECT_ROOT, 'app/src/lib/river-geometries.ts');
 	const seedPath = resolve(PROJECT_ROOT, 'lib/seed-data.ts');
+	const curatedPath = resolve(PROJECT_ROOT, 'lib/curated-river-data.ts');
 
 	const geoModule = await import(geoPath);
 	const seedModule = await import(seedPath);
+	const curatedModule = await import(curatedPath);
 
 	const geometries: Record<string, Coord[]> = geoModule.RIVER_GEOMETRIES;
 	const sections: any[] = seedModule.SECTIONS;
+	const sectionLegMapping: Record<string, { fromAccessPointId: string | null; toAccessPointId: string | null }> =
+		curatedModule.SECTION_LEG_MAPPING;
+	const accessPoints: Array<{ id: string; latitude: number | null; longitude: number | null; riverMile: number | null }> =
+		curatedModule.CURATED_ACCESS_POINTS;
+
+	// Build a lookup of AP id → [lng, lat] (null if either coord is null)
+	const apCoords = new Map<string, Coord | null>();
+	const apMile = new Map<string, number | null>();
+	for (const ap of accessPoints) {
+		if (ap.latitude != null && ap.longitude != null) {
+			apCoords.set(ap.id, [ap.longitude, ap.latitude]);
+		} else {
+			apCoords.set(ap.id, null);
+		}
+		apMile.set(ap.id, ap.riverMile ?? null);
+	}
+
+	// Expected section length: prefer the AP riverMile span (authoritative) over the
+	// often-stale section.lengthMiles seed value. Used for the length guard + validation.
+	const expectedMilesFor = (section: any): number => {
+		const leg = sectionLegMapping[section.id];
+		if (leg?.fromAccessPointId && leg?.toAccessPointId) {
+			const a = apMile.get(leg.fromAccessPointId);
+			const b = apMile.get(leg.toAccessPointId);
+			if (a != null && b != null && Math.abs(b - a) > 0.1) return Math.abs(b - a);
+		}
+		return section.lengthMiles;
+	};
+
+	// Build a lookup of section id → geometry for resolving null-coord APs from adjacent sections
+	// (used when an AP has no lat/lng but sits at the endpoint of a neighboring section's geometry)
 
 	const configs: SectionConfig[] = [];
 
 	for (const section of sections) {
 		const geo = geometries[section.id];
-		if (!geo || geo.length < 2) {
-			console.warn(`No existing geometry for ${section.id}, skipping`);
+		if (geo && geo.length >= 2) {
+			// Existing geometry path: use it as-is for put-in/take-out anchor
+			const putIn = geo[0];
+			const takeOut = geo[geo.length - 1];
+
+			const allLngs = geo.map(c => c[0]);
+			const allLats = geo.map(c => c[1]);
+			const buffer = Math.max(0.1, Math.min(0.5, section.lengthMiles * 0.008));
+
+			configs.push({
+				id: section.id,
+				gnisName: gnisNameForSection(section.id),
+				putIn,
+				takeOut,
+				bbox: {
+					xmin: Math.min(...allLngs) - buffer,
+					ymin: Math.min(...allLats) - buffer,
+					xmax: Math.max(...allLngs) + buffer,
+					ymax: Math.max(...allLats) + buffer,
+				},
+				lengthMiles: expectedMilesFor(section),
+			});
 			continue;
 		}
 
-		const putIn = geo[0];
-		const takeOut = geo[geo.length - 1];
+		// No existing geometry — try to derive from SECTION_LEG_MAPPING + CURATED_ACCESS_POINTS
+		const leg = sectionLegMapping[section.id];
+		if (!leg || !leg.fromAccessPointId || !leg.toAccessPointId) {
+			console.warn(`No existing geometry and no leg mapping for ${section.id}, skipping`);
+			continue;
+		}
 
-		const allLngs = geo.map(c => c[0]);
-		const allLats = geo.map(c => c[1]);
-		const buffer = Math.max(0.1, Math.min(0.5, section.lengthMiles * 0.008));
+		// Resolve put-in coord: from AP, or fall back to the last point of a neighboring section
+		// whose geometry ends at that AP (i.e. the preceding section in river order).
+		let putIn = apCoords.get(leg.fromAccessPointId) ?? null;
+		if (!putIn) {
+			// Look for any section whose geometry endpoint matches the fromAP by finding sections
+			// that list this AP as their toAccessPointId in SECTION_LEG_MAPPING.
+			for (const [otherId, otherLeg] of Object.entries(sectionLegMapping)) {
+				if (otherLeg.toAccessPointId === leg.fromAccessPointId) {
+					const otherGeo = geometries[otherId];
+					if (otherGeo && otherGeo.length >= 2) {
+						putIn = otherGeo[otherGeo.length - 1];
+						console.log(`  ${section.id}: derived put-in from end of ${otherId} geometry`);
+						break;
+					}
+				}
+			}
+		}
 
+		// Resolve take-out coord: from AP, or fall back to the first point of a neighboring section
+		// that starts at this AP.
+		let takeOut = apCoords.get(leg.toAccessPointId) ?? null;
+		if (!takeOut) {
+			for (const [otherId, otherLeg] of Object.entries(sectionLegMapping)) {
+				if (otherLeg.fromAccessPointId === leg.toAccessPointId) {
+					const otherGeo = geometries[otherId];
+					if (otherGeo && otherGeo.length >= 2) {
+						takeOut = otherGeo[0];
+						console.log(`  ${section.id}: derived take-out from start of ${otherId} geometry`);
+						break;
+					}
+				}
+			}
+		}
+
+		if (!putIn || !takeOut) {
+			console.warn(`Cannot resolve put-in/take-out coords for ${section.id} (fromAP=${leg.fromAccessPointId}, toAP=${leg.toAccessPointId}), skipping`);
+			continue;
+		}
+
+		// Build bbox from the two endpoints plus a buffer derived from section length
+		const buffer = Math.max(0.15, Math.min(0.6, section.lengthMiles * 0.01));
+		const minLng = Math.min(putIn[0], takeOut[0]);
+		const maxLng = Math.max(putIn[0], takeOut[0]);
+		const minLat = Math.min(putIn[1], takeOut[1]);
+		const maxLat = Math.max(putIn[1], takeOut[1]);
+
+		console.log(`  ${section.id}: no existing geometry — building from AP coords`);
 		configs.push({
 			id: section.id,
 			gnisName: gnisNameForSection(section.id),
 			putIn,
 			takeOut,
 			bbox: {
-				xmin: Math.min(...allLngs) - buffer,
-				ymin: Math.min(...allLats) - buffer,
-				xmax: Math.max(...allLngs) + buffer,
-				ymax: Math.max(...allLats) + buffer,
+				xmin: minLng - buffer,
+				ymin: minLat - buffer,
+				xmax: maxLng + buffer,
+				ymax: maxLat + buffer,
 			},
-			lengthMiles: section.lengthMiles,
+			lengthMiles: expectedMilesFor(section),
 		});
 	}
 
@@ -655,15 +811,17 @@ function validate(
 		status = 'warn';
 	}
 
-	const startDist = haversineDistance(oldCoords[0], newCoords[0]);
-	const endDist = haversineDistance(oldCoords[oldCoords.length - 1], newCoords[newCoords.length - 1]);
-	if (startDist > 3000) {
-		notes.push(`Start drifted ${(startDist / 1000).toFixed(1)}km`);
-		status = 'warn';
-	}
-	if (endDist > 3000) {
-		notes.push(`End drifted ${(endDist / 1000).toFixed(1)}km`);
-		status = 'warn';
+	if (oldCoords.length >= 2) {
+		const startDist = haversineDistance(oldCoords[0], newCoords[0]);
+		const endDist = haversineDistance(oldCoords[oldCoords.length - 1], newCoords[newCoords.length - 1]);
+		if (startDist > 3000) {
+			notes.push(`Start drifted ${(startDist / 1000).toFixed(1)}km`);
+			status = 'warn';
+		}
+		if (endDist > 3000) {
+			notes.push(`End drifted ${(endDist / 1000).toFixed(1)}km`);
+			status = 'warn';
+		}
 	}
 
 	if (expectedMiles > 0) {
@@ -694,13 +852,31 @@ async function main() {
 	console.log('=============================\n');
 
 	console.log('Loading section configurations...');
-	const configs = await buildSectionConfigs();
+	let configs = await buildSectionConfigs();
+
+	// ONLY_SECTIONS=id1,id2 — regenerate just these sections, preserving all other
+	// existing geometry. Used to re-fetch specific sections (e.g. to apply the
+	// levelpathi/spike fixes to Bighorn Sheep + Royal Gorge) without disturbing
+	// sections whose geometry is already curated/correct.
+	const onlyFilter = process.env.ONLY_SECTIONS?.split(',').map(s => s.trim()).filter(Boolean);
+	if (onlyFilter && onlyFilter.length > 0) {
+		const set = new Set(onlyFilter);
+		configs = configs.filter(c => set.has(c.id));
+		console.log(`ONLY_SECTIONS active — regenerating: ${configs.map(c => c.id).join(', ')}`);
+	}
 	console.log(`Found ${configs.length} sections\n`);
 
 	const geoModule = await import(resolve(PROJECT_ROOT, 'app/src/lib/river-geometries.ts'));
 	const oldGeometries: Record<string, Coord[]> = geoModule.RIVER_GEOMETRIES;
 
 	const results = new Map<string, Coord[]>();
+	// In ONLY_SECTIONS mode, seed results with all existing geometry so the output
+	// merge preserves every section we're NOT regenerating.
+	if (onlyFilter && onlyFilter.length > 0) {
+		for (const [id, coords] of Object.entries(oldGeometries)) {
+			results.set(id, coords);
+		}
+	}
 	const validations: ValidationResult[] = [];
 	let successCount = 0;
 	let fallbackCount = 0;
@@ -755,6 +931,17 @@ async function main() {
 			let clipped = clipLine(assembled, putInProj, takeOutProj);
 			if (clipped.length < 2) {
 				throw new Error('Clipped line has fewer than 2 points');
+			}
+
+			// Length guard: if the clipped line ran well past the expected section length
+			// (take-out projection landed too far downstream on an over-extended trace),
+			// truncate to ~1.3× the expected miles so a 7-mi run can't render as 21 mi.
+			const clippedMi = lineLength(clipped) / 1609.34;
+			if (config.lengthMiles > 0 && clippedMi > config.lengthMiles * 1.6) {
+				const cap = config.lengthMiles * 1.3 * 1609.34;
+				const before = clipped.length;
+				clipped = truncateToLength(clipped, cap);
+				console.log(`  Length guard: ${clippedMi.toFixed(1)}mi > ${(config.lengthMiles * 1.6).toFixed(1)}mi cap — truncated ${before}→${clipped.length} pts (~${(config.lengthMiles * 1.3).toFixed(1)}mi)`);
 			}
 
 			const simplified = simplifyAdaptive(clipped, 30, 200);

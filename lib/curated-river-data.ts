@@ -4400,16 +4400,12 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 
 export const SECTION_LEG_MAPPING: Record<string, SectionLeg> = {
 	"arkansas-numbers": {
-		"fromAccessPointId": "ap_arkansas-headwaters_granite",
+		"fromAccessPointId": "ap_arkansas-headwaters_clear-creek",
 		"toAccessPointId": "ap_arkansas-headwaters_railroad-bridge"
 	},
 	"arkansas-fractions": {
 		"fromAccessPointId": "ap_arkansas-headwaters_buena-vista-whitewater-park",
 		"toAccessPointId": "ap_arkansas-headwaters_fisherman-s-bridge-browns-top"
-	},
-	"arkansas-browns-canyon": {
-		"fromAccessPointId": "ap_arkansas-headwaters_ruby-mountain",
-		"toAccessPointId": "ap_arkansas-headwaters_stone-bridge"
 	},
 	"arkansas-bighorn-sheep": {
 		"fromAccessPointId": "ap_arkansas-headwaters_cotopaxi",
