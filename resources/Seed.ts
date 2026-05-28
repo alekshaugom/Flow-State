@@ -1,5 +1,6 @@
 import { Resource, tables } from 'harper';
 import { RIVERS, SECTIONS, GAUGES, RESERVOIRS, SNOWPACK_BASINS, DATA_SOURCES, FLOW_BANDS, WATERSHEDS, CORRIDORS, ACCESS_POINTS, IMPASSABLE_POINTS } from '../lib/seed-data.ts';
+import { SECTION_LEG_MAPPING, CURATED_ACCESS_POINTS } from '../lib/curated-river-data.ts';
 import { invalidateFlowBandsCache } from '../lib/flow-bands.ts';
 import { invalidateWatershedsCache } from '../lib/watersheds.ts';
 import { invalidateCorridorsCache } from '../lib/corridors.ts';
@@ -176,6 +177,194 @@ async function migrateRiverLogsToParticipants(): Promise<{ logsScanned: number; 
 	return { logsScanned, participantsCreated, createdByBackfilled };
 }
 
+/**
+ * Startup sync: fully reconciles live RiverSection and AccessPoint rows with
+ * the source-of-truth SECTIONS / SECTION_LEG_MAPPING / CURATED_ACCESS_POINTS.
+ * Scoped only to the corridors represented in CURATED_ACCESS_POINTS so we
+ * never touch unrelated data. Idempotent — skips rows that already match.
+ */
+async function syncCuratedSectionsAndAccessPoints(): Promise<{
+	sections: { inserted: number; updated: number; deleted: number };
+	accessPoints: { inserted: number; updated: number; deleted: number };
+}> {
+	const sectionStats = { inserted: 0, updated: 0, deleted: 0 };
+	const apStats = { inserted: 0, updated: 0, deleted: 0 };
+
+	// --- Derive the set of corridor IDs we are authoritative for ---
+	const curatedCorridorIds = new Set(CURATED_ACCESS_POINTS.map(ap => ap.corridorId).filter(Boolean) as string[]);
+
+	// --- Build lookup maps from source-of-truth arrays ---
+	const sectionById = new Map(SECTIONS.filter(s => curatedCorridorIds.has(s.corridorId)).map(s => [s.id, s]));
+	const legMapping = SECTION_LEG_MAPPING as Record<string, { fromAccessPointId: string; toAccessPointId: string }>;
+	const curatedAPById = new Map(CURATED_ACCESS_POINTS.map(ap => [ap.id, ap]));
+
+	// =========================================================
+	// SECTIONS — insert / update / delete
+	// =========================================================
+
+	// Enumerate all DB sections whose corridorId is in scope
+	const dbSectionIds = new Set<string>();
+	for await (const row of (tables.RiverSection as any).search({ conditions: [] })) {
+		if (curatedCorridorIds.has(row.corridorId)) {
+			dbSectionIds.add(row.id);
+		}
+	}
+
+	// Insert or update each section in the curated set
+	for (const [sectionId, s] of sectionById) {
+		const leg = legMapping[sectionId];
+		const fromAccessPointId = leg?.fromAccessPointId ?? null;
+		const toAccessPointId = leg?.toAccessPointId ?? null;
+
+		if (!dbSectionIds.has(sectionId)) {
+			// INSERT
+			try {
+				await (tables.RiverSection as any).put(sectionId, {
+					...s,
+					fromAccessPointId,
+					toAccessPointId,
+				});
+				sectionStats.inserted++;
+			} catch (err) {
+				console.warn(`[seed] section insert failed (${sectionId}):`, (err as Error).message);
+			}
+		} else {
+			// UPDATE if anything changed
+			let existing: any;
+			try {
+				existing = await (tables.RiverSection as any).get(sectionId);
+			} catch (err) {
+				console.warn(`[seed] section get failed (${sectionId}):`, (err as Error).message);
+				continue;
+			}
+			const alreadyMatches =
+				existing.fromAccessPointId === fromAccessPointId &&
+				existing.toAccessPointId === toAccessPointId &&
+				existing.name === s.name &&
+				existing.shortName === (s as any).shortName &&
+				existing.description === (s as any).description &&
+				existing.putIn === s.putIn &&
+				existing.takeOut === s.takeOut &&
+				existing.lengthMiles === s.lengthMiles &&
+				existing.sortIndex === s.sortIndex &&
+				existing.latitude === (s as any).latitude &&
+				existing.longitude === (s as any).longitude &&
+				existing.notes === (s as any).notes;
+			if (alreadyMatches) continue;
+			try {
+				await (tables.RiverSection as any).put(sectionId, {
+					...existing,
+					fromAccessPointId,
+					toAccessPointId,
+					name: s.name,
+					shortName: (s as any).shortName,
+					description: (s as any).description,
+					putIn: s.putIn,
+					takeOut: s.takeOut,
+					lengthMiles: s.lengthMiles,
+					sortIndex: s.sortIndex,
+					latitude: (s as any).latitude,
+					longitude: (s as any).longitude,
+					notes: (s as any).notes,
+				});
+				sectionStats.updated++;
+			} catch (err) {
+				console.warn(`[seed] section update failed (${sectionId}):`, (err as Error).message);
+			}
+		}
+	}
+
+	// Delete DB sections that are no longer in the curated list
+	for (const dbId of dbSectionIds) {
+		if (!sectionById.has(dbId)) {
+			try {
+				await (tables.RiverSection as any).delete(dbId);
+				sectionStats.deleted++;
+			} catch (err) {
+				console.warn(`[seed] section delete failed (${dbId}):`, (err as Error).message);
+			}
+		}
+	}
+
+	// =========================================================
+	// ACCESS POINTS — insert / update / delete
+	// =========================================================
+
+	// Enumerate all DB access points whose corridorId is in scope
+	const dbAPIds = new Set<string>();
+	for await (const row of (tables.AccessPoint as any).search({ conditions: [] })) {
+		if (curatedCorridorIds.has(row.corridorId)) {
+			dbAPIds.add(row.id);
+		}
+	}
+
+	// Insert or update each access point in the curated set
+	for (const [apId, ap] of curatedAPById) {
+		if (!dbAPIds.has(apId)) {
+			// INSERT
+			try {
+				await (tables.AccessPoint as any).put(apId, ap);
+				apStats.inserted++;
+			} catch (err) {
+				console.warn(`[seed] access point insert failed (${apId}):`, (err as Error).message);
+			}
+		} else {
+			// UPDATE if anything changed
+			let existing: any;
+			try {
+				existing = await (tables.AccessPoint as any).get(apId);
+			} catch (err) {
+				console.warn(`[seed] access point get failed (${apId}):`, (err as Error).message);
+				continue;
+			}
+			const alreadyMatches =
+				existing.name === ap.name &&
+				existing.altNames === ap.altNames &&
+				existing.latitude === ap.latitude &&
+				existing.longitude === ap.longitude &&
+				existing.riverMile === ap.riverMile &&
+				existing.kind === ap.kind &&
+				existing.sortIndex === ap.sortIndex &&
+				existing.fee === ap.fee &&
+				existing.vehicleAccess === ap.vehicleAccess &&
+				existing.notes === ap.notes;
+			if (alreadyMatches) continue;
+			try {
+				await (tables.AccessPoint as any).put(apId, {
+					...existing,
+					name: ap.name,
+					altNames: ap.altNames,
+					latitude: ap.latitude,
+					longitude: ap.longitude,
+					riverMile: ap.riverMile,
+					kind: ap.kind,
+					sortIndex: ap.sortIndex,
+					fee: ap.fee,
+					vehicleAccess: ap.vehicleAccess,
+					notes: ap.notes,
+				});
+				apStats.updated++;
+			} catch (err) {
+				console.warn(`[seed] access point update failed (${apId}):`, (err as Error).message);
+			}
+		}
+	}
+
+	// Delete DB access points that are no longer in the curated list
+	for (const dbId of dbAPIds) {
+		if (!curatedAPById.has(dbId)) {
+			try {
+				await (tables.AccessPoint as any).delete(dbId);
+				apStats.deleted++;
+			} catch (err) {
+				console.warn(`[seed] access point delete failed (${dbId}):`, (err as Error).message);
+			}
+		}
+	}
+
+	return { sections: sectionStats, accessPoints: apStats };
+}
+
 async function autoSeedAtStartup(): Promise<void> {
 	await new Promise(r => setTimeout(r, AUTO_SEED_STARTUP_DELAY_MS));
 	try {
@@ -191,6 +380,12 @@ async function autoSeedAtStartup(): Promise<void> {
 		}
 	} catch (err) {
 		console.warn('[seed] startup auto-seed failed:', (err as Error).message);
+	}
+	try {
+		const { sections, accessPoints } = await syncCuratedSectionsAndAccessPoints();
+		console.log(`[seed] startup: sections ${JSON.stringify(sections)}; access points ${JSON.stringify(accessPoints)}`);
+	} catch (err) {
+		console.warn('[seed] startup curated-sync failed:', (err as Error).message);
 	}
 }
 

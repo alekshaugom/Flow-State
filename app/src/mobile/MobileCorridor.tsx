@@ -87,15 +87,20 @@ export function MobileCorridor({ slug }: MobileCorridorProps) {
 		return sections
 			.filter((s: any) => !s.parentSectionId)
 			.map((s: any): CorridorMapSection => {
-				const range = rangeById.get(s.id);
-				const startMile = range?.startMile ?? s.corridorMileSpan?.startMile ?? 0;
-				const endMile = range?.endMile ?? s.corridorMileSpan?.endMile ?? 0;
+				// Prefer AP-derived corridorMileSpan (authoritative); fall back to
+				// assembly geometry-based ranges, then 0.
+				const span = s.corridorMileSpan;
+				const apMileRange = (span && Number.isFinite(span.startMile) && Number.isFinite(span.endMile))
+					? { startMile: span.startMile, endMile: span.endMile }
+					: null;
+				const fallback = rangeById.get(s.id);
+				const range = apMileRange ?? fallback ?? { startMile: 0, endMile: 0 };
 				return {
 					id: s.id,
 					name: s.name,
 					status: s.status ?? 'unknown',
-					startMile,
-					endMile,
+					startMile: range.startMile,
+					endMile: range.endMile,
 					parentSectionId: s.parentSectionId ?? null,
 				};
 			});
@@ -128,20 +133,54 @@ export function MobileCorridor({ slug }: MobileCorridorProps) {
 			}));
 	}, [USE_MAP_TILES, dams]);
 
+	const GAUGE_OFFSETS: Record<string, { dx: number; dy: number }> = {
+		'usgs-07086000': { dx: -90, dy: -30 },  // Granite — push up-left
+		'usgs-07091200': { dx: -90, dy: -10 },  // Nathrop / Salida — push left
+		'usgs-07094500': { dx: 80,  dy: -30 },  // Parkdale — push up-right
+		'usgs-07087050': { dx: -90, dy: -30 },  // below Granite — push up-left
+		'usgs-07096000': { dx: 80,  dy: 20 },   // Cañon City — push down-right
+	};
+
 	const mapGauges: CorridorMapGauge[] = useMemo(() => {
 		if (!USE_MAP_TILES) return [];
+		// Build a flat list of top-level sections with their mile spans for gauge lookup.
+		const topSections = sections.filter((s: any) => !s.parentSectionId);
 		return gauges
 			.filter((g: any) => g.latitude != null && g.longitude != null && g.currentFlow != null)
-			.map((g: any): CorridorMapGauge => ({
-				id: g.id,
-				name: g.name,
-				lng: g.longitude as number,
-				lat: g.latitude as number,
-				riverMile: g.riverMile ?? null,
-				currentFlow: g.currentFlow ?? null,
-				unit: g.unit ?? 'cfs',
-			}));
-	}, [USE_MAP_TILES, gauges]);
+			.map((g: any): CorridorMapGauge => {
+				const rm: number | null = g.riverMile ?? null;
+				// Find the section whose corridorMileSpan contains this gauge's river mile.
+				const containingSection = rm != null
+					? topSections.find((s: any) => {
+						const span = s.corridorMileSpan;
+						return span && span.startMile != null && span.endMile != null
+							&& rm >= span.startMile && rm <= span.endMile;
+					})
+					: null;
+				const flowBands = containingSection
+					? {
+						idealMax: containingSection.flowIdealMax ?? 0,
+						idealMin: containingSection.flowIdealMin ?? 0,
+						low: containingSection.flowLow ?? 0,
+						runnable: containingSection.flowRunnable ?? 0,
+						high: containingSection.flowHigh ?? 0,
+						expert: containingSection.flowExpert ?? 0,
+						dangerous: containingSection.flowDangerous ?? 0,
+					}
+					: null;
+				return {
+					id: g.id,
+					name: g.name,
+					lng: g.longitude as number,
+					lat: g.latitude as number,
+					riverMile: rm,
+					currentFlow: g.currentFlow ?? null,
+					unit: g.unit ?? 'cfs',
+					flowBands,
+					offset: GAUGE_OFFSETS[g.id as string] ?? { dx: -90, dy: -30 },
+				};
+			});
+	}, [USE_MAP_TILES, gauges, sections]);
 
 	// Scroll-driven header interpolation. Mobile has no AppHeader, so H1 sticks at top:0.
 	const breadcrumbOpacity = Math.max(0, 1 - scrollY / 80);

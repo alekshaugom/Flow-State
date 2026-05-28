@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CorridorMap, type CorridorMapSection, type CorridorMapAccessPoint, type CorridorMapDam, type CorridorMapGauge } from './CorridorMap';
 import { SectionTile } from './SectionTile';
 import { useActiveTile } from '../hooks/useActiveTile';
+import { CORRIDOR_EXITS } from '../lib/corridor-exits-data';
 
 interface CorridorMapColumnProps {
 	corridorId: string;
@@ -26,6 +27,7 @@ interface CorridorMapColumnProps {
 }
 
 export function CorridorMapColumn({
+	corridorId,
 	corridorPolyline,
 	targetRiverName,
 	sections,
@@ -37,6 +39,7 @@ export function CorridorMapColumn({
 	initialExpandedId = null,
 	onExpandedChange,
 }: CorridorMapColumnProps) {
+	const exits = CORRIDOR_EXITS[corridorId] ?? [];
 	// Single-tile expanded at a time.
 	const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
 
@@ -154,6 +157,7 @@ export function CorridorMapColumn({
 						focusedSectionId={expandedId}
 						onSelectSection={(id) => scrollToTile(id)}
 						calloutDirection="down"
+						exits={exits}
 						style={{ height: '100%', borderRadius: 'var(--r-lg)' }}
 					/>
 				</div>
@@ -187,6 +191,7 @@ export function CorridorMapColumn({
 					focusedSectionId={expandedId}
 					onSelectSection={(id) => scrollToTile(id)}
 					calloutDirection="right"
+					exits={exits}
 					style={{ height: '100%' }}
 				/>
 			</div>

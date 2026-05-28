@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import { applyCorridorMapStyle } from '../lib/corridor-map-style';
 import { buildCorridorTubePolygon, corridorBoundsFromPolyline, pointAtMileGeographic, sectionSubPolyline } from '../lib/corridor-map-data';
+import { type CorridorExit } from '../lib/corridor-exits-data';
 import { STATUS_COLORS, mapStatusToDesign } from '../constants';
 
 export interface CorridorMapSection {
@@ -38,6 +39,18 @@ export interface CorridorMapGauge {
 	riverMile: number | null;
 	currentFlow: number | null;
 	unit: string;
+	// Flow bands of the section the gauge sits in (for arc rendering).
+	flowBands?: {
+		idealMax: number;
+		idealMin: number;
+		low: number;
+		runnable: number;
+		high: number;
+		expert: number;
+		dangerous: number;
+	} | null;
+	/** Pixel offset of the pill donut center from the gauge dot. Default {dx: -90, dy: -30}. */
+	offset?: { dx: number; dy: number };
 }
 
 interface CorridorMapProps {
@@ -54,6 +67,7 @@ interface CorridorMapProps {
 	onSelectSection?: (sectionId: string) => void;
 	style?: React.CSSProperties;
 	calloutDirection?: 'right' | 'down';
+	exits?: CorridorExit[];
 }
 
 // Shorten USGS gauge names ("Arkansas River at Salida, CO" → "Salida") so pills stay compact.
@@ -61,6 +75,38 @@ const shortGaugeName = (name: string): string => {
 	const m = name.match(/\b(?:at|near|below|above)\s+(.+?)(?:,\s*[A-Z]{2})?$/i);
 	return (m ? m[1] : name).replace(/,\s*[A-Z]{2}$/i, '').trim();
 };
+
+// Mirrors lib/utils.ts getFlowStatus — kept inline to avoid Vite cross-root imports.
+function getFlowStatus(
+	value: number,
+	t: { low: number; runnable: number; idealMin: number; idealMax: number; high: number; expert: number; dangerous: number },
+): string {
+	if (value <= 0) return 'no-flow';
+	if (value < t.low) return 'too-low';
+	if (value < t.runnable) return 'low';
+	if (value >= t.dangerous) return 'dangerous';
+	if (value >= t.expert) return 'expert-only';
+	if (value >= t.high) return 'high';
+	if (value >= t.idealMin && value <= t.idealMax) return 'ideal';
+	return 'runnable';
+}
+
+// Convert degrees-from-top (0 = 12 o'clock, clockwise) to [x, y] on a circle.
+function polar(cx: number, cy: number, r: number, degFromTop: number): [number, number] {
+	const rad = (degFromTop - 90) * Math.PI / 180;
+	return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+}
+
+// Build an SVG arc path string. Goes clockwise from startDeg, sweeping sweepDeg degrees.
+function arcPath(cx: number, cy: number, r: number, startDeg: number, sweepDeg: number): string {
+	if (sweepDeg <= 0) return '';
+	// Cap to just under 360 to keep a valid arc (full circle needs special handling).
+	const clampedSweep = Math.min(sweepDeg, 359.999);
+	const [sx, sy] = polar(cx, cy, r, startDeg);
+	const [ex, ey] = polar(cx, cy, r, startDeg + clampedSweep);
+	const largeArc = clampedSweep > 180 ? 1 : 0;
+	return `M ${sx} ${sy} A ${r} ${r} 0 ${largeArc} 1 ${ex} ${ey}`;
+}
 
 // Sentinel used for AP dim/lit expressions when activeMile is null.
 // Using -Infinity means no AP will ever be "lit" (all riverMile >= -Infinity check fails for the case expression).
@@ -80,6 +126,7 @@ export function CorridorMap({
 	onSelectSection,
 	style,
 	calloutDirection = 'right',
+	exits = [],
 }: CorridorMapProps) {
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const mapRef = useRef<maplibregl.Map | null>(null);
@@ -87,12 +134,23 @@ export function CorridorMap({
 	// Stable ref to the latest repositionGauges so the mount-once load callback can call it.
 	const repositionGaugesRef = useRef<(() => void) | null>(null);
 
+	// Tracks whether the MapLibre 'load' event has fired — drives the gauge useEffect dep array.
+	const [mapLoaded, setMapLoaded] = useState(false);
+
 	// Callout state: geographic anchor (lng/lat + name) and projected pixel position.
 	const [calloutAnchor, setCalloutAnchor] = useState<{ lng: number; lat: number; name: string } | null>(null);
 	const [calloutPx, setCalloutPx] = useState<{ x: number; y: number } | null>(null);
 
-	// Gauge pill state: projected pixel positions for DOM-overlay CFS pills.
-	const [gaugePins, setGaugePins] = useState<Array<{ id: string; x: number; y: number; label: string; reading: string }>>([]);
+	// Gauge pill state: projected pixel positions for DOM-overlay CFS arc pills.
+	const [gaugePins, setGaugePins] = useState<Array<{
+		id: string;
+		x: number;
+		y: number;
+		label: string;
+		currentFlow: number;
+		flowBands: CorridorMapGauge['flowBands'];
+		offset: { dx: number; dy: number };
+	}>>([]);
 
 	// -- Mount the map once -----------------------------------------------
 	useEffect(() => {
@@ -113,6 +171,7 @@ export function CorridorMap({
 
 		map.on('load', () => {
 			mapLoadedRef.current = true;
+			setMapLoaded(true);
 
 			// Build tube polygon for de-cluttering place labels (±6 mi lateral padding).
 			const tubePolygon = corridorPolyline.length >= 2
@@ -121,14 +180,62 @@ export function CorridorMap({
 
 			applyCorridorMapStyle(map, targetRiverName, tubePolygon);
 
-			// Fit to corridor bounds.
+			// Fit to corridor bounds, expanded to include exit label points.
 			if (corridorPolyline.length >= 2) {
-				const [w, s, e, n] = corridorBoundsFromPolyline(corridorPolyline);
-				map.fitBounds([[w, s], [e, n]], { padding: 40, animate: false });
+				let [w, s, e, n] = corridorBoundsFromPolyline(corridorPolyline);
+				for (const exit of exits) {
+					const [lng, lat] = exit.labelPoint;
+					if (lng < w) w = lng;
+					if (lng > e) e = lng;
+					if (lat < s) s = lat;
+					if (lat > n) n = lat;
+				}
+				map.fitBounds([[w, s], [e, n]], { padding: 60, animate: false });
 			}
 
 			// Determine the first symbol layer so we insert custom layers before labels.
 			const firstSymbolId = map.getStyle().layers.find(l => l.type === 'symbol')?.id;
+
+			// ---- Corridor exit labels (destinations on real basemap roads) -----
+			// The road geometry is rendered by the basemap (corridor-roads-major in
+			// corridor-map-style.ts). These labels sit at the corridor edge near
+			// where each major highway exits, calling out "↑ Vail · 50 mi" style.
+			if (exits.length > 0) {
+				const labelFeatures: GeoJSON.Feature[] = exits.map(exit => ({
+					type: 'Feature',
+					geometry: { type: 'Point', coordinates: exit.labelPoint },
+					properties: {
+						text: exit.road
+							? `${exit.arrow}  ${exit.destination}\n${exit.distanceMiles} mi  ·  ${exit.road}`
+							: `${exit.arrow}  ${exit.destination}\n${exit.distanceMiles} mi`,
+					},
+				}));
+
+				map.addSource('corridor-exits-labels', {
+					type: 'geojson',
+					data: { type: 'FeatureCollection', features: labelFeatures },
+				});
+				map.addLayer({
+					id: 'corridor-exits-label',
+					type: 'symbol',
+					source: 'corridor-exits-labels',
+					layout: {
+						'text-field': ['get', 'text'],
+						'text-font': ['Noto Sans Bold', 'Noto Sans Regular'],
+						'text-size': 12,
+						'text-anchor': 'center',
+						'text-justify': 'center',
+						'text-line-height': 1.2,
+						'text-allow-overlap': true,
+						'text-letter-spacing': 0.02,
+					},
+					paint: {
+						'text-color': '#374151',
+						'text-halo-color': '#f4f6f8',
+						'text-halo-width': 2.5,
+					},
+				});
+			}
 
 			// ---- 1. Section paths ------------------------------------------------
 			// Section lines + glows render in navy blue (matches the basemap's water-tier-1
@@ -536,8 +643,15 @@ export function CorridorMap({
 		if (focusedSectionId === null) {
 			// Restore corridor bounds + re-show dot.
 			if (corridorPolyline.length >= 2) {
-				const [w, s, e, n] = corridorBoundsFromPolyline(corridorPolyline);
-				map.fitBounds([[w, s], [e, n]], { padding: 40, duration: 600 });
+				let [w, s, e, n] = corridorBoundsFromPolyline(corridorPolyline);
+				for (const exit of exits) {
+					const [lng, lat] = exit.labelPoint;
+					if (lng < w) w = lng;
+					if (lng > e) e = lng;
+					if (lat < s) s = lat;
+					if (lat > n) n = lat;
+				}
+				map.fitBounds([[w, s], [e, n]], { padding: 60, duration: 600 });
 			}
 		} else {
 			// Zoom to the focused section's sub-polyline bbox.
@@ -610,9 +724,10 @@ export function CorridorMap({
 	// Keep the ref current so the mount-once load callback can call the latest version.
 	const repositionGauges = useCallback(() => {
 		const map = mapRef.current;
-		if (!map || !mapLoadedRef.current) return;
+		if (!map) return;
 		const pins = gauges
-			.filter(g => isFinite(g.lng) && isFinite(g.lat) && g.currentFlow != null)
+			// Drop gauges that couldn't be anchored in the corridor (riverMile == null).
+			.filter(g => isFinite(g.lng) && isFinite(g.lat) && g.currentFlow != null && g.riverMile != null)
 			.map(g => {
 				const p = map.project([g.lng, g.lat]);
 				return {
@@ -620,7 +735,9 @@ export function CorridorMap({
 					x: p.x,
 					y: p.y,
 					label: shortGaugeName(g.name),
-					reading: `${Math.round(g.currentFlow!).toLocaleString()} ${g.unit || 'cfs'}`,
+					currentFlow: g.currentFlow!,
+					flowBands: g.flowBands ?? null,
+					offset: g.offset ?? { dx: -90, dy: -30 },
 				};
 			});
 		setGaugePins(pins);
@@ -633,13 +750,7 @@ export function CorridorMap({
 
 	useEffect(() => {
 		const map = mapRef.current;
-		if (!map || !mapLoadedRef.current) {
-			// Map not yet loaded — register a one-time idle handler to paint pins on first ready.
-			if (map) {
-				map.once('idle', repositionGauges);
-			}
-			return;
-		}
+		if (!map || !mapLoaded) return;
 		repositionGauges();
 		map.on('move', repositionGauges);
 		map.on('zoom', repositionGauges);
@@ -647,7 +758,7 @@ export function CorridorMap({
 			map.off('move', repositionGauges);
 			map.off('zoom', repositionGauges);
 		};
-	}, [gauges, repositionGauges]);
+	}, [gauges, repositionGauges, mapLoaded]);
 
 	return (
 		<div style={{ position: 'relative', ...style }}>
@@ -659,7 +770,6 @@ export function CorridorMap({
 					minHeight: 480,
 					borderRadius: 'var(--r-lg)',
 					overflow: 'hidden',
-					border: '1px solid var(--rule)',
 				}}
 			/>
 
@@ -739,36 +849,131 @@ export function CorridorMap({
 				</div>
 			)}
 
-			{gaugePins.map(g => (
-				<div
-					key={g.id}
-					aria-label={`Gauge ${g.label}: ${g.reading}`}
-					style={{
-						position: 'absolute',
-						left: g.x,
-						top: g.y,
-						// Sit to the LEFT of the gauge dot so the pill never covers the river.
-						transform: 'translate(calc(-100% - 10px), -50%)',
-						pointerEvents: 'none',
-						zIndex: 4,
-						display: 'flex',
-						alignItems: 'baseline',
-						gap: 5,
-						padding: '3px 9px',
-						borderRadius: 999,
-						background: '#1e3a8a',
-						color: '#ffffff',
-						fontFamily: 'var(--font-sans)',
-						fontSize: 11,
-						fontWeight: 600,
-						whiteSpace: 'nowrap',
-						boxShadow: '0 1px 5px rgba(13,22,32,0.30)',
-					}}
-				>
-					<span>{g.label}</span>
-					<span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{g.reading}</span>
-				</div>
-			))}
+			{gaugePins.map(g => {
+				// Determine status color and arc fill ratio from flow bands.
+				const fb = g.flowBands;
+				const status = fb && g.currentFlow != null
+					? getFlowStatus(g.currentFlow, {
+						low: fb.low,
+						runnable: fb.runnable,
+						idealMin: fb.idealMin,
+						idealMax: fb.idealMax,
+						high: fb.high,
+						expert: fb.expert,
+						dangerous: fb.dangerous,
+					})
+					: 'ideal';
+				const designStatus = mapStatusToDesign(status);
+				const colorVar = STATUS_COLORS[designStatus]?.solid ?? 'var(--ink-2)';
+				const idealMax = fb?.idealMax ?? 0;
+				const ratio = idealMax > 0 ? Math.min(g.currentFlow / idealMax, 1) : 0;
+
+				// Arc geometry: 270° track from 225° (bottom-left / 7:30) clockwise to 135° (bottom-right / 4:30).
+				const R = 32;
+				const TRACK_START = 225;
+				const TRACK_SWEEP = 270;
+				const fillSweep = ratio * TRACK_SWEEP;
+
+				const cfsText = Math.round(g.currentFlow).toLocaleString();
+
+				// Offset layout: gauge dot sits at (DOT_X, DOT_Y) in SVG space;
+				// the donut floats at (DOT_X + dx, DOT_Y + dy).
+				const { dx, dy } = g.offset;
+				const PAD = 50;
+				const minX = Math.min(0, dx) - R - PAD;
+				const minY = Math.min(0, dy) - R - PAD;
+				const maxX = Math.max(0, dx) + R + PAD;
+				const maxY = Math.max(0, dy) + R + PAD;
+				const W = maxX - minX;
+				const H = maxY - minY;
+				const DOT_X = -minX;
+				const DOT_Y = -minY;
+				const DONUT_CX = DOT_X + dx;
+				const DONUT_CY = DOT_Y + dy;
+
+				// Connector endpoint: nearest point on donut circumference toward the dot.
+				const dist = Math.hypot(dx, dy);
+				const unit = dist > 0 ? { x: dx / dist, y: dy / dist } : { x: 0, y: 0 };
+				const edgeX = DONUT_CX - unit.x * (R + 4);
+				const edgeY = DONUT_CY - unit.y * (R + 4);
+
+				return (
+					<div
+						key={g.id}
+						aria-label={`Gauge ${g.label}: ${cfsText} cfs`}
+						style={{
+							position: 'absolute',
+							left: g.x + minX,
+							top: g.y + minY,
+							width: W,
+							height: H,
+							pointerEvents: 'none',
+							zIndex: 4,
+						}}
+					>
+						<svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible' }}>
+							{/* Thin connector line from gauge dot to donut edge */}
+							<line
+								x1={DOT_X} y1={DOT_Y}
+								x2={edgeX} y2={edgeY}
+								stroke="rgba(13,22,32,0.35)"
+								strokeWidth={1}
+							/>
+							{/* Gauge dot — small navy filled circle at the river location */}
+							<circle
+								cx={DOT_X} cy={DOT_Y}
+								r={4}
+								fill="#1e3a8a"
+								stroke="#f4f6f8"
+								strokeWidth={1.5}
+							/>
+							{/* Background track — full 270° */}
+							<path
+								d={arcPath(DONUT_CX, DONUT_CY, R, TRACK_START, TRACK_SWEEP)}
+								fill="none"
+								stroke="rgba(0,0,0,0.08)"
+								strokeWidth={6}
+								strokeLinecap="round"
+							/>
+							{/* Filled arc — ratio × 270° in status color */}
+							{fillSweep > 0 && (
+								<path
+									d={arcPath(DONUT_CX, DONUT_CY, R, TRACK_START, fillSweep)}
+									fill="none"
+									stroke={colorVar}
+									strokeWidth={6}
+									strokeLinecap="round"
+								/>
+							)}
+							{/* CFS number */}
+							<text
+								x={DONUT_CX}
+								y={DONUT_CY - 1}
+								textAnchor="middle"
+								dominantBaseline="middle"
+								fontSize={20}
+								fontWeight={700}
+								fontFamily="var(--font-sans)"
+								fill={colorVar}
+							>
+								{cfsText}
+							</text>
+							{/* Gauge short name */}
+							<text
+								x={DONUT_CX}
+								y={DONUT_CY + 14}
+								textAnchor="middle"
+								dominantBaseline="middle"
+								fontSize={9}
+								fontFamily="var(--font-sans)"
+								fill="var(--ink-2)"
+							>
+								{g.label}
+							</text>
+						</svg>
+					</div>
+				);
+			})}
 		</div>
 	);
 }

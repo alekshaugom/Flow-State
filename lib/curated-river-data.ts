@@ -64,7 +64,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 10,
 		"latitude": 39.0436,
 		"longitude": -106.26528,
-		"riverMile": 0,
+		"riverMile": 0.00,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA developed site at town of Granite. Pine Creek put-in."
@@ -77,9 +77,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Pine Creek Recreation Site",
 		"kind": "both",
 		"sortIndex": 20,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 39.0240,
+		"longitude": -106.2540,
+		"riverMile": 1.97,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA portage trail around Pine Creek Rapid (Class V-VI). Rare put-in/take-out at high flows."
@@ -92,9 +92,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "",
 		"kind": "both",
 		"sortIndex": 30,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 39.0335,
+		"longitude": -106.2570,
+		"riverMile": 0.84,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA boat ramp/slide between Granite and Clear Creek confluence."
@@ -109,7 +109,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 40,
 		"latitude": 39.02225,
 		"longitude": -106.25392,
-		"riverMile": 1.96,
+		"riverMile": 1.97,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "Clear Creek confluence on Clear Creek Rd near Vicksburg/Granite. Commercial Pine Creek and Numbers put-in."
@@ -124,7 +124,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 50,
 		"latitude": 38.99494,
 		"longitude": -106.2203,
-		"riverMile": 5.15,
+		"riverMile": 5.23,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA fee site ~11 mi north of BV on Hwy 24. Standard Numbers put-in. Co-located with USGS 07087050."
@@ -134,30 +134,15 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"corridorId": "arkansas-headwaters",
 		"riverId": "arkansas",
 		"name": "Frog Rock",
-		"altNames": "Narrows,Milk Run put-in",
+		"altNames": "Narrows",
 		"kind": "put-in",
 		"sortIndex": 60,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.8950,
+		"longitude": -106.1510,
+		"riverMile": 14.32,
 		"fee": "fee",
 		"vehicleAccess": true,
-		"notes": "Informal Hwy 24 pull-off between Numbers and Railroad Bridge."
-	},
-	{
-		"id": "ap_arkansas-headwaters_riverside",
-		"corridorId": "arkansas-headwaters",
-		"riverId": "arkansas",
-		"name": "Riverside",
-		"altNames": "",
-		"kind": "both",
-		"sortIndex": 70,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
-		"fee": "fee",
-		"vehicleAccess": true,
-		"notes": "AHRA dispersed-camping site between Numbers and Railroad Bridge."
+		"notes": "Informal Hwy 24 pull-off in The Narrows between Railroad Bridge and Buena Vista."
 	},
 	{
 		"id": "ap_arkansas-headwaters_railroad-bridge",
@@ -167,9 +152,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "RR Bridge,Railroad Bridge Take-out,Railroad Bridge Campground",
 		"kind": "take-out",
 		"sortIndex": 80,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": 11.11,
+		"latitude": 38.9300,
+		"longitude": -106.1817,
+		"riverMile": 10.33,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA developed campground on CR 371 north of BV. Standard Numbers take-out."
@@ -182,9 +167,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "",
 		"kind": "put-in",
 		"sortIndex": 90,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.9760,
+		"longitude": -106.2050,
+		"riverMile": 7.04,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "AHRA dispersed camping with walk-down kayak-only access. NOT for rafts."
@@ -199,7 +184,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 100,
 		"latitude": 38.84256,
 		"longitude": -106.13377,
-		"riverMile": 17.64,
+		"riverMile": 17.73,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Town play park with 5 features incl. Staircase Wave. Boat ramp on river right. Commercial put-in/take-out."
@@ -212,27 +197,12 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Johnson Village Bridge,Wilderness Aware put-in,River Runners",
 		"kind": "put-in",
 		"sortIndex": 110,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.8112,
+		"longitude": -106.1314,
+		"riverMile": 20.71,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "Hwy 24/285 bridge south of BV. Multiple outfitter properties (Wilderness Aware, River Runners)."
-	},
-	{
-		"id": "ap_arkansas-headwaters_collegiate-peaks-overlook",
-		"corridorId": "arkansas-headwaters",
-		"riverId": "arkansas",
-		"name": "Collegiate Peaks Overlook",
-		"altNames": "",
-		"kind": "put-in",
-		"sortIndex": 120,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
-		"fee": "fee",
-		"vehicleAccess": true,
-		"notes": "AHRA site 1 mi east of Johnson Village off Hwy 24/285, CR 304."
 	},
 	{
 		"id": "ap_arkansas-headwaters_fisherman-s-bridge-browns-top",
@@ -242,9 +212,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Fisherman's Bridge Put-in,Nathrop Put-in,Browns Canyon Put-in",
 		"kind": "put-in",
 		"sortIndex": 130,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": 24.5,
+		"latitude": 38.7676,
+		"longitude": -106.0801,
+		"riverMile": 25.31,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA site at US-285 MP 144.7, east on CR 301. TOP of Browns Canyon. UPSTREAM Fisherman's Bridge (distinct from the downstream one)."
@@ -259,7 +229,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 140,
 		"latitude": 38.75221,
 		"longitude": -106.07085,
-		"riverMile": 26.19,
+		"riverMile": 26.31,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA campground and boat ramp on CR 300. Often used as a Browns put-in to skip the upper flat section, OR a half-day take-out. DISTINCT FROM HECLA — Ruby is upstream, Hecla downstream."
@@ -274,7 +244,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 150,
 		"latitude": 38.65185,
 		"longitude": -106.05127,
-		"riverMile": 33.95,
+		"riverMile": 34.08,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA campground and primary Browns Canyon TAKE-OUT, at US-285 MP 135.4 then 2.6 mi down CR 194. MIDDLE of Browns. DISTINCT FROM RUBY MOUNTAIN."
@@ -289,7 +259,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 160,
 		"latitude": 38.61153,
 		"longitude": -106.06339,
-		"riverMile": 37.58,
+		"riverMile": 37.72,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA boat ramp on CR 191 (east off Hwy 291 from US-285 MP 133.9). BOTTOM take-out for the full Browns Canyon run."
@@ -302,9 +272,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "",
 		"kind": "both",
 		"sortIndex": 170,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.5830,
+		"longitude": -106.0240,
+		"riverMile": 42.72,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA two-tier site between Stone Bridge and Salida on US-285."
@@ -317,9 +287,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Slaughterhouse Bridge",
 		"kind": "put-in",
 		"sortIndex": 180,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.5450,
+		"longitude": -106.0240,
+		"riverMile": 45.04,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA fishing access on CR 166 west of Salida."
@@ -334,7 +304,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 190,
 		"latitude": 38.53773,
 		"longitude": -105.99024,
-		"riverMile": 46.96,
+		"riverMile": 47.11,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Town play park with Scout Wave (FIBArk venue). Boat ramp/slide."
@@ -347,9 +317,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "Salida East Campground",
 		"kind": "both",
 		"sortIndex": 200,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.5398,
+		"longitude": -105.9613,
+		"riverMile": 47.73,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA developed campground 1.5 mi east of Salida on US-50 near MP 224. 33 sites + yurt."
@@ -364,7 +334,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 210,
 		"latitude": 38.47093,
 		"longitude": -105.8711,
-		"riverMile": 56.46,
+		"riverMile": 56.85,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA campground at US-50 MP 227 (~4.7 mi east of Salida). 12 sites. Gold panning permitted."
@@ -379,7 +349,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 220,
 		"latitude": 38.4727,
 		"longitude": -105.86602,
-		"riverMile": 57.01,
+		"riverMile": 57.15,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA campground at US-50 MP 231 between Swissvale and Howard. 8 sites; direct river access and boat ramp."
@@ -394,7 +364,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 230,
 		"latitude": 38.39128,
 		"longitude": -105.7738,
-		"riverMile": 65.79,
+		"riverMile": 65.93,
 		"fee": "fee",
 		"vehicleAccess": false,
 		"notes": "AHRA boat-in/walk-in campground in Bighorn Sheep Canyon, CR 45. 16 tent-only sites. Vehicle access to bridge/ramp only (not campsites)."
@@ -409,7 +379,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 240,
 		"latitude": 38.36762,
 		"longitude": -105.71533,
-		"riverMile": 70.43,
+		"riverMile": 70.57,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA boat ramp with picnic facilities along US-50 in Bighorn Sheep Canyon."
@@ -424,7 +394,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 250,
 		"latitude": 38.37028,
 		"longitude": -105.68806,
-		"riverMile": 72.11,
+		"riverMile": 72.27,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Small hamlet ~25 mi downriver of Salida. Private river access available (CPW notes)."
@@ -439,7 +409,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 260,
 		"latitude": 38.39106,
 		"longitude": -105.65192,
-		"riverMile": 74.8,
+		"riverMile": 74.94,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA site along US-50 in Bighorn Sheep Canyon with ~0.5 mi river trail."
@@ -454,7 +424,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 270,
 		"latitude": 38.4097,
 		"longitude": -105.59084,
-		"riverMile": 79.42,
+		"riverMile": 79.54,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA boat ramp ~0.35 mi upstream/west of Texas Creek confluence. Note: previous note said 'east' — that was incorrect per OSM coords."
@@ -469,7 +439,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 280,
 		"latitude": 38.41056,
 		"longitude": -105.58451,
-		"riverMile": 79.77,
+		"riverMile": 79.90,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA site at confluence of Texas Creek and Arkansas on US-50."
@@ -484,7 +454,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 290,
 		"latitude": 38.45295,
 		"longitude": -105.49319,
-		"riverMile": 87.24,
+		"riverMile": 87.37,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA developed campground at US-50 MP 260 (~20 mi west of Cañon City). 20 sites + bighorn sheep watchable wildlife area."
@@ -497,9 +467,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "",
 		"kind": "both",
 		"sortIndex": 300,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.4660,
+		"longitude": -105.4520,
+		"riverMile": 89.95,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA fee site with boat ramp between Five Points and Parkdale on US-50."
@@ -514,7 +484,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 310,
 		"latitude": 38.48472,
 		"longitude": -105.39917,
-		"riverMile": 93.28,
+		"riverMile": 93.42,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA fee site ~12 mi west of Cañon City on US-50. Standard Royal Gorge put-in. Co-located near USGS Parkdale gauge 07094500."
@@ -529,7 +499,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 320,
 		"latitude": 38.43688,
 		"longitude": -105.24198,
-		"riverMile": 104.2,
+		"riverMile": 104.40,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Cañon City park on river right, 4th Street bridge access from US-50. Standard Royal Gorge take-out. Whitewater Park features (2010) integrated."
@@ -542,9 +512,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "River Station Depot",
 		"kind": "take-out",
 		"sortIndex": 330,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.4350,
+		"longitude": -105.2350,
+		"riverMile": 104.86,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Alt Royal Gorge take-out river left, just downstream of Centennial Park bridge."
@@ -557,9 +527,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "",
 		"kind": "both",
 		"sortIndex": 340,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.4200,
+		"longitude": -105.1800,
+		"riverMile": 108.40,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "AHRA boat ramp east of Cañon City. Seasonal — closes for winter."
@@ -572,9 +542,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "",
 		"kind": "both",
 		"sortIndex": 350,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.3850,
+		"longitude": -105.1150,
+		"riverMile": 112.87,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Florence-managed park with boat ramp east of Cañon City."
@@ -587,9 +557,9 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"altNames": "",
 		"kind": "both",
 		"sortIndex": 360,
-		"latitude": null,
-		"longitude": null,
-		"riverMile": null,
+		"latitude": 38.3800,
+		"longitude": -105.1080,
+		"riverMile": 113.78,
 		"fee": "free",
 		"vehicleAccess": true,
 		"notes": "Florence town-managed boat ramp / play park. Below Cañon City. Class I-II."
@@ -604,7 +574,7 @@ export const CURATED_ACCESS_POINTS: CuratedAccessPoint[] = [
 		"sortIndex": 370,
 		"latitude": 38.26494,
 		"longitude": -104.78934,
-		"riverMile": 137.52,
+		"riverMile": 138.16,
 		"fee": "fee",
 		"vehicleAccess": true,
 		"notes": "Lake Pueblo State Park boat ramp where the Arkansas enters Lake Pueblo. Practical lower take-out before the dam."
@@ -4399,13 +4369,25 @@ export const CURATED_GAUGES: CuratedGauge[] = [
 ];
 
 export const SECTION_LEG_MAPPING: Record<string, SectionLeg> = {
+	"arkansas-pine-creek": {
+		"fromAccessPointId": "ap_arkansas-headwaters_granite",
+		"toAccessPointId": "ap_arkansas-headwaters_numbers-launch"
+	},
 	"arkansas-numbers": {
-		"fromAccessPointId": "ap_arkansas-headwaters_clear-creek",
+		"fromAccessPointId": "ap_arkansas-headwaters_numbers-launch",
 		"toAccessPointId": "ap_arkansas-headwaters_railroad-bridge"
 	},
 	"arkansas-fractions": {
+		"fromAccessPointId": "ap_arkansas-headwaters_railroad-bridge",
+		"toAccessPointId": "ap_arkansas-headwaters_buena-vista-whitewater-park"
+	},
+	"arkansas-town-boat-chute": {
 		"fromAccessPointId": "ap_arkansas-headwaters_buena-vista-whitewater-park",
-		"toAccessPointId": "ap_arkansas-headwaters_fisherman-s-bridge-browns-top"
+		"toAccessPointId": "ap_arkansas-headwaters_johnson-s-village"
+	},
+	"arkansas-milk-run": {
+		"fromAccessPointId": "ap_arkansas-headwaters_johnson-s-village",
+		"toAccessPointId": "ap_arkansas-headwaters_ruby-mountain"
 	},
 	"arkansas-bighorn-sheep": {
 		"fromAccessPointId": "ap_arkansas-headwaters_cotopaxi",
@@ -4423,18 +4405,6 @@ export const SECTION_LEG_MAPPING: Record<string, SectionLeg> = {
 		"fromAccessPointId": "ap_arkansas-pueblo-plains_pueblo-mup-put-in",
 		"toAccessPointId": "ap_arkansas-pueblo-plains_pueblo-whitewater-park"
 	},
-	"arkansas-pine-creek": {
-		"fromAccessPointId": "ap_arkansas-headwaters_granite",
-		"toAccessPointId": "ap_arkansas-headwaters_clear-creek"
-	},
-	"arkansas-town-boat-chute": {
-		"fromAccessPointId": "ap_arkansas-headwaters_railroad-bridge",
-		"toAccessPointId": "ap_arkansas-headwaters_buena-vista-whitewater-park"
-	},
-	"arkansas-milk-run": {
-		"fromAccessPointId": "ap_arkansas-headwaters_fisherman-s-bridge-browns-top",
-		"toAccessPointId": "ap_arkansas-headwaters_ruby-mountain"
-	},
 	"arkansas-browns-upper": {
 		"fromAccessPointId": "ap_arkansas-headwaters_ruby-mountain",
 		"toAccessPointId": "ap_arkansas-headwaters_hecla-junction"
@@ -4445,6 +4415,10 @@ export const SECTION_LEG_MAPPING: Record<string, SectionLeg> = {
 	},
 	"arkansas-big-bend": {
 		"fromAccessPointId": "ap_arkansas-headwaters_stone-bridge",
+		"toAccessPointId": "ap_arkansas-headwaters_salida-east"
+	},
+	"arkansas-bighorn-sheep-upper": {
+		"fromAccessPointId": "ap_arkansas-headwaters_salida-east",
 		"toAccessPointId": "ap_arkansas-headwaters_cotopaxi"
 	},
 	"colorado-gore-canyon": {
