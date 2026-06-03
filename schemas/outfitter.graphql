@@ -1,0 +1,15 @@
+type Outfitter @table @export {
+	id: ID @primaryKey
+	name: String
+	slug: String @indexed
+	licenseNumber: String
+	licenseState: String
+	phone: String
+	website: String
+	serviceCorridorIds: String           # JSON string[]
+	tripTypesJson: String                # JSON string[] (e.g. ['half-day','full-day','overnight'])
+	notes: String
+	lastVerifiedAt: String
+	verifiedBy: ID
+	currentContributionId: ID
+}

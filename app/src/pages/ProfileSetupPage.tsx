@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../api';
 import type { MyCraftsResponse, MyLogsAggregateResponse } from '../types';
+import { WalletPanel } from '../components/WalletPanel';
+import { ReputationSummary } from '../components/ReputationSummary';
 
 const labelStyle: React.CSSProperties = {
 	fontFamily: 'var(--font-mono)',
@@ -240,6 +242,16 @@ export function ProfileSetupPage() {
 						View →
 					</Link>
 				</div>
+			</div>
+
+			<div style={sectionStyle}>
+				<div style={sectionLabelStyle}>TRUST & REPUTATION</div>
+				<ReputationSummary />
+			</div>
+
+			<div style={sectionStyle}>
+				<div style={sectionLabelStyle}>CREDITS & WALLET</div>
+				<WalletPanel />
 			</div>
 		</div>
 	);

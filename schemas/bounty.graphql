@@ -1,0 +1,20 @@
+type Bounty @table @export {
+	id: ID @primaryKey                  # compositeId(['bounty', entityId ?? 'new', postedBy, timestamp])
+	title: String
+	description: String
+	acceptanceCriteria: String          # FIRST-CLASS — concrete checklist; lowers subjectivity + review burden
+	sectionId: ID @indexed              # display anchor — which section page this bounty surfaces on
+	entityType: String @indexed         # 'access-point' | 'rapid' | 'shuttle-business' | 'outfitter' | 'photo' | 'other'
+	entityId: ID @indexed               # the specific entity to edit (nullable = net-new "create" ask)
+	corridorId: ID @indexed             # denormalized for corridor-page surfacing
+	status: String @indexed             # open | awarded | settled | cancelled | expired
+	escrowCents: Int                    # current pot held = Σ funds − Σ refunds − award (derived, cached here)
+	postedBy: ID @indexed
+	postedAt: String @indexed
+	expiresAt: String
+	awardedTo: ID                       # awardee userId (may equal a funder — self-fulfillment ok)
+	awardedContributionId: ID           # the Contribution that satisfied it
+	awardedAt: String
+	settledAt: String
+	cancelledAt: String
+}

@@ -49,6 +49,8 @@ export function MobileCorridor({ slug }: MobileCorridorProps) {
 	const accessPoints: any[] = data?.accessPoints || [];
 	const gauges: any[] = data?.gauges || [];
 	const dams: any[] = data?.impassableDams || [];
+	const shuttleBusinesses: any[] = data?.shuttleBusinesses || [];
+	const outfitters: any[] = data?.outfitters || [];
 	const breadcrumb = data?.breadcrumb || [];
 
 	useEffect(() => {
@@ -268,6 +270,8 @@ export function MobileCorridor({ slug }: MobileCorridorProps) {
 					targetRiverName="Arkansas River"
 					sections={sections}
 					accessPoints={accessPoints}
+					shuttleBusinesses={shuttleBusinesses}
+					outfitters={outfitters}
 					dams={dams}
 					gauges={gauges}
 					sectionsForMap={mapSections}

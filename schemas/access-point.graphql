@@ -14,4 +14,11 @@ type AccessPoint @table @export {
 	fee: String
 	vehicleAccess: Boolean
 	notes: String
+	directions: String
+	permitRequired: Boolean
+	feeUsd: Float
+	parkingSpaces: Int
+	lastVerifiedAt: String
+	verifiedBy: ID
+	currentContributionId: ID
 }

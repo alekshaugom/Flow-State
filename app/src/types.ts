@@ -112,8 +112,13 @@ export interface DetailViewModel {
 	flowBands: FlowBandRow[];
 	resolvedBand: ResolvedBand | null;
 
+	corridorId: string | null;
+
 	myLogs: RiverLogEntry[];
 	myLogTotalCount: number;
+
+	rapids: any[];
+	bounties: BountyListItem[];
 
 	flowThresholds: {
 		flowLow: number; flowRunnable: number;
@@ -378,6 +383,21 @@ export interface AdminInviteUserResult {
 		lastLoginAt: string | null;
 	};
 	link: { token: string; url: string; expiresAt: string };
+}
+
+// --- Bounty (slice 22) ---
+
+export interface BountyListItem {
+	id: string;
+	title: string | null;
+	acceptanceCriteria: string | null;
+	sectionId: string | null;
+	entityType: string | null;
+	entityId: string | null;
+	status: 'open' | 'awarded' | 'settled' | 'cancelled' | 'expired';
+	escrowCents: number;
+	postedBy: string | null;
+	awardedTo: string | null;
 }
 
 export interface AdminDeleteUserResult {

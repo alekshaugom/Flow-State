@@ -1,6 +1,6 @@
 ---
 slice: 21-contribution-content-model
-status: queued
+status: active
 value: 9
 confidence: 6
 effort: L

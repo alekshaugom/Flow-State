@@ -198,6 +198,20 @@ export const api = {
 			body: JSON.stringify({ action: 'delete-user', userId }),
 		}).then(json<AdminDeleteUserResult>),
 
+	adminGrantRole: (userId: string, role: string) =>
+		fetch('/AdminAuthResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'grant-role', userId, role }),
+		}).then(json<{ ok: true; userId: string; role: string }>),
+
+	adminRevokeRole: (userId: string) =>
+		fetch('/AdminAuthResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'revoke-role', userId }),
+		}).then(json<{ ok: true; userId: string; role: string }>),
+
 	// --- Share + participant primitives (slice 12c) ---
 	mintShare: (tripId: string, inviteeEmail: string) =>
 		fetch('/LogShareResource', {
@@ -263,6 +277,108 @@ export const api = {
 
 	adminRiverRequests: () =>
 		fetch('/AdminRiverRequests').then(json<AdminRiverRequestsResponse>),
+
+	// --- Contributions (slice 21) ---
+	submitContribution: (entityType: string, entityId: string | null, op: 'edit' | 'create', fields: Record<string, any>, bountyId?: string | null) =>
+		fetch('/ContributionResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ entityType, op, entityId, fields, ...(bountyId ? { bountyId } : {}) }),
+		}).then(json<any>),
+
+	listContributions: (entityType: string, entityId: string) =>
+		fetch(`/ContributionResource?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`).then(json<{ contributions: any[]; total: number }>),
+
+	verifyContribution: (id: string, action: 'verify' | 'reject' | 'dispute') =>
+		fetch('/ContributionResource', {
+			method: 'PATCH',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ id, action }),
+		}).then(json<any>),
+
+	// --- Bounties (slice 22) ---
+	listBounties: (entityType: string, entityId: string) =>
+		fetch(`/BountyResource?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`).then(json<{ bounties: any[]; total: number }>),
+
+	listBountiesByCorridor: (corridorId: string) =>
+		fetch(`/BountyResource?corridorId=${encodeURIComponent(corridorId)}`).then(json<{ bounties: any[]; total: number }>),
+
+	getBounty: (id: string) =>
+		fetch(`/BountyResource/${encodeURIComponent(id)}`).then(json<{ bounty: any; fundEntries: any[]; contributions: any[] }>),
+
+	postBounty: (input: { title: string; description: string; acceptanceCriteria: string; entityType: string; entityId: string | null; corridorId?: string | null; fundCents: number }) =>
+		fetch('/BountyResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'post-bounty', ...input }),
+		}).then(json<any>),
+
+	addBountyFunding: (bountyId: string, amountCents: number) =>
+		fetch('/BountyResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'add-funding', bountyId, amountCents }),
+		}).then(json<any>),
+
+	cancelBounty: (bountyId: string) =>
+		fetch('/BountyResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'cancel', bountyId }),
+		}).then(json<any>),
+
+	awardBounty: (bountyId: string, contributionId: string) =>
+		fetch('/BountyResource', {
+			method: 'PATCH',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'award', bountyId, contributionId }),
+		}).then(json<any>),
+
+	// --- Ledger / Wallet (slice 22) ---
+	getWallet: (userId?: string) =>
+		fetch(userId ? `/LedgerResource?userId=${encodeURIComponent(userId)}` : '/LedgerResource').then(json<{ userId: string; balanceCents: number; putInCents: number; collectedCents: number; extractedCents: number; fundedCents: number; history: any[] }>),
+
+	grantCredits: (userId: string, amountCents: number, note?: string) =>
+		fetch('/LedgerResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ action: 'grant', userId, amountCents, ...(note ? { note } : {}) }),
+		}).then(json<any>),
+
+	getSystemLedger: () =>
+		fetch('/LedgerResource?system=1').then(json<{ system: true; totalGrantedCents: number; totalEscrowHeldCents: number; totalAwardedCents: number; totalExtractedCents: number; totalInSystemCents: number; entryCount: number }>),
+
+	// --- Trust, reputation & governance (slice 24) ---
+	submitFlag: (input: { flaggedEntityType: string; flaggedEntityId: string; flaggedContributionId?: string | null; reason: string; notes?: string }) =>
+		fetch('/ContentFlagResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify(input),
+		}).then(json<any>),
+
+	listOpenFlags: () =>
+		fetch('/ContentFlagResource?status=open').then(json<{ flags: any[]; total: number }>),
+
+	reviewFlag: (id: string, disposition: 'dismiss' | 'action', notes?: string) =>
+		fetch('/ContentFlagResource', {
+			method: 'PATCH',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ id, disposition, ...(notes ? { notes } : {}) }),
+		}).then(json<any>),
+
+	getModerationQueue: () =>
+		fetch('/ModerationResource').then(json<{ pendingContributions: any[]; disputedContributions: any[]; openFlags: any[]; totals: Record<string, number> }>),
+
+	getReputation: (userId?: string) =>
+		fetch(userId ? `/ContributorReputationResource?userId=${encodeURIComponent(userId)}` : '/ContributorReputationResource')
+			.then(json<{ userId: string; acceptedContributions: number; rejectedContributions: number; flagsReceived: number; flagsSubmitted: number; manualTier: string | null; bannedAt: string | null; tier: string }>),
+
+	setTrustTier: (userId: string, patch: { manualTier?: string | null; bannedAt?: string | null }) =>
+		fetch('/ContributorReputationResource', {
+			method: 'PATCH',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ userId, ...patch }),
+		}).then(json<any>),
 };
 
 export interface SearchHit {

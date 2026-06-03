@@ -105,6 +105,31 @@ When these all check out in your browser, frontmatter → `status: done`, `close
 
 ---
 
+## 2026-06-02 — BROWSER VERIFICATION PASSED (the WebGL blocker is gone)
+
+Brought up the real stack and verified the MapLibre canvas in a real-rendering preview browser — the exact thing every prior session could not do (their preview tool reported `window.innerHeight === 0` and rendered the WebGL canvas blank). **This session's preview reported `innerHeight: 822` and a live `webgl`/`webgl2` context, so the map actually paints.**
+
+Stack used (both confirmed up):
+- Harper 5.0.21 against the real `~/hdb` root: `HDB_ROOT=/Users/aleks/hdb node node_modules/harper/dist/bin/harper.js dev .` (port 9926). **NOTE:** the `dev .` arg is mandatory — running the binary without it boots the *other* app deployed in `~/hdb` (block.notes) and `/CorridorView/*` 404s. The `.claude/launch.json` `harper` entry still points at `.harper-dev`; the real-data command is this one.
+- Vite: `npm run ui:dev` (port 5173, proxies `/CorridorView` etc. → 9926).
+- `GET /CorridorView/arkansas-headwaters` returns 12 sections, 35 APs, 1 dam, 10 gauges with live USGS flows (60/295/409/436 cfs, 240-pt sparklines); 4 discontinued gauges null and correctly filtered off the map.
+
+Verified in browser (`http://localhost:5173/corridor/arkansas-headwaters`), **zero console errors**:
+- ✅ AC #1 basemap — paper bg, sage land, dashed county lines, Arkansas River in navy `#1e3a8a` with halo following true geographic course Granite→Salida→Pueblo Reservoir.
+- ✅ AC #2 bounds — whole corridor framed on load.
+- ✅ AC #3 + #9 **dot tracks scroll** (the never-before-confirmed AC) — scrolling moved the position dot along the river (Frog Rock → Granite/Elephant Rock) and the active tile gained its blue accent border.
+- ✅ AC #4 APs dim/light by progress; AP name labels visible (Numbers Launch, Elephant Rock, Hecla Junction, Five Points, Pueblo Reservoir Inlet, …).
+- ✅ AC #5 active section glow + active-tile blue border (Pine Creek when scrolled to top).
+- ✅ AC #6 callout — DOM overlay names the active section ("The Fractions" / "The Numbers" / "Pine Creek"), down-pointing tip in the narrow layout.
+- ✅ AC #7 tile stack — all 12 sections in mile order with `BigCFS`, status pill, trend chip, snowmelt-hump sparkline.
+- ✅ AC #8 **expand** — clicking The Numbers expanded inline to the full `SectionDetailBody`: refined live reading (283 cfs vs rounded 295 on the card), ideal band 700–1,800, briefing prose, embedded recharts chart (7/30/90/180/360-day selector), 13-day Open-Meteo weather strip, drivers/context, snowpack tile (SWE 0.8in), free-flow dam status. "Close section" toggles it.
+- ✅ AC #11 mobile/narrow layout — preview viewport was 652px wide → map sticky-top, tiles below, callout tip flips down. Confirmed.
+- Donut gauge CFS pills (295 Granite, 409 Nathrop, 436 Parkdale) render as SVG overlays left of the river.
+
+**Remaining before `done`:** user's own eyeball pass (they asked to be the one to test the live UI). Holding the `done` + `mv` to `completed/` + slice-20-activation step until they confirm. Once confirmed, advance the queue per CONTRIBUTING-AI.md and make **20-identity-roles-capabilities** active.
+
+---
+
 ## 2026-05-27 — SESSION HANDOFF (checkpoint commit)
 
 Everything below happened AFTER the mock-era notes above. **The app now runs on the REAL Harper database with REAL USGS data — the mock is no longer the path.** Read this section first when resuming.
@@ -158,3 +183,6 @@ Notes:
 - Pipeline: `scripts/generate-geometries.ts` (NHDPlus fetch), `scripts/mock-corridor-server.ts` (offline fallback)
 - Tests: `test/{active-tile-pure,corridor-map-data}.test.ts` — full suite **301/301 green**; `npm run ui:build` clean.
 - Lesson: `.plans/lessons/L008-harper-cli-resolution.md` (the 4.7.8-vs-5.0.21 binary issue).
+
+## 2026-06-02 — CLOSED
+User confirmed the MVP in-browser ("good enough to continue, good mvp that lays things out"). Browser verification (see prior 2026-06-02 entry) passed all browser-dependent ACs on a real-rendering canvas. Slice shipped. Moving to completed/. Queue advances to slice 20.

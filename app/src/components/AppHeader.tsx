@@ -1,8 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from './Icon';
-
-const ADMIN_EMAILS = ['aleks@harperdb.io', 'alekshaugom@gmail.com', 'dev@localhost'];
+import { api } from '../api';
 
 function NavLink({ children, active, onClick }: { children: React.ReactNode; active?: boolean; onClick?: () => void }) {
 	return (
@@ -16,10 +16,25 @@ function NavLink({ children, active, onClick }: { children: React.ReactNode; act
 	);
 }
 
-export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'logs' | 'admin' }) {
+export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'logs' | 'admin' | 'moderation' }) {
 	const navigate = useNavigate();
 	const auth = useAuth();
-	const showAdmin = auth.isAuthenticated && auth.user && ADMIN_EMAILS.includes(auth.user.email);
+	const showAdmin = auth.isAuthenticated && !!auth.capabilities?.isAdmin;
+
+	// Fetch caller's reputation tier to gate the Moderation nav link.
+	// Only fires when authenticated; staleTime keeps it cheap (one fetch per minute).
+	const repQuery = useQuery({
+		queryKey: ['reputation', 'me'],
+		queryFn: () => api.getReputation(),
+		staleTime: 60_000,
+		enabled: auth.isAuthenticated,
+	});
+	const callerTier = repQuery.data?.tier ?? 'new';
+	const showModeration = auth.isAuthenticated && (
+		!!auth.capabilities?.isAdmin ||
+		callerTier === 'trusted' ||
+		callerTier === 'moderator'
+	);
 
 	return (
 		<header style={{
@@ -50,6 +65,9 @@ export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'logs
 					)}
 					{showAdmin && (
 						<NavLink active={activePage === 'admin'} onClick={() => navigate('/admin')}>Admin</NavLink>
+					)}
+					{showModeration && (
+						<NavLink active={activePage === 'moderation'} onClick={() => navigate('/moderation')}>Moderation</NavLink>
 					)}
 				</nav>
 			</div>

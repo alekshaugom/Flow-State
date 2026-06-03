@@ -11,4 +11,5 @@ type WaitlistUser @table @export {
 	grantedAt: String
 	grantedBy: String
 	lastLoginAt: String
+	role: String @indexed
 }

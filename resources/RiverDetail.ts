@@ -174,6 +174,63 @@ async function getLatestForecast(sectionId: string) {
 	return { run: runs[0], outputs };
 }
 
+async function getBountiesForSection(sectionId: string): Promise<any[]> {
+	const rows: any[] = [];
+	for await (const r of (tables as any).Bounty.search({
+		conditions: [{ attribute: 'sectionId', value: sectionId, comparator: 'equals' as const }],
+	})) {
+		rows.push({
+			id:                  r.id,
+			title:               r.title ?? null,
+			acceptanceCriteria:  r.acceptanceCriteria ?? null,
+			sectionId:           r.sectionId ?? null,
+			entityType:          r.entityType ?? null,
+			entityId:            r.entityId ?? null,
+			corridorId:          r.corridorId ?? null,
+			status:              r.status ?? null,
+			escrowCents:         r.escrowCents ?? 0,
+			postedBy:            r.postedBy ?? null,
+			awardedTo:           r.awardedTo ?? null,
+		});
+	}
+	rows.sort((a, b) => (b.escrowCents ?? 0) - (a.escrowCents ?? 0));
+	return rows;
+}
+
+async function getRapidsForSection(sectionId: string) {
+	const rows: any[] = [];
+	for await (const r of (tables as any).Rapid.search({
+		conditions: [{ attribute: 'sectionId', value: sectionId, comparator: 'equals' as const }],
+	})) {
+		rows.push({
+			id: r.id,
+			name: r.name,
+			slug: r.slug,
+			riverMile: r.riverMile ?? null,
+			latitude: r.latitude ?? null,
+			longitude: r.longitude ?? null,
+			classRating: r.classRating ?? null,
+			classByFlowJson: r.classByFlowJson ?? null,
+			linesJson: r.linesJson ?? null,
+			hazardsJson: r.hazardsJson ?? null,
+			scoutPortageNotes: r.scoutPortageNotes ?? null,
+			sortIndex: r.sortIndex ?? null,
+			lastVerifiedAt: r.lastVerifiedAt ?? null,
+			verifiedBy: r.verifiedBy ?? null,
+			currentContributionId: r.currentContributionId ?? null,
+		});
+	}
+	// Sort by riverMile, then sortIndex, then name
+	rows.sort((a, b) => {
+		if (a.riverMile != null && b.riverMile != null) return a.riverMile - b.riverMile;
+		if (a.riverMile != null) return -1;
+		if (b.riverMile != null) return 1;
+		if (a.sortIndex != null && b.sortIndex != null) return a.sortIndex - b.sortIndex;
+		return (a.name ?? '').localeCompare(b.name ?? '');
+	});
+	return rows;
+}
+
 async function getMyLogsForSection(userId: string | null, sectionId: string): Promise<{ myLogs: any[]; myLogTotalCount: number }> {
 	if (!userId) return { myLogs: [], myLogTotalCount: 0 };
 	const rows: any[] = [];
@@ -232,7 +289,7 @@ export class RiverDetail extends Resource {
 		const reservoirIds = splitIds(section.reservoirIds);
 		const basinIds = splitIds(section.snowpackBasinIds);
 
-		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands, myLogsData] = await Promise.all([
+		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands, myLogsData, rapids, bounties] = await Promise.all([
 			getFlowData(gaugeIds),
 			getDamReleases(reservoirIds),
 			getSnowpackData(basinIds),
@@ -240,6 +297,8 @@ export class RiverDetail extends Resource {
 			getLatestForecast(sectionId),
 			loadBandsForSection(sectionId),
 			getMyLogsForSection(userId, sectionId),
+			getRapidsForSection(sectionId),
+			getBountiesForSection(sectionId),
 		]);
 
 		const currentFlow = flowData.latest?.value ?? null;
@@ -302,6 +361,8 @@ export class RiverDetail extends Resource {
 			forecast,
 			myLogs: myLogsData.myLogs,
 			myLogTotalCount: myLogsData.myLogTotalCount,
+			rapids,
+			bounties,
 		};
 		return new Response(JSON.stringify(result), {
 			headers: {

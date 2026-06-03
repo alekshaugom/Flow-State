@@ -4,6 +4,7 @@ import { TrendChip } from './TrendChip';
 import { Sparkline } from './Sparkline';
 import { SectionDetailBody } from './SectionDetailBody';
 import { mapStatusToDesign, STATUS_LABEL } from '../constants';
+import type { AccessPointData } from './AccessPointCard';
 
 // --- Prop types ---
 
@@ -38,6 +39,12 @@ interface SectionTileProps {
 	tileRefCallback?: (el: HTMLDivElement | null) => void;
 	/** Visual: this tile is the currently active one (viewport center inside it) */
 	isActive?: boolean;
+	/** All corridor access points — filtered by SectionDetailBody to this section's mile span */
+	accessPoints?: AccessPointData[];
+	/** All corridor shuttle businesses — passed through to SectionDetailBody (corridor-scoped, not filtered) */
+	shuttleBusinesses?: any[];
+	/** All corridor outfitters — passed through to SectionDetailBody (corridor-scoped, not filtered) */
+	outfitters?: any[];
 }
 
 // --- Style helpers ---
@@ -85,6 +92,9 @@ export function SectionTile({
 	onToggle,
 	tileRefCallback,
 	isActive = false,
+	accessPoints,
+	shuttleBusinesses,
+	outfitters,
 }: SectionTileProps) {
 	const designStatus = mapStatusToDesign(section.status);
 	const statusLabel = section.statusLabel ?? STATUS_LABEL[designStatus] ?? designStatus;
@@ -243,7 +253,14 @@ export function SectionTile({
 					>
 						✕
 					</button>
-					<SectionDetailBody sectionId={section.id} hideHero />
+					<SectionDetailBody
+						sectionId={section.id}
+						hideHero
+						accessPoints={accessPoints}
+						corridorMileSpan={section.corridorMileSpan}
+						shuttleBusinesses={shuttleBusinesses}
+						outfitters={outfitters}
+					/>
 				</div>
 			)}
 		</div>

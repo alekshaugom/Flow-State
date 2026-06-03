@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { Icon } from '../components/Icon';
+import { WalletPanel } from '../components/WalletPanel';
+import { ReputationSummary } from '../components/ReputationSummary';
+import { TrustBadge } from '../components/TrustBadge';
 import type { AdminInviteUserResult, AdminLoginLinkResult } from '../types';
 
 const card: React.CSSProperties = {
@@ -91,6 +94,9 @@ export function AdminUsersPanel() {
 	const waitlist = useQuery({ queryKey: ['adminWaitlist'], queryFn: api.adminWaitlist, refetchInterval: 30_000 });
 	const [search, setSearch] = useState('');
 	const [openUserId, setOpenUserId] = useState<string | null>(null);
+	const [walletUserId, setWalletUserId] = useState<string | null>(null);
+	const [grantUserId, setGrantUserId] = useState<string | null>(null);
+	const [repUserId, setRepUserId] = useState<string | null>(null);
 	const [inviteOpen, setInviteOpen] = useState(false);
 
 	const allUsers = waitlist.data?.users || [];
@@ -112,6 +118,12 @@ export function AdminUsersPanel() {
 
 	const deleteMutation = useMutation({
 		mutationFn: (userId: string) => api.adminDeleteUser(userId),
+		onSuccess: () => qc.invalidateQueries({ queryKey: ['adminWaitlist'] }),
+	});
+
+	const roleMutation = useMutation({
+		mutationFn: ({ userId, role }: { userId: string; role: string | null }) =>
+			role ? api.adminGrantRole(userId, role) : api.adminRevokeRole(userId),
 		onSuccess: () => qc.invalidateQueries({ queryKey: ['adminWaitlist'] }),
 	});
 
@@ -230,9 +242,27 @@ export function AdminUsersPanel() {
 										)}
 										{u.status === 'approved' && (
 											<>
+												{(u.role === 'admin' || u.role === 'superadmin') ? (
+													<button style={btnGhost} disabled={roleMutation.isPending}
+														onClick={() => roleMutation.mutate({ userId: u.id, role: null })}
+													>Revoke admin</button>
+												) : (
+													<button style={btnGhost} disabled={roleMutation.isPending}
+														onClick={() => roleMutation.mutate({ userId: u.id, role: 'admin' })}
+													>Grant admin</button>
+												)}
 												<button style={btnGhost}
 													onClick={() => setOpenUserId(isOpen ? null : u.id)}
 												>{isOpen ? 'Hide controls' : 'Manage credentials'}</button>
+												<button style={btnGhost}
+													onClick={() => {
+														setWalletUserId(walletUserId === u.id ? null : u.id);
+														setGrantUserId(null);
+													}}
+												>{walletUserId === u.id ? 'Hide wallet' : 'Wallet'}</button>
+												<button style={btnGhost}
+													onClick={() => setRepUserId(repUserId === u.id ? null : u.id)}
+												>{repUserId === u.id ? 'Hide reputation' : 'Reputation'}</button>
 												<button style={btnDanger} disabled={deleteMutation.isPending}
 													onClick={() => {
 														const name = displayUserName(u);
@@ -250,6 +280,12 @@ export function AdminUsersPanel() {
 								</div>
 								{isOpen && u.status === 'approved' && (
 									<UserCredentialControls userId={u.id} onChange={() => qc.invalidateQueries({ queryKey: ['adminWaitlist'] })} />
+								)}
+								{walletUserId === u.id && u.status === 'approved' && (
+									<UserWalletSection userId={u.id} onClose={() => setWalletUserId(null)} />
+								)}
+								{repUserId === u.id && u.status === 'approved' && (
+									<UserReputationSection userId={u.id} onClose={() => setRepUserId(null)} />
 								)}
 							</div>
 						);
@@ -576,6 +612,240 @@ function UserCredentialControls({ userId, onChange }: { userId: string; onChange
 					</div>
 				)}
 			</div>
+		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// UserWalletSection — admin wallet view + grant karma for a user
+// ---------------------------------------------------------------------------
+
+function UserWalletSection({ userId, onClose }: { userId: string; onClose: () => void }) {
+	const qc = useQueryClient();
+	const [grantAmount, setGrantAmount] = useState('');
+	const [grantNote, setGrantNote] = useState('');
+	const [grantError, setGrantError] = useState<string | null>(null);
+	const [grantSuccess, setGrantSuccess] = useState<string | null>(null);
+
+	const grantMutation = useMutation({
+		mutationFn: () => {
+			// interim: integer holds karma points (slice 23b); becomes USD-cents when real payments land (slice 23)
+			const karma = parseInt(grantAmount, 10);
+			if (!karma || karma <= 0) throw new Error('Enter a positive karma amount');
+			return api.grantCredits(userId, karma, grantNote.trim() || undefined);
+		},
+		onSuccess: () => {
+			setGrantSuccess(`Granted ✦ ${parseInt(grantAmount, 10).toLocaleString('en-US')} karma to user.`);
+			setGrantError(null);
+			setGrantAmount('');
+			setGrantNote('');
+			qc.invalidateQueries({ queryKey: ['wallet', userId] });
+		},
+		onError: (e: any) => {
+			setGrantError(e?.message || 'Failed to grant karma');
+			setGrantSuccess(null);
+		},
+	});
+
+	const onGrant = (e: React.FormEvent) => {
+		e.preventDefault();
+		setGrantError(null);
+		setGrantSuccess(null);
+		const karma = parseInt(grantAmount, 10);
+		if (!karma || karma <= 0) { setGrantError('Enter a positive karma amount'); return; }
+		grantMutation.mutate();
+	};
+
+	return (
+		<div style={{
+			marginTop: 14, paddingTop: 14, borderTop: '1px dashed var(--rule)',
+			display: 'flex', flexDirection: 'column', gap: 14,
+		}}>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+				<div style={{ ...labelStyle, marginBottom: 0 }}>WALLET</div>
+				<button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-3)', fontSize: 16, padding: 0 }}>×</button>
+			</div>
+
+			<form onSubmit={onGrant} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+				<div style={labelStyle}>GRANT KARMA</div>
+				<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+						<span style={{ fontSize: 13, color: 'var(--ink-2)' }}>✦</span>
+						<input
+							type="number"
+							min="1"
+							step="1"
+							value={grantAmount}
+							onChange={e => setGrantAmount(e.target.value)}
+							placeholder="0"
+							style={{ ...inputStyle, width: 90 }}
+						/>
+					</div>
+					<input
+						type="text"
+						value={grantNote}
+						onChange={e => setGrantNote(e.target.value)}
+						placeholder="Note (optional)"
+						style={{ ...inputStyle, flex: 1, minWidth: 120 }}
+					/>
+					<button type="submit" style={btnPrimary} disabled={grantMutation.isPending}>
+						{grantMutation.isPending ? 'Granting…' : 'Grant'}
+					</button>
+				</div>
+				{grantError && <div style={{ padding: '5px 8px', borderRadius: 'var(--r-md)', background: '#fdecea', color: '#a02323', fontSize: 12 }}>{grantError}</div>}
+				{grantSuccess && <div style={{ padding: '5px 8px', borderRadius: 'var(--r-md)', background: 'var(--river-50)', color: 'var(--river-800)', fontSize: 12 }}>{grantSuccess}</div>}
+			</form>
+
+			<WalletPanel userId={userId} />
+		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// UserReputationSection — admin view of a user's trust tier + controls
+// ---------------------------------------------------------------------------
+
+const TIER_OPTIONS = ['new', 'established', 'trusted', 'moderator'] as const;
+
+function UserReputationSection({ userId, onClose }: { userId: string; onClose: () => void }) {
+	const qc = useQueryClient();
+	const [tierError, setTierError] = useState<string | null>(null);
+	const [tierSuccess, setTierSuccess] = useState<string | null>(null);
+
+	const repQuery = useQuery({
+		queryKey: ['reputation', userId],
+		queryFn: () => api.getReputation(userId),
+		staleTime: 30_000,
+	});
+
+	const tierMutation = useMutation({
+		mutationFn: (manualTier: string | null) =>
+			api.setTrustTier(userId, { manualTier }),
+		onSuccess: () => {
+			setTierSuccess('Tier updated.');
+			setTierError(null);
+			qc.invalidateQueries({ queryKey: ['reputation', userId] });
+		},
+		onError: (e: any) => {
+			setTierError(e?.message || 'Failed to update tier');
+			setTierSuccess(null);
+		},
+	});
+
+	const banMutation = useMutation({
+		mutationFn: (ban: boolean) =>
+			api.setTrustTier(userId, { bannedAt: ban ? new Date().toISOString() : null }),
+		onSuccess: () => {
+			setTierSuccess(banMutation.variables ? 'User banned.' : 'User unbanned.');
+			setTierError(null);
+			qc.invalidateQueries({ queryKey: ['reputation', userId] });
+		},
+		onError: (e: any) => {
+			setTierError(e?.message || 'Failed to update ban');
+			setTierSuccess(null);
+		},
+	});
+
+	const isBanned = !!repQuery.data?.bannedAt;
+	const currentTier = repQuery.data?.tier ?? 'new';
+	const manualTier = repQuery.data?.manualTier ?? null;
+
+	return (
+		<div style={{
+			marginTop: 14, paddingTop: 14, borderTop: '1px dashed var(--rule)',
+			display: 'flex', flexDirection: 'column', gap: 14,
+		}}>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+				<div style={{ ...labelStyle, marginBottom: 0 }}>TRUST & REPUTATION</div>
+				<button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-3)', fontSize: 16, padding: 0 }}>×</button>
+			</div>
+
+			{repQuery.isLoading && (
+				<div style={{ fontSize: 12, color: 'var(--ink-3)' }}>Loading reputation…</div>
+			)}
+
+			{repQuery.data && (
+				<>
+					{/* Current tier display */}
+					<div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+						<TrustBadge tier={currentTier} />
+						{manualTier && (
+							<span style={{ fontSize: 10, color: 'var(--ink-4)', fontFamily: 'var(--font-mono)' }}>(admin-set)</span>
+						)}
+						{isBanned && (
+							<span style={{
+								display: 'inline-flex', alignItems: 'center',
+								padding: '2px 8px', borderRadius: 'var(--r-pill)',
+								background: '#fef2f2', color: '#a02323',
+								fontSize: 10, fontWeight: 600,
+							}}>Banned</span>
+						)}
+					</div>
+
+					{/* Reputation summary */}
+					<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 12, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>
+						<span>✓ {repQuery.data.acceptedContributions ?? 0} accepted</span>
+						<span>✗ {repQuery.data.rejectedContributions ?? 0} rejected</span>
+						<span>⚑ {repQuery.data.flagsReceived ?? 0} flags recv.</span>
+						<span>⚐ {repQuery.data.flagsSubmitted ?? 0} flags sent</span>
+					</div>
+
+					{/* Promote / demote tier */}
+					<div>
+						<div style={labelStyle}>SET TIER (OVERRIDE)</div>
+						<div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+							{TIER_OPTIONS.map(t => (
+								<button
+									key={t}
+									type="button"
+									disabled={tierMutation.isPending}
+									onClick={() => tierMutation.mutate(t === 'new' || t === 'established' ? null : t)}
+									style={{
+										...btnGhost,
+										borderColor: currentTier === t ? 'var(--river-700)' : undefined,
+										color: currentTier === t ? 'var(--river-700)' : undefined,
+										fontWeight: currentTier === t ? 700 : 600,
+									}}
+								>
+									{t.charAt(0).toUpperCase() + t.slice(1)}
+								</button>
+							))}
+						</div>
+						<div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 4 }}>
+							"New" / "Established" clears any manual override (reverts to earned tier). "Trusted" / "Moderator" pin the tier.
+						</div>
+					</div>
+
+					{/* Ban / unban */}
+					<div>
+						{isBanned ? (
+							<button
+								type="button"
+								style={btnGhost}
+								disabled={banMutation.isPending}
+								onClick={() => banMutation.mutate(false)}
+							>
+								{banMutation.isPending ? 'Updating…' : 'Unban user'}
+							</button>
+						) : (
+							<button
+								type="button"
+								style={btnDanger}
+								disabled={banMutation.isPending}
+								onClick={() => {
+									if (!window.confirm('Ban this user? They will no longer be able to review contributions.')) return;
+									banMutation.mutate(true);
+								}}
+							>
+								{banMutation.isPending ? 'Banning…' : 'Ban user'}
+							</button>
+						)}
+					</div>
+
+					{tierError && <div style={{ padding: '5px 8px', borderRadius: 'var(--r-md)', background: '#fdecea', color: '#a02323', fontSize: 12 }}>{tierError}</div>}
+					{tierSuccess && <div style={{ padding: '5px 8px', borderRadius: 'var(--r-md)', background: 'var(--river-50)', color: 'var(--river-800)', fontSize: 12 }}>{tierSuccess}</div>}
+				</>
+			)}
 		</div>
 	);
 }

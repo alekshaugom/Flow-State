@@ -1,0 +1,15 @@
+type Contribution @table @export {
+	id: ID @primaryKey                  # compositeId([entityType, entityId, authorId, timestamp])
+	entityType: String @indexed         # 'access-point' | 'rapid' | 'shuttle-business' | 'outfitter'
+	entityId: ID @indexed               # FK to the target row
+	op: String                          # 'edit' | 'create'
+	version: Int                        # 1-based per entity
+	authorId: ID @indexed
+	author: WaitlistUser @relationship(from: "authorId")
+	submittedAt: String @indexed
+	verificationState: String @indexed  # 'pending' | 'verified' | 'disputed' | 'rejected'
+	verifiedBy: ID
+	verifiedAt: String
+	changesetJson: String               # JSON { before:{changed fields}, after:{changed fields} }
+	bountyId: ID @indexed               # nullable; slice 22
+}

@@ -4,6 +4,14 @@ import { api } from '../api';
 
 const DEV_BYPASS_KEY = 'flow-state-dev-bypass';
 
+export interface UserCapabilities {
+	isMember: boolean;
+	isAdmin: boolean;
+	canContribute: boolean;
+	canFund: boolean;
+	canReceivePayout: boolean;
+}
+
 interface AuthUser {
 	id: string;
 	email: string;
@@ -11,6 +19,7 @@ interface AuthUser {
 	avatarUrl: string | null;
 	status: 'waitlist' | 'approved' | 'denied';
 	createdAt: string;
+	role?: string | null;
 }
 
 interface AuthState {
@@ -20,6 +29,7 @@ interface AuthState {
 	isApproved: boolean;
 	isWaitlisted: boolean;
 	isDev: boolean;
+	capabilities: UserCapabilities | null;
 	login: () => void;
 	logout: () => void;
 	devBypass: () => void;
@@ -32,6 +42,15 @@ const DEV_USER: AuthUser = {
 	avatarUrl: null,
 	status: 'approved',
 	createdAt: new Date().toISOString(),
+	role: 'superadmin',
+};
+
+const DEV_CAPABILITIES: UserCapabilities = {
+	isMember: true,
+	isAdmin: true,
+	canContribute: true, // slice 21: membership grants contribute; dev is a full member
+	canFund: true,       // slice 22: approved members can fund bounties; dev is approved
+	canReceivePayout: false,
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -54,6 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	const user = devActive ? DEV_USER : (data?.user ?? null);
 	const authenticated = devActive ? true : (data?.authenticated ?? false);
+	const capabilities: UserCapabilities | null = devActive
+		? DEV_CAPABILITIES
+		: (data?.capabilities ?? null);
 
 	const devBypass = useCallback(() => {
 		localStorage.setItem(DEV_BYPASS_KEY, 'true');
@@ -67,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		isApproved: user?.status === 'approved',
 		isWaitlisted: user?.status === 'waitlist',
 		isDev: import.meta.env.DEV,
+		capabilities,
 		login: () => {
 			window.location.href = '/oauth/google/login';
 		},

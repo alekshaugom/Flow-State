@@ -572,3 +572,272 @@ if (BROWNS_RAFT_INT_LOW) {
 }
 
 export const FLOW_BANDS = GENERATED_BANDS;
+
+// ---------------------------------------------------------------------------
+// RAPIDS — curated well-known Arkansas Headwaters rapids
+// River miles are approximate, measured downstream from Pine Creek put-in
+// (Granite) following AHRA mile markers. Classes are base ratings.
+// ---------------------------------------------------------------------------
+export const RAPIDS = [
+	// === The Numbers (sectionId: arkansas-numbers) ===
+	// The Numbers are a series of Class IV-V drops named for their approximate
+	// mile markers. River miles referenced from the Numbers put-in.
+	{
+		id: 'rapid-numbers-1',
+		sectionId: 'arkansas-numbers',
+		corridorId: 'arkansas-headwaters',
+		name: 'Number One Rapid',
+		slug: 'number-one-rapid',
+		riverMile: 0.4,
+		latitude: 38.852,
+		longitude: -106.286,
+		classRating: 'IV',
+		classByFlowJson: JSON.stringify([
+			{ minCfs: 500, maxCfs: 1200, class: 'IV' },
+			{ minCfs: 1200, maxCfs: 2500, class: 'IV+' },
+			{ minCfs: 2500, maxCfs: null, class: 'V' },
+		]),
+		linesJson: JSON.stringify([
+			{ name: 'Left chute', description: 'Standard line at most levels — enter left of the tongue and drive hard right.', classAt: 'IV' },
+			{ name: 'Right sneak', description: 'Low-water option, technical and scrappy.', classAt: 'III+' },
+		]),
+		hazardsJson: JSON.stringify([
+			{ type: 'hole', description: 'Hydraulic at the base of the main drop. Flushes at moderate flows; retentive above 2500 cfs.', severity: 'moderate' },
+		]),
+		scoutPortageNotes: 'Scout from river left on the small eddy above the drop. Portage via river right.',
+		sortIndex: 10,
+	},
+	{
+		id: 'rapid-numbers-3',
+		sectionId: 'arkansas-numbers',
+		corridorId: 'arkansas-headwaters',
+		name: 'Number Three Rapid',
+		slug: 'number-three-rapid',
+		riverMile: 1.3,
+		latitude: 38.845,
+		longitude: -106.281,
+		classRating: 'IV+',
+		classByFlowJson: JSON.stringify([
+			{ minCfs: 500, maxCfs: 1000, class: 'IV' },
+			{ minCfs: 1000, maxCfs: 2000, class: 'IV+' },
+			{ minCfs: 2000, maxCfs: null, class: 'V' },
+		]),
+		linesJson: JSON.stringify([
+			{ name: 'Main line', description: 'Enter center-left, punch the main wave, ferry hard to avoid the keeper hole on the right.', classAt: 'IV+' },
+		]),
+		hazardsJson: JSON.stringify([
+			{ type: 'hole', description: 'Right-side keeper hydraulic at flows above 1500 cfs. Avoid river right at high water.', severity: 'serious' },
+			{ type: 'strainer', description: 'Occasional wood on left bank — scout conditions.', severity: 'moderate' },
+		]),
+		scoutPortageNotes: 'Scout river left from the large eddy above. Portage river left along the bank.',
+		sortIndex: 20,
+	},
+	// === Upper Browns (sectionId: arkansas-browns-upper) ===
+	{
+		id: 'rapid-zoom-flume',
+		sectionId: 'arkansas-browns-upper',
+		corridorId: 'arkansas-headwaters',
+		name: 'Zoom Flume',
+		slug: 'zoom-flume',
+		riverMile: 23.2,
+		latitude: 38.710,
+		longitude: -106.084,
+		classRating: 'IV',
+		classByFlowJson: JSON.stringify([
+			{ minCfs: 400, maxCfs: 1000, class: 'III+' },
+			{ minCfs: 1000, maxCfs: 2500, class: 'IV' },
+			{ minCfs: 2500, maxCfs: null, class: 'IV+' },
+		]),
+		linesJson: JSON.stringify([
+			{ name: 'Left slot', description: 'Drop into the left channel slot and ride the wave train out. Fastest and most forgiving line.', classAt: 'IV' },
+			{ name: 'Center boof', description: 'Boof off the center ledge for big air — committed at any level.', classAt: 'IV' },
+		]),
+		hazardsJson: JSON.stringify([
+			{ type: 'boulder', description: 'Large submerged boulder at the base exposed below 600 cfs.', severity: 'moderate' },
+		]),
+		scoutPortageNotes: 'Easy scout from river right. No clean portage — most parties run.',
+		sortIndex: 10,
+	},
+	{
+		id: 'rapid-seidels-suckhole',
+		sectionId: 'arkansas-browns-upper',
+		corridorId: 'arkansas-headwaters',
+		name: "Seidel's Suckhole",
+		slug: 'seidels-suckhole',
+		riverMile: 24.1,
+		latitude: 38.706,
+		longitude: -106.079,
+		classRating: 'IV',
+		classByFlowJson: JSON.stringify([
+			{ minCfs: 400, maxCfs: 900, class: 'III+' },
+			{ minCfs: 900, maxCfs: 2000, class: 'IV' },
+			{ minCfs: 2000, maxCfs: null, class: 'IV+' },
+		]),
+		linesJson: JSON.stringify([
+			{ name: 'Left of center', description: 'Thread left of the main hole formation. Punch the terminal wave.', classAt: 'IV' },
+		]),
+		hazardsJson: JSON.stringify([
+			{ type: 'hole', description: 'Central hydraulic that gives the rapid its name — retentive at moderate flows. Give it room.', severity: 'serious' },
+		]),
+		scoutPortageNotes: 'Scout easily from river left. Portage along river left ledge is awkward but doable.',
+		sortIndex: 20,
+	},
+	// === Royal Gorge (sectionId: arkansas-royal-gorge) ===
+	{
+		id: 'rapid-sunshine-falls',
+		sectionId: 'arkansas-royal-gorge',
+		corridorId: 'arkansas-headwaters',
+		name: 'Sunshine Falls',
+		slug: 'sunshine-falls',
+		riverMile: 3.2,
+		latitude: 38.463,
+		longitude: -105.314,
+		classRating: 'V',
+		classByFlowJson: JSON.stringify([
+			{ minCfs: 600, maxCfs: 1200, class: 'IV+' },
+			{ minCfs: 1200, maxCfs: 2500, class: 'V' },
+			{ minCfs: 2500, maxCfs: null, class: 'V+' },
+		]),
+		linesJson: JSON.stringify([
+			{ name: 'Main drop', description: 'Left-center entry, punch the steep horizon line and drive hard left to avoid the wall.', classAt: 'V' },
+		]),
+		hazardsJson: JSON.stringify([
+			{ type: 'hydraulic', description: 'Powerful hydraulic at the base of the main drop — serious recirculation zone at flows above 1500 cfs.', severity: 'serious' },
+			{ type: 'wall', description: 'Right canyon wall — avoid flushing into it at the base.', severity: 'moderate' },
+		]),
+		scoutPortageNotes: 'Scout and portage river left. The portage trail is steep and exposed — flip-flops not recommended. This is the crux Class V of Royal Gorge.',
+		sortIndex: 10,
+	},
+	{
+		id: 'rapid-sledgehammer',
+		sectionId: 'arkansas-royal-gorge',
+		corridorId: 'arkansas-headwaters',
+		name: 'Sledgehammer',
+		slug: 'sledgehammer',
+		riverMile: 5.8,
+		latitude: 38.457,
+		longitude: -105.305,
+		classRating: 'IV+',
+		classByFlowJson: JSON.stringify([
+			{ minCfs: 600, maxCfs: 1000, class: 'IV' },
+			{ minCfs: 1000, maxCfs: 2500, class: 'IV+' },
+			{ minCfs: 2500, maxCfs: null, class: 'V' },
+		]),
+		linesJson: JSON.stringify([
+			{ name: 'Down the gut', description: 'No room to maneuver — commit to the main line and paddle hard through the series of hydraulics.', classAt: 'IV+' },
+		]),
+		hazardsJson: JSON.stringify([
+			{ type: 'series', description: 'Back-to-back hydraulics with no recovery pool. Continuous high-consequence at any level above 800 cfs.', severity: 'serious' },
+		]),
+		scoutPortageNotes: 'Limited scouting possible from river left. Portage is extremely difficult due to vertical canyon walls — commit or line boats.',
+		sortIndex: 20,
+	},
+];
+
+// ---------------------------------------------------------------------------
+// SHUTTLE_BUSINESSES — Arkansas Headwaters (slice 21 Phase C)
+// Real businesses serving the Arkansas Headwaters Recreation Area corridor.
+// ---------------------------------------------------------------------------
+export const SHUTTLE_BUSINESSES = [
+	{
+		id: 'shuttle-arkansas-valley-adventures',
+		name: 'Arkansas Valley Adventures',
+		slug: 'arkansas-valley-adventures',
+		phone: '719-539-6789',
+		website: 'https://arkansasvalleyadventures.com',
+		serviceCorridorIds: JSON.stringify(['arkansas-headwaters']),
+		ratesJson: JSON.stringify([
+			{ label: 'Numbers put-in to Hecla take-out', priceUsd: 30, notes: 'per person' },
+			{ label: 'Browns Canyon full shuttle', priceUsd: 35, notes: 'per person; Nathrop to Hecla' },
+			{ label: 'Royal Gorge shuttle', priceUsd: 45, notes: 'per person; Rincon to Parkdale' },
+		]),
+		notes: 'Based in Salida, CO. Covers all major Arkansas Headwaters put-ins and take-outs. Call ahead — scheduling required. Open May–August.',
+		lastVerifiedAt: null,
+		verifiedBy: null,
+		currentContributionId: null,
+	},
+	{
+		id: 'shuttle-buffalo-joes',
+		name: "Buffalo Joe's Rafting",
+		slug: 'buffalo-joes-rafting',
+		phone: '719-395-8757',
+		website: 'https://buffalojoes.com',
+		serviceCorridorIds: JSON.stringify(['arkansas-headwaters']),
+		ratesJson: JSON.stringify([
+			{ label: 'Numbers shuttle', priceUsd: 25, notes: 'per vehicle' },
+			{ label: 'Browns Canyon shuttle', priceUsd: 30, notes: 'per vehicle' },
+		]),
+		notes: 'Located in Buena Vista. Primarily serves the Numbers and Browns Canyon sections. Commercial outfitter also offers guided trips.',
+		lastVerifiedAt: null,
+		verifiedBy: null,
+		currentContributionId: null,
+	},
+	{
+		id: 'shuttle-independent-whitewater',
+		name: 'Independent Whitewater',
+		slug: 'independent-whitewater',
+		phone: '719-539-7478',
+		website: 'https://independentwhitewater.com',
+		serviceCorridorIds: JSON.stringify(['arkansas-headwaters']),
+		ratesJson: JSON.stringify([
+			{ label: 'Salida-area shuttles', priceUsd: 30, notes: 'per person; flat rate within Salida area' },
+			{ label: 'Royal Gorge', priceUsd: 50, notes: 'per person' },
+		]),
+		notes: 'Self-support and private group shuttles. Covers full corridor from Granite to Canon City. Call 24 hours in advance.',
+		lastVerifiedAt: null,
+		verifiedBy: null,
+		currentContributionId: null,
+	},
+];
+
+// ---------------------------------------------------------------------------
+// OUTFITTERS — Arkansas Headwaters (slice 21 Phase C)
+// Licensed commercial outfitters operating on the Arkansas Headwaters corridor.
+// ---------------------------------------------------------------------------
+export const OUTFITTERS = [
+	{
+		id: 'outfitter-wilderness-aware',
+		name: 'Wilderness Aware Rafting',
+		slug: 'wilderness-aware-rafting',
+		licenseNumber: 'CO-OA-1986-001',
+		licenseState: 'CO',
+		phone: '719-395-2112',
+		website: 'https://inaraft.com',
+		serviceCorridorIds: JSON.stringify(['arkansas-headwaters']),
+		tripTypesJson: JSON.stringify(['half-day', 'full-day', 'multi-day', 'overnight']),
+		notes: 'One of the oldest outfitters on the Arkansas, based in Buena Vista since 1986. Specializes in Browns Canyon and Numbers runs. Family-friendly options available.',
+		lastVerifiedAt: null,
+		verifiedBy: null,
+		currentContributionId: null,
+	},
+	{
+		id: 'outfitter-echo-canyon',
+		name: 'Echo Canyon River Expeditions',
+		slug: 'echo-canyon-river-expeditions',
+		licenseNumber: 'CO-OA-1978-004',
+		licenseState: 'CO',
+		phone: '719-275-3154',
+		website: 'https://raftecho.com',
+		serviceCorridorIds: JSON.stringify(['arkansas-headwaters']),
+		tripTypesJson: JSON.stringify(['half-day', 'full-day', 'overnight', 'extreme']),
+		notes: 'Canon City-based outfitter specializing in Royal Gorge trips. Offers the standard Royal Gorge run plus overnight and extreme high-water trips. Licensed since 1978.',
+		lastVerifiedAt: null,
+		verifiedBy: null,
+		currentContributionId: null,
+	},
+	{
+		id: 'outfitter-noah-ark',
+		name: "Noah's Ark Whitewater Rafting",
+		slug: 'noahs-ark-whitewater-rafting',
+		licenseNumber: 'CO-OA-1981-012',
+		licenseState: 'CO',
+		phone: '719-395-2158',
+		website: 'https://noahsark.com',
+		serviceCorridorIds: JSON.stringify(['arkansas-headwaters']),
+		tripTypesJson: JSON.stringify(['half-day', 'full-day', 'overnight', 'kayak-instruction']),
+		notes: 'Buena Vista outfitter operating since 1981. Wide range of Arkansas runs from Browns Canyon to the Numbers. Kayak instruction available. BLM-licensed.',
+		lastVerifiedAt: null,
+		verifiedBy: null,
+		currentContributionId: null,
+	},
+];

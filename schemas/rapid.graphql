@@ -1,0 +1,21 @@
+type Rapid @table @export {
+	id: ID @primaryKey
+	sectionId: ID @indexed
+	section: RiverSection @relationship(from: "sectionId")
+	corridorId: ID @indexed
+	name: String
+	slug: String @indexed
+	riverMile: Float
+	latitude: Float
+	longitude: Float
+	classRating: String                  # International scale base, e.g. 'III' / 'IV+'
+	classByFlowJson: String              # JSON [{ minCfs, maxCfs, class }] flow-conditional rating
+	linesJson: String                    # JSON [{ name, description, classAt, entryLine, exitLine }]
+	hazardsJson: String                  # JSON [{ type, description, severity }]
+	scoutPortageNotes: String
+	photosByFlowJson: String             # JSON [{ flowCfs|flowBand, mediaAssetId }] — mediaAssetId null until media slice
+	sortIndex: Int @indexed
+	lastVerifiedAt: String
+	verifiedBy: ID
+	currentContributionId: ID
+}

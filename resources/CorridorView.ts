@@ -21,13 +21,15 @@ export class CorridorView extends Resource {
 
 		const watershed = corridor.watershedId ? await getWatershedById(corridor.watershedId) : null;
 
-		const [allSections, allSnapshots, allBands, allAps, allDams, allGauges] = await Promise.all([
+		const [allSections, allSnapshots, allBands, allAps, allDams, allGauges, allShuttleBusinesses, allOutfitters] = await Promise.all([
 			collect(tables.RiverSection.search({ conditions: [] })),
 			collect(tables.GaugeSnapshot.search({ conditions: [] })),
 			loadAllBands(),
 			collect(tables.AccessPoint.search({ conditions: [] })),
 			collect(tables.ImpassablePoint.search({ conditions: [] })),
 			collect(tables.Gauge.search({ conditions: [] })),
+			collect((tables as any).ShuttleBusiness.search({ conditions: [] })),
+			collect((tables as any).Outfitter.search({ conditions: [] })),
 		]);
 		const snapshotMap = new Map<string, any>();
 		for (const s of allSnapshots) snapshotMap.set(s.id, s);
@@ -55,6 +57,14 @@ export class CorridorView extends Resource {
 				fee: ap.fee ?? null,
 				vehicleAccess: ap.vehicleAccess ?? null,
 				notes: ap.notes || '',
+				// Contributable fields + provenance (slice 21)
+				directions: ap.directions ?? null,
+				permitRequired: ap.permitRequired ?? null,
+				feeUsd: ap.feeUsd ?? null,
+				parkingSpaces: ap.parkingSpaces ?? null,
+				lastVerifiedAt: ap.lastVerifiedAt ?? null,
+				verifiedBy: ap.verifiedBy ?? null,
+				currentContributionId: ap.currentContributionId ?? null,
 			}));
 
 		const corridorDams = allDams
@@ -97,6 +107,51 @@ export class CorridorView extends Resource {
 					updatedAt: snap?.updatedAt ?? null,
 				};
 			});
+
+		// Helper: filter entities by serviceCorridorIds JSON array containing this corridorId.
+		function servicesCorridor(entity: any): boolean {
+			if (!entity.serviceCorridorIds) return false;
+			try {
+				const ids: string[] = JSON.parse(entity.serviceCorridorIds);
+				return Array.isArray(ids) && ids.includes(id);
+			} catch {
+				return false;
+			}
+		}
+
+		const corridorShuttleBusinesses = allShuttleBusinesses
+			.filter(servicesCorridor)
+			.map((s: any) => ({
+				id: s.id,
+				name: s.name,
+				slug: s.slug ?? null,
+				phone: s.phone ?? null,
+				website: s.website ?? null,
+				serviceCorridorIds: s.serviceCorridorIds ?? null,
+				ratesJson: s.ratesJson ?? null,
+				notes: s.notes ?? null,
+				lastVerifiedAt: s.lastVerifiedAt ?? null,
+				verifiedBy: s.verifiedBy ?? null,
+				currentContributionId: s.currentContributionId ?? null,
+			}));
+
+		const corridorOutfitters = allOutfitters
+			.filter(servicesCorridor)
+			.map((o: any) => ({
+				id: o.id,
+				name: o.name,
+				slug: o.slug ?? null,
+				licenseNumber: o.licenseNumber ?? null,
+				licenseState: o.licenseState ?? null,
+				phone: o.phone ?? null,
+				website: o.website ?? null,
+				serviceCorridorIds: o.serviceCorridorIds ?? null,
+				tripTypesJson: o.tripTypesJson ?? null,
+				notes: o.notes ?? null,
+				lastVerifiedAt: o.lastVerifiedAt ?? null,
+				verifiedBy: o.verifiedBy ?? null,
+				currentContributionId: o.currentContributionId ?? null,
+			}));
 
 		const sections = allSections
 			.filter((s: any) => s.corridorId === id)
@@ -180,6 +235,8 @@ export class CorridorView extends Resource {
 			accessPoints: corridorAps,
 			impassableDams: corridorDams,
 			gauges: corridorGauges,
+			shuttleBusinesses: corridorShuttleBusinesses,
+			outfitters: corridorOutfitters,
 			weatherSummary: null,
 			breadcrumb,
 		};

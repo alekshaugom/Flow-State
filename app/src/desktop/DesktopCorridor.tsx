@@ -62,6 +62,8 @@ export function DesktopCorridor({ slug }: DesktopCorridorProps) {
 	const accessPoints: any[] = data?.accessPoints || [];
 	const gauges: any[] = data?.gauges || [];
 	const dams: any[] = data?.impassableDams || [];
+	const shuttleBusinesses: any[] = data?.shuttleBusinesses || [];
+	const outfitters: any[] = data?.outfitters || [];
 	const breadcrumb = data?.breadcrumb || [];
 
 	// Pre-select the first top-level section so the right pane isn't empty before first scroll.
@@ -292,6 +294,8 @@ export function DesktopCorridor({ slug }: DesktopCorridorProps) {
 							targetRiverName="Arkansas River"
 							sections={sections}
 							accessPoints={accessPoints}
+							shuttleBusinesses={shuttleBusinesses}
+							outfitters={outfitters}
 							dams={dams}
 							gauges={gauges}
 							sectionsForMap={mapSections}

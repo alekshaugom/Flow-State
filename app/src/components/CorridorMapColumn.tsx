@@ -3,6 +3,7 @@ import { CorridorMap, type CorridorMapSection, type CorridorMapAccessPoint, type
 import { SectionTile } from './SectionTile';
 import { useActiveTile } from '../hooks/useActiveTile';
 import { CORRIDOR_EXITS } from '../lib/corridor-exits-data';
+import type { AccessPointData } from './AccessPointCard';
 
 interface CorridorMapColumnProps {
 	corridorId: string;
@@ -11,6 +12,10 @@ interface CorridorMapColumnProps {
 	/** Raw sections from CorridorView response — fed into SectionTile */
 	sections: any[];
 	accessPoints: any[];
+	/** Corridor-scoped shuttle businesses from CorridorView response */
+	shuttleBusinesses?: any[];
+	/** Corridor-scoped outfitters from CorridorView response */
+	outfitters?: any[];
 	dams: any[];
 	gauges: any[];
 	/** Normalized sections for CorridorMap (geometry-derived mile ranges) */
@@ -31,6 +36,9 @@ export function CorridorMapColumn({
 	corridorPolyline,
 	targetRiverName,
 	sections,
+	accessPoints,
+	shuttleBusinesses = [],
+	outfitters = [],
 	sectionsForMap,
 	accessPointsForMap,
 	damsForMap,
@@ -128,6 +136,9 @@ export function CorridorMapColumn({
 						onToggle={() => toggleExpanded(s.id)}
 						tileRefCallback={registerTile(s.id, startMile, endMile)}
 						isActive={s.id === activeSectionId}
+						accessPoints={accessPoints as AccessPointData[]}
+						shuttleBusinesses={shuttleBusinesses}
+						outfitters={outfitters}
 					/>
 				);
 			})}

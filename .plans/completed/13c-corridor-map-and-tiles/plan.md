@@ -1,13 +1,13 @@
 ---
 slice: 13c-corridor-map-and-tiles
-status: in-review
+status: done
 value: 9
 confidence: 8
 effort: L
 depends_on: [13a-river-corridor-spine]
 unlocks: [13b-multi-section-logs, 06-map-layering]
 opened: 2026-05-27
-closed: null
+closed: 2026-06-02
 ---
 
 # Slice 13c — Corridor map + scroll-driven section tiles (Arkansas Headwaters)

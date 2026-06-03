@@ -1,6 +1,7 @@
 import { Resource, tables } from 'harper';
 import { isoNow } from '../lib/utils.ts';
 import { validatePasswordRules } from '../lib/auth/password-pure.ts';
+import { resolveCapabilities } from '../lib/auth/capabilities-pure.ts';
 import { mintLoginToken } from '../lib/auth/token.ts';
 import { computeExpiresAt, validateTtlMinutes } from '../lib/auth/token-pure.ts';
 import { emailToUserId, validateInviteInput } from '../lib/auth/invite-pure.ts';
@@ -44,6 +45,20 @@ async function isApprovedUser(context: any): Promise<{ ok: true; adminId: string
 	if (!adminId) return { ok: false };
 	const record = await tables.WaitlistUser.get(adminId);
 	if ((record as any)?.status !== 'approved') return { ok: false };
+	return { ok: true, adminId };
+}
+
+async function isAdminUser(context: any): Promise<{ ok: true; adminId: string } | { ok: false }> {
+	const session = context?.session;
+	const adminId = session?.user || null;
+	if (process.env.NODE_ENV !== 'production') {
+		return { ok: true, adminId: adminId || 'dev_local' };
+	}
+	if (!adminId) return { ok: false };
+	const record = await tables.WaitlistUser.get(adminId);
+	if (!record) return { ok: false };
+	const caps = resolveCapabilities(record as any);
+	if (!caps.isAdmin) return { ok: false };
 	return { ok: true, adminId };
 }
 
@@ -119,6 +134,24 @@ export class AdminAuthResource extends Resource {
 			})) out.push(t);
 			out.sort((a: any, b: any) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 			return { tokens: out };
+		}
+
+		if (action === 'grant-role') {
+			const roleAuth = await isAdminUser(ctx);
+			if (!roleAuth.ok) return new Response('Forbidden', { status: 403 });
+			const role = data?.role;
+			if (!['admin', 'superadmin', 'member'].includes(role)) {
+				return new Response('Invalid role', { status: 400 });
+			}
+			await tables.WaitlistUser.patch(targetUserId, { role });
+			return { ok: true, userId: targetUserId, role };
+		}
+
+		if (action === 'revoke-role') {
+			const roleAuth = await isAdminUser(ctx);
+			if (!roleAuth.ok) return new Response('Forbidden', { status: 403 });
+			await tables.WaitlistUser.patch(targetUserId, { role: 'member' });
+			return { ok: true, userId: targetUserId, role: 'member' };
 		}
 
 		return new Response('Unknown action', { status: 400 });

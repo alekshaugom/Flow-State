@@ -1,13 +1,13 @@
 ---
 slice: 20-identity-roles-capabilities
-status: queued
+status: done
 value: 9
 confidence: 8
 effort: M
 depends_on: []
 unlocks: [21-contribution-content-model, 22-bounty-system, 23-payments-marketplace, 24-trust-reputation-governance, 28-sponsor-admin-governance-console]
 opened: 2026-06-02
-closed: null
+closed: 2026-06-02
 ---
 
 # Slice 20 — Identity, roles, and capabilities

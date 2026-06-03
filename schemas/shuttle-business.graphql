@@ -1,0 +1,13 @@
+type ShuttleBusiness @table @export {
+	id: ID @primaryKey
+	name: String
+	slug: String @indexed
+	phone: String
+	website: String
+	serviceCorridorIds: String           # JSON string[] of corridorIds
+	ratesJson: String                    # JSON [{ label, priceUsd, notes }]
+	notes: String
+	lastVerifiedAt: String
+	verifiedBy: ID
+	currentContributionId: ID
+}

@@ -75,6 +75,21 @@ export default defineConfig({
 			...proxyEntry('/RiverRequest'),
 			...proxyEntry('/RiverRequestResource'),
 			...proxyEntry('/AdminRiverRequests'),
+			// Slice 21 — contributions
+			...proxyEntry('/ContributionResource'),
+			...proxyEntry('/Contribution'),
+			// Slice 22 — bounties + credit ledger
+			...proxyEntry('/BountyResource'),
+			...proxyEntry('/Bounty'),
+			...proxyEntry('/LedgerResource'),
+			...proxyEntry('/LedgerEntry'),
+			// Slice 24 — trust, reputation & governance
+			...proxyEntry('/ContentFlagResource'),
+			...proxyEntry('/ModerationResource'),
+			...proxyEntry('/ContributorReputationResource'),
+			...proxyEntry('/ContentFlag'),
+			...proxyEntry('/ModerationEvent'),
+			...proxyEntry('/ContributorReputation'),
 			...proxyEntry('/oauth'),
 		},
 	},

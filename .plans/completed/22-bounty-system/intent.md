@@ -1,6 +1,6 @@
 ---
 slice: 22-bounty-system
-status: queued
+status: active
 value: 9
 confidence: 5
 effort: L

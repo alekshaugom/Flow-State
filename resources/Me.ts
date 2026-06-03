@@ -1,4 +1,5 @@
 import { Resource, tables } from 'harper';
+import { resolveCapabilities } from '../lib/auth/capabilities-pure.ts';
 
 export class Me extends Resource {
 	allowRead() {
@@ -30,7 +31,9 @@ export class Me extends Resource {
 				avatarUrl: record.avatarUrl,
 				status: record.status,
 				createdAt: record.createdAt,
+				role: record.role,
 			},
+			capabilities: resolveCapabilities(record),
 		};
 	}
 }

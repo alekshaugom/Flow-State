@@ -1,6 +1,6 @@
 ---
 slice: 24-trust-reputation-governance
-status: queued
+status: active
 value: 8
 confidence: 5
 effort: L

@@ -1,5 +1,5 @@
 import { Resource, tables } from 'harper';
-import { RIVERS, SECTIONS, GAUGES, RESERVOIRS, SNOWPACK_BASINS, DATA_SOURCES, FLOW_BANDS, WATERSHEDS, CORRIDORS, ACCESS_POINTS, IMPASSABLE_POINTS } from '../lib/seed-data.ts';
+import { RIVERS, SECTIONS, GAUGES, RESERVOIRS, SNOWPACK_BASINS, DATA_SOURCES, FLOW_BANDS, WATERSHEDS, CORRIDORS, ACCESS_POINTS, IMPASSABLE_POINTS, RAPIDS, SHUTTLE_BUSINESSES, OUTFITTERS } from '../lib/seed-data.ts';
 import { SECTION_LEG_MAPPING, CURATED_ACCESS_POINTS } from '../lib/curated-river-data.ts';
 import { invalidateFlowBandsCache } from '../lib/flow-bands.ts';
 import { invalidateWatershedsCache } from '../lib/watersheds.ts';
@@ -441,6 +441,46 @@ export class Seed extends Resource {
 				await tables.WorldRiver.put(row.id, row);
 			}
 			return { ok: true, action, worldRivers: rows.length };
+		}
+
+		if (action === 'bootstrap-admins') {
+			const adminEmails = ['aleks@harperdb.io', 'alekshaugom@gmail.com'];
+			const patched: string[] = [];
+			const skipped: string[] = [];
+			for (const email of adminEmails) {
+				const rows: any[] = [];
+				for await (const r of tables.WaitlistUser.search({
+					conditions: [{ attribute: 'email', value: email, comparator: 'equals' as const }],
+				})) rows.push(r);
+				const user = rows[0];
+				if (!user) {
+					console.log(`[seed] bootstrap-admins: no user found for ${email}, skipping`);
+					skipped.push(email);
+				} else {
+					await tables.WaitlistUser.patch(user.id, { role: 'superadmin' });
+					console.log(`[seed] bootstrap-admins: patched ${email} → superadmin`);
+					patched.push(email);
+				}
+			}
+			return { ok: true, action, patched, skipped };
+		}
+
+		if (action === 'rapids') {
+			// Idempotent upsert of curated rapids into the Rapid table.
+			for (const r of RAPIDS) await (tables as any).Rapid.put(r.id, r);
+			return { ok: true, action, rapids: RAPIDS.length };
+		}
+
+		if (action === 'shuttle-businesses') {
+			// Idempotent upsert of shuttle businesses into the ShuttleBusiness table.
+			for (const s of SHUTTLE_BUSINESSES) await (tables as any).ShuttleBusiness.put(s.id, s);
+			return { ok: true, action, shuttleBusinesses: SHUTTLE_BUSINESSES.length };
+		}
+
+		if (action === 'outfitters') {
+			// Idempotent upsert of outfitters into the Outfitter table.
+			for (const o of OUTFITTERS) await (tables as any).Outfitter.put(o.id, o);
+			return { ok: true, action, outfitters: OUTFITTERS.length };
 		}
 
 		if (action === 'hierarchy') {

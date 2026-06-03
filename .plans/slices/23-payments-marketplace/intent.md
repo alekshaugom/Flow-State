@@ -1,6 +1,6 @@
 ---
 slice: 23-payments-marketplace
-status: queued
+status: active
 value: 8
 confidence: 4
 effort: XL
@@ -10,90 +10,123 @@ opened: 2026-06-02
 closed: null
 ---
 
-# Slice 23 — Payments marketplace (intent)
+# Slice 23 — Stripe on/off ramps (intent)
+
+## Context
+
+Slice 22 builds the complete internal credit economy: the `LedgerEntry` spine, bounty funding/escrow/award/refund mechanics, per-profile balance and metrics, and all the invariants (no-overdraft, escrow conservation, reviewer≠submitter). Credits enter that system only via admin grant in slice 22.
+
+This slice is **not the economy** — it is the two edges that connect the economy to real dollars: the **deposit** ramp (real money in → credits) and the **extraction** ramp (credits out → real money). Everything in between — the ledger, balances, bounty funding, award, profile metrics — already exists from slice 22 and must not be rebuilt here.
 
 ## What success looks like
 
-A sponsor funds a $50 bounty by entering a card number. The money is held in escrow. When the bounty submission is accepted, the contributor receives a payout to their bank account — minus a small platform fee. The funder sees a receipt; the contributor sees a cleared payment in their dashboard. If the bounty expires unfilled, the funder is automatically refunded.
+A funder deposits $50 via Stripe Checkout. The platform converts that deposit to 50 credits and writes a `deposit` LedgerEntry to their account. They can now fund bounties using those credits via the existing economy.
 
-Real money flows in both directions. The platform earns a small percentage on each successful settlement. The ledger is auditable, the compliance story is handled, and the contributor never has to chase anyone for payment.
+When a contributor wants to cash out, they initiate an extraction. The platform debits their credit balance via an `extraction` LedgerEntry, deducts a platform fee, and triggers a Stripe Connect payout to their verified bank account. The contributor sees cleared funds; the funder sees a clean receipt; the platform earns its fee. If a bounty expires unfilled, the held credits are refunded back to real dollars via Stripe.
+
+A contributor who completes Stripe Connect KYC (for payouts) receives a **"verified human" badge** on their public profile — KYC is the identity-verification mechanism for the platform, not just a payout gate.
 
 ## What's NOT it
 
-- Not a subscription model — bounties are pay-per-completion, not recurring.
-- Not advertising revenue — that is a separate model; this slice is purely bounty-economy money movement.
-- Not crypto / token-based incentives — fiat only.
-- Not a tipping system for existing free-tier content.
-- Not a marketplace for physical goods (shuttle bookings, gear rentals) — that is a different business.
-- Not donor-driven philanthropy — funders are paying for specific data, not donating to the platform.
-- Not payroll or contractor management — contributors are independent; we issue 1099s where required, but HR is out of scope.
+- Not rebuilding the internal credit economy — that is slice 22 (already done).
+- Not the ledger, bounty funding/award/refund logic, or balance tracking — all exist from slice 22.
+- Not a subscription model — pay-per-completion only.
+- Not advertising revenue.
+- Not crypto or token incentives — fiat only.
+- Not a marketplace for physical goods.
+- Not payroll or contractor management.
+- Not the trust/reputation/voting system — that is slice 24.
 
-## Why this is intent-only
+## Scope
 
-This is the hardest slice in the product. Confidence is 4/10 because:
+### Deposit ramp (real $ → credits)
 
-1. **Stripe Connect onboarding** (or equivalent) requires legal entity setup, bank account verification, and compliance decisions that are not purely technical.
-2. **KYC / AML requirements** for contributors receiving payouts are a regulatory unknown that varies by jurisdiction and payout volume.
-3. **Escrow / hold semantics** must integrate with the bounty state machine (slice 22) — which is itself undesigned.
-4. **Platform fee structure** is a business decision, not a technical one, and should be validated with real users before being hardcoded.
+- Funder initiates a deposit (amount in dollars).
+- Platform creates a Stripe Checkout session; funder completes card payment.
+- On `payment_intent.succeeded` webhook: write a `deposit` LedgerEntry (the type already reserved in `LedgerType` in slice 22), credit the user's balance. The exchange rate is 1 USD = 1 credit (simplest; revisit if needed).
+- Funder sees deposit in their ledger/profile view.
 
-Do not design the payment schema until slices 20, 22 are locked and a lawyer has reviewed the escrow + payout model.
+### Extraction ramp (credits → real $)
+
+- Contributor initiates a cash-out request for N credits.
+- Platform verifies: contributor is KYC-verified (Stripe Connect account in `charges_enabled` state), balance ≥ N.
+- Write an `extraction` LedgerEntry (also reserved in slice 22) debiting the balance.
+- Deduct platform fee here (e.g. 15% — exact rate is a business decision, set as a constant, not hardcoded everywhere). Internal circulation (fund → award) remains free; fee is taken **only at extraction**.
+- Trigger Stripe Connect transfer + payout to contributor's bank for the net amount.
+- Contributor sees payout status; balance reflects the debit immediately.
+
+### Refunds to real money
+
+- If a bounty's held credits were originally funded by a real deposit (traceable via ledger), expiry/cancellation refunds flow back to the funder's payment method via Stripe refund, not just a credit restoration.
+- Refund logic must handle partial multi-funder pots (each funder gets back their pro-rata contribution).
+- Write a `bounty_refund` LedgerEntry and trigger Stripe refund in the same transaction-safe unit.
+
+### KYC = verified-human badge
+
+- Contributor onboards to Stripe Connect Express (Stripe handles identity verification).
+- Once `charges_enabled: true` on the Connect account, the user's profile gains `isVerified: true`.
+- A "verified" badge surfaces on the contributor's public profile. This is the platform's human-verification signal, used downstream by slice 24 for sybil resistance and trust weighting.
+- KYC is required for extraction but not for submitting contributions or earning credits internally.
+
+### Reserved LedgerEntry types
+
+Slice 22 already defined `deposit` and `extraction` as reserved types in `LedgerType` and left a `emitBountySettlement()` stub as the slice-23 seam. This slice implements those types — do not change the type strings, do not touch the existing types (`grant`, `bounty_fund`, `bounty_refund`, `bounty_award`, `platform_fee`).
+
+## Why this is still intent-only
+
+Confidence is 4/10 because:
+
+1. **Stripe Connect onboarding** requires legal entity setup, bank account verification, and compliance decisions that are not purely technical.
+2. **KYC / AML requirements** for payouts vary by jurisdiction and payout volume; need legal review before implementation.
+3. **Escrow duration limits**: Stripe card authorizations expire after 7 days. For longer-lived bounties, a different hold strategy (charge upfront to platform balance) may be needed — significant architectural implication.
+4. **Platform fee rate** is a business decision; validate with real funders before hardcoding.
+
+Do not design the payment schema or Stripe integration in detail until slice 22 is complete and settled and a lawyer has reviewed the escrow + payout model.
 
 ## Loose sketch (do not lock in)
 
 ### External dependency
 
-Stripe Connect (standard or express accounts) is the most likely implementation path. The sketch below assumes Stripe; substitute if a better option surfaces.
+Stripe Connect (Express accounts preferred — Stripe handles KYC UX) for contributor payouts; Stripe Checkout / Payment Intents for funder deposits.
 
-- **Funders**: pay via Stripe Checkout / Payment Intents. Funds held as a Stripe PaymentIntent with `capture_method: manual` (authorize-only) until bounty settles.
-- **Contributors**: onboarded as Stripe Connect accounts (Express preferred — Stripe handles KYC). Payouts via `transfers` + `payouts` to their bank.
-- **Platform**: collects a fee via `application_fee_amount` on each transfer.
+### Schema additions (building on slice 22's LedgerEntry)
 
-### Schema
-
-- `PaymentLedger` — every money event. Fields: `id`, `type: funder_charge | escrow_hold | bounty_settlement | payout | platform_fee | refund`, `bountyId`, `userId`, `amountCents`, `currency`, `stripeEventId`, `status: pending | completed | failed | refunded`, `createdAt`.
-- `FunderBillingProfile` — Stripe Customer ID for each funder. Linked to `WaitlistUser` / identity from slice 20.
-- `ContributorPayoutProfile` — Stripe Connect Account ID for each contributor. Onboarding status, KYC status.
-- `Escrow` — per-bounty hold record. `bountyId`, `stripePaymentIntentId`, `heldAmountCents`, `status: held | released | refunded`, `releasedAt`.
+- `FunderBillingProfile` — Stripe Customer ID per funder, linked to identity from slice 20.
+- `ContributorPayoutProfile` — Stripe Connect Account ID, onboarding status, KYC/`charges_enabled` status, `isVerified` flag (surfaces the badge).
+- No new ledger table — `deposit` and `extraction` entries write to the existing `LedgerEntry` table from slice 22.
 
 ### Routes
 
-- `POST /payments/create-bounty-funding-session` — creates a Stripe Checkout session for a funder to fund a specific bounty; returns a URL.
-- `POST /payments/stripe-webhook` — receives Stripe webhook events; updates ledger + escrow + bounty status accordingly.
-- `POST /payments/contributor-onboard` — initiates Stripe Connect Express onboarding; returns an onboarding URL.
-- `GET /payments/funder-dashboard` — ledger summary for the authenticated funder.
-- `GET /payments/contributor-dashboard` — earnings summary + payout status for the authenticated contributor.
-- `POST /payments/trigger-payout/:bountyId` — admin-triggered payout after bounty review acceptance; should normally be automatic via webhook flow.
-
-### Resources
-
-- `resources/PaymentLedger.ts` — immutable append-only log of money events.
-- `resources/Escrow.ts` — escrow lifecycle tied to Stripe PaymentIntent state.
-- `resources/ContributorPayoutProfile.ts` — Connect account management.
-- `lib/payments/stripe-client.ts` — thin wrapper over Stripe SDK.
-- `lib/payments/webhook-handler.ts` — event routing for Stripe webhooks (payment_intent.succeeded, transfer.created, payout.paid, etc.).
+- `POST /payments/deposit` — create Stripe Checkout session; return URL.
+- `POST /payments/stripe-webhook` — receive Stripe webhook events; write LedgerEntries, update balances, trigger payouts.
+- `POST /payments/contributor-onboard` — initiate Stripe Connect Express onboarding; return URL.
+- `POST /payments/extract` — contributor requests cash-out; validates KYC + balance, writes extraction entry, triggers payout.
+- `GET /payments/funder-ledger` — deposit + refund history for authenticated funder.
+- `GET /payments/contributor-earnings` — earnings + payout + extraction history for authenticated contributor.
 
 ### Frontend
 
-- `app/src/pages/FundBountyPage.tsx` — checkout redirect flow.
-- `app/src/pages/ContributorOnboardingPage.tsx` — Connect Express onboarding embed or redirect.
-- `app/src/components/EarningsDashboard.tsx` — contributor payout history.
-- `app/src/components/FunderLedger.tsx` — funder charge + refund history.
+- Deposit flow page (Checkout redirect).
+- Contributor onboarding page (Connect Express redirect or embed).
+- Earnings/payout dashboard (extends profile metrics already built in slice 22).
+- Verified-human badge component on profile pages.
 
 ## Open questions for when this becomes active
 
-- **KYC requirements.** At what payout threshold does Stripe require full identity verification? In the US, Stripe issues 1099-Ks above $600/year (threshold may change). Need a legal review of obligations.
-- **Platform fee.** 10%? 15%? 20%? This is a business decision — validate with funders before hardcoding.
-- **Escrow duration.** How long can a PaymentIntent stay in authorize-only state? Stripe allows 7 days for card authorizations; after that the hold releases. For longer-duration bounties, we may need to charge upfront to a platform Stripe balance and hold there. Significant architectural implication.
-- **Refund policy.** If a bounty expires unfilled, auto-refund. If a bounty submission is rejected, refund or allow re-claiming? Business decision.
-- **Multi-funder bounties** (deferred from slice 22). If we ever allow crowd-funded bounties, the payment model becomes significantly more complex. Defer.
-- **International contributors.** Stripe Connect Express is available in ~45 countries. Contributors outside those countries cannot receive payouts via Stripe. Need a fallback or geo-restriction.
-- **Minimum payout threshold.** To minimize per-transfer fees, may want to batch payouts (e.g., pay out when balance > $10). Communicate clearly to contributors.
+- **Platform fee rate.** 10–20%? Validate with real users; store as a named constant.
+- **Escrow duration.** Card auth expires in 7 days. For longer bounties, charge upfront to platform balance and hold there?
+- **Refund policy detail.** Auto-refund on expiry; on rejection, refund or allow re-claim? Business decision.
+- **International contributors.** Stripe Connect Express is ~45 countries. Fallback for others?
+- **Minimum payout threshold.** Batch payouts when balance > $10 to reduce per-transfer fees?
+- **1099-K reporting.** Stripe issues 1099-Ks above $600/year (US). Need legal review of platform obligations.
 
-## References that will matter when active
+## Ordering note
 
-- `.plans/slices/22-bounty-system/intent.md` — the bounty state machine that emits settlement events this slice must handle.
-- `.plans/slices/20-identity-roles-capabilities/` — funder and contributor identity profiles that payment profiles attach to.
-- `.plans/vision/contribution-economy.md` — the strategic rationale; the fee structure must align with the platform sustainability argument made there.
+Real-money extraction **should not be enabled at volume** before slice 24 (trust/reputation/community verification) lands. The deposit ramp can ship earlier; the extraction ramp depends on sybil resistance from slice 24 to avoid gaming the credit-grant → cash-out path. See ROADMAP ordering caution.
+
+## References
+
+- `.plans/slices/22-bounty-system/plan.md` — the credit economy this slice attaches to; `LedgerType`, `emitBountySettlement()` seam, reserved `deposit`/`extraction` types.
+- `.plans/vision/contribution-economy.md` — strategic rationale; fee structure must align with platform sustainability argument.
 - Stripe Connect docs: https://stripe.com/docs/connect
 - Stripe PaymentIntents with manual capture: https://stripe.com/docs/payments/capture-later

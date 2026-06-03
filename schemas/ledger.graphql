@@ -1,0 +1,12 @@
+type LedgerEntry @table @export {
+	id: ID @primaryKey                  # compositeId([userId, type, timestamp])
+	userId: ID @indexed                 # whose balance this entry moves
+	type: String @indexed               # grant | bounty_fund | bounty_refund | bounty_award | platform_fee
+	                                    # (deposit | extraction reserved for slice 23)
+	amountCents: Int                    # SIGNED: +credit to user, −debit from user
+	balanceAfterCents: Int              # running balance snapshot (fast read + integrity check)
+	bountyId: ID @indexed               # set for bounty_fund/refund/award
+	counterpartyUserId: ID              # e.g. awardee on a fee, funder on a refund (optional)
+	note: String
+	createdAt: String @indexed
+}

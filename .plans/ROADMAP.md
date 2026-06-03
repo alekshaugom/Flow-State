@@ -2,9 +2,9 @@
 
 Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies and explicit user priority. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
-**Last updated:** 2026-06-02
-**Active slice:** *(none — 13c is in-review pending browser verification)*
-**Next up:** **20-identity-roles-capabilities** — the v2 foundation; detailed plan owned by a separate agent session. Once 13c closes, 20 becomes active immediately.
+**Last updated:** 2026-06-03
+**Active slice:** **24-trust-reputation-governance** — flags, community verification, reputation tiers, trust-weighted acceptance (the self-policing layer).
+**Next up:** **25-zero-layers-deep-ia** — flat section page surfacing all qual + quant inline by activity (Plan / Data / Community tabs); domain-switcher scaffold.
 
 ---
 
@@ -26,9 +26,15 @@ The slices below reflect this pivot. The v2 strategic spine (20 → 21 → 22 �
 
 ## In-review
 
+*(none)*
+
+---
+
+## Active
+
 | # | Slice | Value | Effort | Goal |
 |---|---|---|---|---|
-| 13c | [corridor-map-and-tiles](slices/13c-corridor-map-and-tiles/plan.md) | 9 | L | Replace the 13a SVG spine on `/corridor/arkansas-headwaters` with a styled MapLibre basemap (OpenFreeMap positron + Esri hillshade + OpenTopoMap contours, sage land, 3-tier navy water, Arkansas River halo+main). Sticky-left map + scrollable-right tile stack; each tile compact-by-default and expands inline to the full `/section/:id` content (chart + forecast + weather + dams + past trips). Scroll-driven dot floats along the real river; APs dim/light by progress; right-pointing DOM callout names the active section. Other corridors keep the 13a spine fallback. |
+| 24 | [trust-reputation-governance](slices/24-trust-reputation-governance/intent.md) | 8 | L | Flags, community verification/voting, contributor reputation tiers, moderation queues, trust-weighted auto-acceptance. The self-policing layer. |
 
 ---
 
@@ -36,13 +42,10 @@ The slices below reflect this pivot. The v2 strategic spine (20 → 21 → 22 �
 
 These slices are the foundation of the contribution economy. Each unlocks the next; do not skip or reorder.
 
+> **Ordering caution:** real-money extraction (slice 23) should not be enabled at volume before slice 24 (trust/reputation/community verification) lands — slice 24 removes the single-admin-reviewer dependency and adds the sybil resistance needed to make cash-out safe.
+
 | # | Slice | Value | Confidence | Effort | Depends | Goal |
 |---|---|---|---|---|---|---|
-| 20 | [identity-roles-capabilities](slices/20-identity-roles-capabilities/plan.md) | 9 | 8 | M | — | Five user capabilities (public visitor, member, funder/sponsor, contributor, admin). Adds `role` to `WaitlistUser`, a pure `resolveCapabilities()` helper, capabilities on `/Me`, admin grant/revoke, and a `<RequireCapability>` gate. The prerequisite for everything in the v2 spine. No hard dependency on 13c — just queued behind it so only one slice is active at a time. |
-| 21 | [contribution-content-model](slices/21-contribution-content-model/intent.md) | 9 | 6 | L | 20 | Rich contributable entity types: AccessPoint (typed), Rapid (lines + hazards + photos-by-flow), ShuttleBusiness, Outfitter, MediaAsset (EXIF-stripped). Versioned Contribution record with provenance + attribution + verification state. Absorbs old slice 11. |
-| 22 | [bounty-system](slices/22-bounty-system/intent.md) | 9 | 5 | L | 20, 21 | Bounty lifecycle: post → scope → fund → claim → submit → review → settle. A bounty attaches to any contributable entity. No money movement here — that is slice 23. |
-| 23 | [payments-marketplace](slices/23-payments-marketplace/intent.md) | 8 | 4 | XL | 20, 22 | Real money via Stripe Connect: funder billing in, escrow/hold of funded bounties, contributor payouts out, platform fee, ledger, refunds. KYC is an open question. |
-| 24 | [trust-reputation-governance](slices/24-trust-reputation-governance/intent.md) | 8 | 5 | L | 21, 22 | Flags, community verification/voting, contributor reputation tiers, moderation queues, trust-weighted auto-acceptance. The self-policing layer. |
 | 25 | [zero-layers-deep-ia](slices/25-zero-layers-deep-ia/intent.md) | 8 | 5 | L | 21 | Flat section page surfacing all qual + quant inline by activity (Plan / Data / Community tabs). Domain-switcher scaffold (rivers the only populated domain). Reference `.plans/vision/information-architecture.md`. |
 
 ---
@@ -83,6 +86,7 @@ These slices are paused, not killed. Reasons are noted; frontmatter is set to `s
 
 | # | Slice | Reason |
 |---|---|---|
+| 23 | [payments-marketplace](slices/23-payments-marketplace/plan.md) | Parked (2026-06-03): launch on interim karma economy (23b) first; real Stripe money + compliance is a two-way street (Lane A code + Lane B user legal/compliance), reactivated when trust (24) is live + lawyer signs off on escrow/payout. |
 | 10 | [admin-editorial-ui](slices/10-admin-editorial-ui/intent.md) | Superseded/absorbed by slice 28-sponsor-admin-governance-console (v2 re-foundation 2026-06-02). |
 | 11 | [rapid-stub-pages](slices/11-rapid-stub-pages/intent.md) | Superseded/absorbed by slice 21-contribution-content-model (v2 re-foundation 2026-06-02). |
 | 12c | [river-log-sharing](slices/12c-river-log-sharing/intent.md) | Blocked on the private-logs ↔ public-community strategic reconsideration (see product-vision.md 'Open strategic tension'). Do not kill; may be repurposed when that tension resolves. |
@@ -95,6 +99,11 @@ These slices are paused, not killed. Reasons are noted; frontmatter is set to `s
 
 | # | Slice | Closed | Notes |
 |---|---|---|---|
+| 23b | [karma-economy](completed/23b-karma-economy/plan.md) | 2026-06-03 | Relabeled the slice-22 credit economy as karma (✦, whole points, no $, "Not money" framing); ledger backbone untouched + real-money-grade. App launch-ready without real money; slice 23 (real Stripe payments) parked as a two-way code+compliance street. Display-only reframe, 451 tests green. |
+| 22 | [bounty-system](completed/22-bounty-system/plan.md) | 2026-06-03 | Bounty lifecycle + internal credit economy in credits (no real money). Append-only LedgerEntry spine (balance=signed sum, no-overdraft, escrow conservation), multi-funder pots, self-fulfillment (reviewer≠submitter), award verifies the linked contribution + credits the awardee, re-spendable balance, profile WalletPanel + admin grants. 451 tests, browser-verified. Unlocks 23/24/28. |
+| 21 | [contribution-content-model](completed/21-contribution-content-model/plan.md) | 2026-06-03 | Versioned Contribution provenance spine + 4 contributable entity types (AccessPoint, Rapid, ShuttleBusiness, Outfitter) via one generic entity registry. Verification state machine, canContribute capability, inline surfacing on section tiles (no routes, per IA vision), provenance badges. 390 tests green, browser-verified. Media/photos deferred. Unlocks bounties (22), trust (24), IA (25). |
+| 20 | [identity-roles-capabilities](completed/20-identity-roles-capabilities/plan.md) | 2026-06-02 | Capability model replacing the binary approved/email-admin gate. Pure resolveCapabilities() (isMember/isAdmin + canContribute/canFund/canReceivePayout stubs), role on WaitlistUser, /Me capabilities, admin-gated grant-role/revoke-role, <RequireCapability>, AppHeader pure-role cutover (ADMIN_EMAILS removed), bootstrap-admins seed. 308 tests green, live-verified. Unlocks the v2 bounty spine. |
+| 13c | [corridor-map-and-tiles](completed/13c-corridor-map-and-tiles/plan.md) | 2026-06-02 | MapLibre basemap + scroll-driven section tiles on /corridor/arkansas-headwaters, browser-verified on real USGS data. Donut gauges, navy river + halo, scroll-tracked position dot, click-to-expand full section detail inline, mobile parity. Other corridors keep the 13a spine fallback. |
 | 13a | [river-corridor-spine](completed/13a-river-corridor-spine/plan.md) | 2026-05-27 | 11/11 acceptance criteria met. Shipped vertical SVG spine for `/corridor/:slug` on both Arkansas + Upper Colorado, hierarchical sections (Pine Creek under Numbers, Upper/Lower Browns under Browns Canyon, +6 new Arkansas sections), scroll-driven activeMile with child-over-parent precedence, sticky compact detail pane with primary-gauge lock per section. Pure helpers: `corridor-spine-pure.ts` (23 tests) + `corridor-assembly-pure.ts` (5 tests). Visually superseded by 13c on `/corridor/arkansas-headwaters`; remains the fallback for every other corridor. |
 | 12m | [log-card-density](completed/12m-log-card-density/plan.md) | 2026-05-18 | Visual density pass on `<RiverLogCard>`. Dropped the craft-type chip and the `3.5h` duration. Replaced inline CFS chip with `<BigCFS size="card" />` + `<StatusPill size="sm" />`. Conditions tag chips moved to last body block. Threaded full `flowThresholds` through `DetailViewModel` + `PastTripsStrip`. 203/203 tests green. |
 | 12l | [card-and-flow-polish](completed/12l-card-and-flow-polish/plan.md) | 2026-05-18 | PastTripsStrip moved to bottom of `/section/:id`. RiverLogCard eyebrow reformatted. Flow CFS auto-populates via `GaugeReading` fallback. Fixed Harper read-only proxy bug (`Object.assign` on proxy → spread fix). 203/203 tests green. |
