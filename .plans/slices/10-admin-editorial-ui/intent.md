@@ -1,6 +1,6 @@
 ---
 slice: 10-admin-editorial-ui
-status: queued
+status: deferred
 value: 6
 confidence: 8
 effort: M
@@ -9,6 +9,8 @@ unlocks: []
 opened: 2026-05-13
 closed: null
 ---
+
+> Superseded/absorbed by slice 28-sponsor-admin-governance-console (v2 re-foundation 2026-06-02).
 
 # Slice 10 — Admin editorial UI (intent)
 

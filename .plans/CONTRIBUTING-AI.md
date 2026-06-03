@@ -2,6 +2,35 @@
 
 If you are an AI session (Claude or otherwise) about to do work on Flow-State, this is your operating manual. Follow it like a checklist.
 
+## Session shape: two phases, auto within each
+
+**This rule applies to every session, regardless of context window, model, or how you were invoked.**
+
+Every coding session on Flow-State is structured as exactly two phases:
+
+### Phase 1 — Plan
+
+- Read the system (`README.md`, `ROADMAP.md`, active slice's `plan.md` + `status.md`, relevant lessons).
+- If the active slice already has a complete `plan.md`: review it, verify that file paths and symbol names still match the current codebase, and refine any sections that have drifted. Do not wait for the user to prompt each step.
+- If the active slice has only an `intent.md` (or nothing): expand it into a full `plan.md` now — goal, file-by-file changes, schema additions, acceptance criteria, verification steps, frontmatter — reading the actual files to ground the plan in the real codebase state. Do not plan from memory or assumptions.
+- **Drive to a complete plan autonomously.** Do not stop for incremental sign-off on individual sections. Read, think, write.
+- **Surface the finished plan and pause.** The one mandatory human checkpoint is here: show the plan, ask for confirmation before building. State clearly that you are ready to execute pending approval.
+
+### Phase 2 — Execute
+
+- Only begin after the user confirms the plan (or explicitly says to proceed).
+- Build the slice per the plan, file by file.
+- Update `status.md` as you go (sub-tasks started, blockers hit, meaningful chunks finished).
+- Write `decisions.md` entries and lessons as they arise — do not batch them for the end.
+- **Drive to the acceptance criteria autonomously.** Do not stop mid-execution to ask "should I proceed?" on routine implementation steps. Only pause if you hit a genuine blocker that requires a decision only the user can make (missing credential, ambiguous requirement that changes the design, discovered dependency that wasn't in the plan).
+- When all acceptance criteria are met, run verification and report results.
+
+### The rule in one sentence
+
+**Auto is ON within each phase; the only default checkpoint is the Plan→Execute boundary.**
+
+Do not confuse "I'm being thorough" with "I should ask for approval." Thoroughness means reading carefully and building correctly. It does not mean stopping every few steps.
+
 ## Before any work — read these
 
 1. [README.md](README.md) — what this system is

@@ -1,6 +1,6 @@
 ---
 slice: 11-rapid-stub-pages
-status: queued
+status: deferred
 value: 5
 confidence: 9
 effort: S
@@ -9,6 +9,8 @@ unlocks: []
 opened: 2026-05-13
 closed: null
 ---
+
+> Superseded/absorbed by slice 21-contribution-content-model (v2 re-foundation 2026-06-02).
 
 # Slice 11 — Rapid stub pages + access points (intent)
 

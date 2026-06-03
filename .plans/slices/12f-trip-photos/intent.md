@@ -1,6 +1,6 @@
 ---
 slice: 12f-trip-photos
-status: queued
+status: deferred
 value: 7
 confidence: 5
 effort: M
@@ -9,6 +9,8 @@ unlocks: []
 opened: 2026-05-18
 closed: null
 ---
+
+> Deferred 2026-06-02 — blocked on the private-logs ↔ public-community strategic reconsideration (see product-vision.md 'Open strategic tension'). Do not kill; may be repurposed.
 
 # Slice 12f — Trip photos (intent)
 

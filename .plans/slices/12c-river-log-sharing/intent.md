@@ -1,6 +1,6 @@
 ---
 slice: 12c-river-log-sharing
-status: active
+status: deferred
 value: 7
 confidence: 6
 effort: M
@@ -9,6 +9,8 @@ unlocks: [12f-trip-photos]
 opened: 2026-05-17
 closed: null
 ---
+
+> Deferred 2026-06-02 — blocked on the private-logs ↔ public-community strategic reconsideration (see product-vision.md 'Open strategic tension'). Do not kill; may be repurposed.
 
 # Slice 12c — River log: invite-only sharing (intent)
 

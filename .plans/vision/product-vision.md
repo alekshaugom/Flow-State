@@ -1,70 +1,79 @@
 # Product vision
 
-Flow-State helps boaters decide **whether, when, where, and how** to run Colorado rivers.
+Flow-State is **AllTrails for rivers**: a platform that consolidates freely-available government data into the most consumable form possible, then incentivizes a community to fill the gaps.
 
-It moves the product from "live gauge viewer" to a **river intelligence system** that interprets nuance, explains drivers, projects forward, and improves over time.
+The thesis is simple. Governments collect extraordinary amounts of river data — gauges, dam operations, snowpack, flow forecasts — and publish it through interfaces that demand fluency to use. Meanwhile, the human knowledge that makes rivers navigable (access points, campsites, shuttle services, rapid documentation, outfitter intel) exists in scattered forum posts and personal memory. Flow-State consolidates both into one structured, interpretive, spatial experience. Where government data runs out, bounties bring community knowledge in.
 
-## What Flow-State is
+## Three challenges
 
-A spatial, interpretive, forecasted view of Colorado's floatable rivers. Watersheds at the top, raftable corridors in the middle, sections as the workhorse, rapids at the leaf. Every level explains what's happening, why, and what's expected next — at a level appropriate to who's asking.
+The platform is built around three hard problems:
 
-## Past trips: the second axis
-
-Flow-State is bipolar by design. **Forecasts look forward; logs look backward.** The forecast axis answers "should I go?" The log axis answers "what was it like last time, and the times before?" Together they make past experience inform future decisions in a way no public gauge tool can.
-
-The log surface is deliberately private-first:
-
-- Each user keeps their own trips. The home dashboard shows a quiet corner badge on sections they've been on; section detail pages surface their past trips above the chart.
-- A user profile (skill, years, background) gives logs the right interpretive weight — "Former raft guide · 10 yrs" carries different signal than no profile at all.
-- Sharing is opt-in per log, friend-by-friend. No public discovery, no comments, no feed. The product walks the line of "bounded social" without becoming a social product.
-
-This axis also feeds back into the forecast axis over time. Flow-at-trip, conditions tags, and craft selection across many logs become the substrate for "this section runs well in this band for this craft" claims with actual evidence behind them.
+1. **Accurate on-the-ground information** — access points by type, photos at real flows, campsites linked to permit requirements, shuttle logistics, outfitter reports, rapid lines and hazards. This is dispersed, perishable, and impossible to scrape.
+2. **A near-flat, 0-layers-deep presentation** — the right information surfaces for your activity without drilling through nested menus. A rafter and a fly fisherman should each see the river through their own lens, one tap from the top.
+3. **Community contribution that's self-governing and financially incentivized** — data quality degrades without a reason to maintain it. Real money, reputation, and community verification are the answer.
 
 ## Who it's for
 
-Primary: experienced boaters and guides who already know what CFS means, are picking between options on a given weekend, and want to know *for my craft, at my skill, on this section, with this forecast — what is the experience going to be like?*
+These are capabilities, not tiers. One person can hold multiple roles simultaneously.
 
-Secondary: less-experienced boaters who need the system to interpret what numbers mean ("Is 396 enough?"). The craft + skill selector handles them via the same model — bands just resolve differently.
+| Role | What they can do |
+|---|---|
+| **Public visitor** (no account) | Read all public river knowledge: flows, conditions, access points, photos, rapid docs |
+| **Member** (account) | Everything above, plus manage private trip logs and personal craft/skill profile |
+| **Funder / Sponsor** (account + billing) | Fund bounties with real money; advertise bounties targeting specific rivers, corridors, or data types |
+| **Contributor** (account + payout account) | Claim bounties, submit data / photos / reports, get paid |
+| **Admin** (elevated) | See everything; manage payments, advertise bounties, grant roles, add admins, moderate contributions |
 
-Tertiary: outfitters and content authors who edit FlowBands and summaries via the admin UI.
+## The two axes
 
-## Core user jobs
+Flow-State remains bipolar by design. **Forecasts look forward; logs look backward.**
 
-| Job | Trigger | What the user wants |
-|---|---|---|
-| Scan today's conditions | Morning before driving | Which sections run well *for my craft/skill*, with trend |
-| Plan 1–7 days out | Mid-week | Forecast + weather + "expected to drop below ideal by Sun" |
-| Pick within a watershed | Don't know where to go | Watershed page → corridor → section |
-| Understand a rapid | Scouting | Photos at this flow, line notes, hazards |
-| Track a favorite | Season-long | Historical context, alerts |
-| Understand why flows changed | Surprise rise/drop | Driver attribution + recent ContextItems |
-| Author content | Admins | Edit bands, summaries, named rapids without redeploy |
+The forecast axis answers "should I go?" The log axis answers "what was it like last time, and what has the river looked like across past seasons?" Together they let past experience inform future decisions in a way no public gauge tool can.
+
+The log surface stays deliberately private-first: your trips are yours, sharing is opt-in and friend-by-friend, no feed, no comments, no public profiles. See **Open strategic tension** below.
+
+## Depth first, then breadth
+
+Pre-seed deeply where government data allows. Arkansas Headwaters / AHRA is the reference build: OSM geometry, AP-snap slicing, FlowBands per craft and skill, named rapids, photos indexed by flow. That depth is the template. Don't ship a shallow skeleton for 200 rivers; ship something a boater can rely on for a handful.
+
+After that foundation, crowdsource breadth via bounties — including rivers outside the US. The `WorldRiver` table is the global reference library from which any out-of-US river can be seeded as a fundable stub.
 
 ## What Flow-State is NOT
 
-- **Not a generic weather app.** Weather is a forecast input and a UI hint, not a destination.
 - **Not a gauge viewer.** Raw CFS is necessary but not sufficient — interpretation is the product.
-- **Not a planning tool for permits, shuttle, gear.** That's phase 4+.
-- **Bounded social: private logs with friend-only sharing — no public discovery, comments, or feed.** Trip reports go in your own log; you can opt to share an individual log with a specific friend via invite. No public profiles, no like/comment primitives, no algorithmic feed.
-- **Not coverage-maximalist.** Better to model the Arkansas Headwaters deeply than every river shallowly.
+- **Not a generic weather app.** Weather is a forecast input and a UI hint, not a destination.
+- **Not bounded social.** Trip logs stay private-first (see tension below), but public community contribution — photos, access points, rapid docs, outfitter listings — is now first-class, not a future phase.
+- **Not coverage-maximalist.** A deeply modeled Arkansas Headwaters beats shallow coverage of 500 rivers.
+
+## Open strategic tension
+
+**The relationship between private-first personal logs and the new public community-contribution layer is unresolved by design.**
+
+The existing private-log invariant holds and is not torn out. User trips remain private-first; opt-in sharing stays friend-by-friend. Nothing in the contribution economy requires or coerces public trip data.
+
+But a healthy contribution layer creates pressure over time: should a log entry optionally donate a "ran this at X cfs, conditions Y" data point to the community? Can a contributor's submitted rapid photo overlap with a member's trip log? Can bounties reward verified trip reports?
+
+These questions are real and the answers are consequential. We are not answering them now. This tension is **named and deferred**, slated for a dedicated reconsideration once the contribution economy has shipped and we understand how users actually engage with it. Until then: private logs remain private.
 
 ## Strategic moat
 
-The proprietary structured context the product accumulates:
+The moat is the **community-contributed, bounty-funded structured knowledge base** — and the government data corpus it sits on top of.
 
-1. **FlowBands** — craft+skill-specific descriptions of what each flow level feels like
+1. **FlowBands** — craft+skill-specific descriptions of what each flow level actually feels like
 2. **Drivers** — section-level attribution (snowmelt vs dam vs rain vs mixed)
-3. **Photos indexed by flow** (phase 2+) — Zoom Flume at 400 vs 800 vs 1500 cfs
-4. **ContextItems** — structured extractions from agency bulletins, dam releases, closures
-5. **Forecast accuracy history** — per-section per-model error data feeding self-improvement
-6. **Interpretive summaries** — LLM-drafted, human-edited, season-aware blurbs
+3. **Photos indexed by flow** — Zoom Flume at 400 vs 800 vs 1500 cfs; provenance-tagged
+4. **ContextItems** — structured extractions from agency bulletins, dam releases, closures, outfitter reports
+5. **Access points and corridor logistics** — typed (trailer ramp, slide rails, carry-in, horse pack-in, fly-in), GPS-accurate, bounty-verified
+6. **Rapid documentation** — lines, hazards, class, community-verified at specific flows
+7. **Forecast accuracy history** — per-section per-model error data feeding self-improvement
+8. **Interpretive summaries** — LLM-drafted, human-approved, season-aware
 
-No public API gives you this. Building it well is what differentiates Flow-State from raw NWS / USGS.
+No public API gives you the combination. Each layer builds on the others, and all of it accumulates over time.
 
-## Boundaries that hold across slices
+## Principles that hold
 
 - **Map-first when spatial, dense when scanning, interpretive when single-section.** Don't make every page look the same.
 - **Mobile parity is not optional.** People check the app before driving to a river.
 - **Editorial > generated.** LLMs draft; humans approve. Especially for safety-relevant content.
-- **Heuristic > black-box.** A forecast you can explain beats a forecast that's right but inscrutable. ML joins as a parallel forecaster, not a replacement.
-- **Coverage depth > breadth.** Ship one corridor (Arkansas Headwaters) fully modeled before adding shallow coverage elsewhere.
+- **Heuristic > black-box.** A forecast you can explain beats a forecast that's right but inscrutable.
+- **Real money from the start.** Bounty payouts, escrow, platform fee, refunds — not a later phase.

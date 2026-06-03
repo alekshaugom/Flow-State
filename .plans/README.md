@@ -136,7 +136,7 @@ If the same lesson appears across multiple slices, or it changes how we think ab
 
 ## How an AI session uses this
 
-See [CONTRIBUTING-AI.md](CONTRIBUTING-AI.md). Short version:
+See [CONTRIBUTING-AI.md](CONTRIBUTING-AI.md). Every session runs a Plan phase then an Execute phase, with auto on within each — the only default checkpoint is the Plan→Execute boundary. Short version:
 
 1. Read this README + `ROADMAP.md` first
 2. Find the active slice via `grep -l "status: active" slices/*/plan.md` (there should be exactly one)

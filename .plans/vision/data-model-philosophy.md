@@ -94,3 +94,59 @@ Ask:
 4. **Is it time-series?** If yes, see the time-series pattern above.
 
 If you're not sure, default to a field on an existing table or a JSON blob. Pulling something into its own table later is easy. Removing a half-used table is annoying.
+
+## Community-contributed entities: versioned and attributed
+
+Every fact contributed by the community has provenance. That means:
+
+- **Who** submitted it (contributor account ID)
+- **When** it was submitted (timestamp)
+- **Under which bounty** it was submitted, if any (nullable `bountyId`)
+- **Verification state** — one of `pending | verified | disputed | rejected`
+- **Verification audit trail** — who verified/flagged/rejected, and when
+
+These fields are not optional metadata. They are load-bearing. Payout logic, reputation scoring, trust-weighted acceptance, and community flag resolution all depend on them.
+
+The pattern: every community-contributed entity has a `ContributionMeta` shape embedded (either as fields or as a joined `Contribution` row). Government-seeded data carries `source: "government"` and a `sourceUrl`; community data carries `source: "community"` and a contributor reference. The two co-exist in the same tables — the distinction is in provenance fields, not in separate tables.
+
+Don't strip provenance fields when displaying data. Surface them. "Submitted by [contributor] on [date] · 4 verifications" is part of the product, not an internal audit log.
+
+## Pre-seeded vs contributed: the provenance distinction
+
+The data model has two classes of facts:
+
+1. **Government-seeded**: sourced from USGS, CDSS, BOR, NWS, or similar agencies. Ingested by the platform, updated programmatically. Source URL and agency are the provenance. Authoritative by construction.
+2. **Community-contributed**: submitted by a contributor, verified by community review. Bounty-linked or voluntary. Subject to dispute and revision.
+
+Both live in the same tables. Both are first-class. Neither overwrites the other silently — if a contributor disputes a government-seeded access point location, that's a flag on the government record, not a silent replacement.
+
+A river section might have a government-seeded gauge reading and a community-contributed photo at that flow, linked by `(sectionId, flowCfs)`. They're different entity kinds, but their provenance metadata is consistent.
+
+## Multi-domain entity shape
+
+The current hierarchy (Watershed → RiverCorridor → RiverSection → Rapid) is river-specific. The platform will eventually cover dams, snowpack, and avalanche. Build the community layer with that generalization in mind.
+
+The repeating pattern across domains:
+
+```
+SpatialEntity         (RiverSection, Reservoir, SnowpackBasin, AvalanchePath)
+   └── Readings       (GaugeReading, DamRelease, SnowpackReading, AvalancheObservation)
+   └── Contributions  (AccessPoint, Photo, RapidDoc, CampsiteListing, OutfitterListing)
+   └── Bounties       (Bounty → attaches to a SpatialEntity)
+   └── ContextItems   (structured editorial/agency extractions — already domain-agnostic)
+```
+
+When the dam domain ships, it should reuse `ContextItem`, `Bounty`, and `Contribution` mechanics wholesale. It adds domain-specific spatial entities and reading types; it does not add a new contribution or bounty system.
+
+Design new community tables to be domain-agnostic where possible. A `Photo` entity with `(entityKind, entityId, flowCfs, takenAt, contributorId)` works for a river section photo and a dam photo. Don't bake "river" into the table name.
+
+## International / global coverage via WorldRiver
+
+The `WorldRiver` table is a global river reference library — every major river on earth, with basic geometry and metadata. It is not the same as a `RiverSection`; it's a coarser reference record.
+
+`WorldRiver` is the seed for out-of-US coverage. A non-US river can exist as a `WorldRiver` stub before any contributor work has been done. From that stub, a funder can post a bounty ("document access points and flow characteristics for the Futaleufú"). A contributor can claim it, creating `RiverSection` records linked back to the `WorldRiver` parent.
+
+This means the platform can show "this river exists, it has a funded bounty, here's what we know from its WorldRiver record" long before a contributor has touched it. Coverage starts at "known to exist" and grows to "fully documented" via the bounty economy.
+
+International coverage follows the same data model as domestic coverage. There is no "international mode" — just `RiverSection` records that happen to be outside the US, with government data sources that differ by country.
+

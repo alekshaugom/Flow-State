@@ -6,6 +6,10 @@
 - **recharts** — flow charts
 - **Node.js test runner** — `node --test test/*.test.js`
 
+## Session workflow
+
+All coding sessions follow a Plan phase then an Execute phase, with auto on within each phase. The only default human checkpoint is the Plan→Execute boundary — confirm the plan, then build without incremental sign-off. See `.plans/CONTRIBUTING-AI.md` for the full contract.
+
 ## Key conventions
 - Import Harper: `import { Resource, tables } from 'harper'`
 - All resources go in `resources/*.ts`
