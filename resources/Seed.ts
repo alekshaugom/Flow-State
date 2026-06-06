@@ -7,8 +7,6 @@ import { invalidateCorridorsCache } from '../lib/corridors.ts';
 import { invalidateDashboardCache } from './Dashboard.ts';
 import { invalidateCorridorTilesCache } from './CorridorTiles.ts';
 import { compositeId } from '../lib/utils.ts';
-import { loadWorldRivers } from '../lib/world-rivers.ts';
-
 const AUTO_SEED_FLAG = '__flowStateAutoSeedStarted';
 // L004: empty-conditions scan can transiently return 0 rows immediately after
 // a rolling restart. Wait a beat before deciding whether tables need seeding.
@@ -52,19 +50,6 @@ async function fullSeed(): Promise<Record<string, number>> {
  * Used by both `POST /Seed` (manual trigger) and the auto-seed-at-startup tick
  * so new tables added in future slices auto-populate on the next Fabric deploy.
  */
-async function seedWorldRiversIfEmpty(): Promise<number> {
-	const existing = await count(tables.WorldRiver);
-	if (existing > 0) return 0;
-	const rows = loadWorldRivers();
-	if (rows.length === 0) return 0;
-	let n = 0;
-	for (const row of rows) {
-		await tables.WorldRiver.put(row.id, row);
-		n++;
-	}
-	return n;
-}
-
 async function backfillMissingSeeds(): Promise<{ backfilled: Record<string, number>; alreadySeeded: boolean }> {
 	const riverCount = await count(tables.River);
 	const backfilled: Record<string, number> = {};
@@ -104,10 +89,6 @@ async function backfillMissingSeeds(): Promise<{ backfilled: Record<string, numb
 			backfilled.gauges = GAUGES.length;
 		}
 	}
-
-	// World rivers — independent table, seeded once when empty.
-	const worldSeeded = await seedWorldRiversIfEmpty();
-	if (worldSeeded > 0) backfilled.worldRivers = worldSeeded;
 
 	if (Object.keys(backfilled).length === 0) {
 		return { backfilled, alreadySeeded: true };
@@ -418,7 +399,6 @@ export class Seed extends Resource {
 			basins: await count(tables.SnowpackBasin),
 			sources: await count(tables.DataSource),
 			flowBands: await count(tables.FlowBand),
-			worldRivers: await count(tables.WorldRiver),
 		};
 		return { seeded: counts.rivers > 0, counts };
 	}
@@ -432,15 +412,6 @@ export class Seed extends Resource {
 			invalidateDashboardCache();
 			invalidateCorridorTilesCache();
 			return { ok: true, flowBands: FLOW_BANDS.length, action };
-		}
-
-		if (action === 'world-rivers') {
-			// Force re-seed even if non-empty: load file, upsert each.
-			const rows = loadWorldRivers();
-			for (const row of rows) {
-				await tables.WorldRiver.put(row.id, row);
-			}
-			return { ok: true, action, worldRivers: rows.length };
 		}
 
 		if (action === 'bootstrap-admins') {

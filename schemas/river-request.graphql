@@ -1,8 +1,0 @@
-type RiverRequest @table @export {
-	id: ID @primaryKey
-	worldRiverId: ID @indexed
-	userId: ID @indexed
-	createdAt: String @indexed
-	updatedAt: String
-	note: String
-}

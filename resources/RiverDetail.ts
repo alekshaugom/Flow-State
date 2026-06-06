@@ -174,29 +174,6 @@ async function getLatestForecast(sectionId: string) {
 	return { run: runs[0], outputs };
 }
 
-async function getBountiesForSection(sectionId: string): Promise<any[]> {
-	const rows: any[] = [];
-	for await (const r of (tables as any).Bounty.search({
-		conditions: [{ attribute: 'sectionId', value: sectionId, comparator: 'equals' as const }],
-	})) {
-		rows.push({
-			id:                  r.id,
-			title:               r.title ?? null,
-			acceptanceCriteria:  r.acceptanceCriteria ?? null,
-			sectionId:           r.sectionId ?? null,
-			entityType:          r.entityType ?? null,
-			entityId:            r.entityId ?? null,
-			corridorId:          r.corridorId ?? null,
-			status:              r.status ?? null,
-			escrowCents:         r.escrowCents ?? 0,
-			postedBy:            r.postedBy ?? null,
-			awardedTo:           r.awardedTo ?? null,
-		});
-	}
-	rows.sort((a, b) => (b.escrowCents ?? 0) - (a.escrowCents ?? 0));
-	return rows;
-}
-
 async function getRapidsForSection(sectionId: string) {
 	const rows: any[] = [];
 	for await (const r of (tables as any).Rapid.search({
@@ -289,7 +266,7 @@ export class RiverDetail extends Resource {
 		const reservoirIds = splitIds(section.reservoirIds);
 		const basinIds = splitIds(section.snowpackBasinIds);
 
-		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands, myLogsData, rapids, bounties] = await Promise.all([
+		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands, myLogsData, rapids] = await Promise.all([
 			getFlowData(gaugeIds),
 			getDamReleases(reservoirIds),
 			getSnowpackData(basinIds),
@@ -298,7 +275,6 @@ export class RiverDetail extends Resource {
 			loadBandsForSection(sectionId),
 			getMyLogsForSection(userId, sectionId),
 			getRapidsForSection(sectionId),
-			getBountiesForSection(sectionId),
 		]);
 
 		const currentFlow = flowData.latest?.value ?? null;
@@ -362,7 +338,6 @@ export class RiverDetail extends Resource {
 			myLogs: myLogsData.myLogs,
 			myLogTotalCount: myLogsData.myLogTotalCount,
 			rapids,
-			bounties,
 		};
 		return new Response(JSON.stringify(result), {
 			headers: {
