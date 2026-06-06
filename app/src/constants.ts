@@ -11,7 +11,7 @@ export const STATUS_COLORS: Record<DesignStatus, { bg: string; fg: string; line:
 export const STATUS_ORDER: DesignStatus[] = ['ideal', 'runnable', 'high', 'low', 'dangerous'];
 
 export const STATUS_LABEL: Record<string, string> = {
-	ideal:       'Ideal',
+	ideal:       'Good',
 	runnable:    'Runnable',
 	high:        'High',
 	low:         'Low',

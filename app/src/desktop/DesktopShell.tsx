@@ -119,10 +119,9 @@ export function DesktopShell() {
 					borderBottom: `1px solid rgba(0,0,0,${lerpStyle(0, 0.08, titleProgress)})`,
 					paddingTop: lerpStyle(24, 10, titleProgress),
 					paddingBottom: lerpStyle(16, 10, titleProgress),
-					paddingLeft: 28,
-					paddingRight: 28,
 				}}
 			>
+				<div style={{ maxWidth: 1180, margin: '0 auto', width: '100%', paddingLeft: 28, paddingRight: 28 }}>
 				<h1 style={{
 					margin: `0 0 ${lerpStyle(16, 8, titleProgress)}px`,
 					fontFamily: 'var(--font-sans)',
@@ -146,7 +145,7 @@ export function DesktopShell() {
 							<>
 								<SummaryStat label="All"     value={totalCount}   progress={titleProgress} active={filter === 'all'}     onClick={() => setFilter('all')} />
 								<SummaryStat label="Running" value={runningCount} progress={titleProgress} active={filter === 'running'} onClick={() => setFilter('running')} />
-								<SummaryStat label="Ideal"   value={idealCount}   progress={titleProgress} color="var(--ideal-solid)" active={filter === 'ideal'}   onClick={() => setFilter('ideal')} />
+								<SummaryStat label="Good"    value={idealCount}   progress={titleProgress} color="var(--ideal-solid)" active={filter === 'ideal'}   onClick={() => setFilter('ideal')} />
 								<SummaryStat label="Rising"  value={risingCount}  progress={titleProgress} color="var(--trend-up)"     trendIcon="up" active={filter === 'rising'}  onClick={() => setFilter('rising')} />
 								<SummaryStat label="Low"     value={lowCount}     progress={titleProgress} color="var(--low-solid)"    active={filter === 'low'}     onClick={() => setFilter('low')} />
 							</>
@@ -155,6 +154,7 @@ export function DesktopShell() {
 					<div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'stretch' }}>
 						<CraftSkillControl variant="desktop" layout="stacked" collapseProgress={titleProgress} />
 					</div>
+				</div>
 				</div>
 			</div>
 

@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flow State — Flow-range gauge (designer handoff)</title>
+
+<!-- Brand type: Manrope for labels, Inter for the numerals (via the "FlowNum"
+     unicode-range trick), Spline Sans Mono for the small "CFS" unit. These only
+     affect the text inside the gauge — the graphic itself is pure SVG. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Spline+Sans+Mono:wght@500&display=swap');
+@font-face{font-family:"FlowNum";font-weight:600;font-display:swap;
+  src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-600-normal.woff2") format("woff2");
+  unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+00B0,U+003A,U+002F;}
+
+:root{ --page:#f4f6f9; --ink:#0b1828; --muted:#687c92; --line:#e2e7ec; --card:#fff; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:"FlowNum","Manrope",system-ui,sans-serif;line-height:1.5;}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 24px 80px;}
+h1{font-size:24px;font-weight:700;letter-spacing:-0.02em;margin:0 0 4px;}
+.sub{color:var(--muted);font-size:14px;margin:0 0 24px;}
+h2{font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin:36px 0 8px;}
+.note{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:14px;color:#33485e;}
+.note b{color:var(--ink)} .note code{font-family:"Spline Sans Mono",monospace;font-size:12.5px;background:#eef2f6;padding:1px 5px;border-radius:5px;}
+.note ul{margin:8px 0 0;padding-left:18px} .note li{margin:3px 0}
+
+.toolbar{display:flex;gap:8px;align-items:center;margin:8px 0 4px;flex-wrap:wrap}
+.toolbar button{font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:999px;
+  border:1px solid var(--line);background:#fff;color:#33485e;cursor:pointer}
+.toolbar button.on{background:#0b1828;color:#fff;border-color:#0b1828}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px;transition:background .2s;}
+.panel.sky{background:linear-gradient(165deg,#0d3b66,#1a6fa8 50%,#3aa0c9);border-color:transparent}
+.row{display:flex;gap:18px;flex-wrap:wrap}
+.cell{display:flex;flex-direction:column;align-items:center;gap:7px;width:180px}
+.cell .lab{font-weight:700;font-size:14px}
+.cell .meta{font-size:12px;color:var(--muted);text-align:center;line-height:1.3}
+.panel.sky .cell .lab{color:#fff} .panel.sky .cell .meta{color:rgba(255,255,255,.7)}
+
+/* full progression — continuous strip */
+.prog{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.pcell{display:flex;flex-direction:column;align-items:center;gap:5px;width:118px}
+.pcell .cfs{font-family:"FlowNum","Spline Sans Mono",monospace;font-size:12px;font-weight:600}
+.pcell .bnd{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.bandkey{display:flex;gap:16px;flex-wrap:wrap;margin:2px 0 16px;font-size:12px;color:var(--muted)}
+.bandkey span{display:inline-flex;align-items:center;gap:6px}
+.bandkey i{width:18px;height:4px;border-radius:2px;display:inline-block}
+
+details{margin-top:12px}
+summary{cursor:pointer;font-size:12px;color:var(--muted)}
+pre{background:#0b1828;color:#cfd8e1;border-radius:10px;padding:12px;overflow:auto;font-size:11px;
+  font-family:"Spline Sans Mono",monospace;line-height:1.45}
+.foot{margin-top:40px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Flow-range gauge</h1>
+  <p class="sub">The signature flow-status graphic from the Flow State app, isolated for you to alter. Pure SVG — edit the <code>CONFIG</code> block in the script, or grab the SVG markup under each gauge.</p>
+
+  <div class="note">
+    <b>One continuous system.</b> The ring is a faint gray base; the <b>colored outline rises</b> from the bottom to <code>currentFlow ÷ top-of-good</code>, and once it's full the <b>shape keeps morphing</b>:
+    <ul>
+      <li><b>Too low → Good</b> — open horseshoe; the colored outline rises with flow (<b>yellow</b>, then <b>green</b>).</li>
+      <li><b>High</b> — outline is full; the U's top endpoints <b>begin to bend outward</b>, more as flow climbs (<b>red</b>).</li>
+      <li><b>Flood</b> — top endpoints <b>fully bent out</b>; the gauge <b>pulses</b> (<b>deep red</b>).</li>
+    </ul>
+    The CFS value sits in the empty center, in the band color. The rounded bottom of every state is the <b>same semicircle</b> (radius = the ring), and the flare is built on that same radius.
+    <br><br><b>To alter:</b> edit the <code>CONFIG</code> object at the top of the <code>&lt;script&gt;</code> — colors, stroke, ring size, horseshoe opening (<code>gap</code>), U height, the <code>flare</code> spread, type, and the pulse. The “SVG markup” toggles give copy-ready vectors for Figma/Illustrator.
+  </div>
+
+  <div class="toolbar">
+    <span style="font-size:13px;color:var(--muted);font-weight:600;margin-right:4px">Background:</span>
+    <button id="bgLight" class="on" onclick="setBg('light')">Light surface</button>
+    <button id="bgSky" onclick="setBg('sky')">Sky gradient</button>
+  </div>
+
+  <h2>The four states</h2>
+  <div class="panel"><div class="row" id="states"></div></div>
+
+  <h2>Full progression — low → flood</h2>
+  <p class="sub" style="margin:0 0 6px">One unbroken sequence: the outline fills through Low &amp; Good, then the endpoints bend out through High and fully flare at Flood. (Example basin: good = 800–3,000 cfs, high to 6,000.)</p>
+  <div class="bandkey">
+    <span><i style="background:oklch(0.80 0.15 88)"></i>Too low</span>
+    <span><i style="background:oklch(0.64 0.17 150)"></i>Good</span>
+    <span><i style="background:oklch(0.59 0.22 28)"></i>High</span>
+    <span><i style="background:oklch(0.46 0.21 25)"></i>Flood</span>
+  </div>
+  <div class="panel"><div class="prog" id="progression"></div></div>
+
+  <div class="foot">
+    Flow State design system · gauge handoff. Colors authored in OKLCH (approx hex in code comments). Faithful to the app build as of this export.
+  </div>
+</div>
+
+<script>
+/* ============================================================================
+   CONFIG  —  everything a designer is likely to change lives here.
+   ============================================================================ */
+const CONFIG = {
+  /* --- COLORS (OKLCH; approx hex in comments) ------------------------------ */
+  colors: {
+    low:   'oklch(0.80 0.15 88)',   /* yellow      ~#e0a52e  (Too low / Runnable) */
+    good:  'oklch(0.64 0.17 150)',  /* green       ~#1f9e57  (Good)               */
+    high:  'oklch(0.59 0.22 28)',   /* red         ~#d23a26  (High)               */
+    flood: 'oklch(0.46 0.21 25)',   /* deep red    ~#9e2414  (Flood)              */
+    base:  'oklch(0.80 0.016 242)', /* faint gray  ~#b7c0ca  (empty ring)         */
+  },
+  numberColor: null,        /* null = use the band color */
+
+  /* --- GEOMETRY (SVG viewBox is 56×56) ------------------------------------- */
+  geo: {
+    R: 16,                  /* ring radius — used everywhere: horseshoe, U bottom, AND the flare */
+    cx: 28, cy: 29,         /* ring center            */
+    stroke: 2.6,            /* outline weight         */
+
+    /* Low + Good: open horseshoe. `gap` = opening at the top, in degrees. */
+    gap: 150,
+
+    /* High + Flood: a U. halfWidth = R makes the U's rounded bottom the SAME
+       semicircle the horseshoe uses (same center + radius). armTop = side height. */
+    u: { halfWidth: 16, armTop: 7 },
+
+    /* The flare: how far the U's top endpoints splay OUT (and up) at full flood.
+       At flare=0 the sides are straight; at flare=1 they're fully bent out. The
+       bend is a quadratic that stays vertical where it meets the bottom. */
+    flare: { maxOut: 10, maxUp: 2 },
+  },
+
+  /* --- TYPOGRAPHY ---------------------------------------------------------- */
+  type: {
+    numberFont: 'FlowNum, Manrope, sans-serif',
+    unitFont:   'Spline Sans Mono, monospace',
+    numberSize: 9,          /* viewBox units; auto-shrinks for 5+ digit numbers */
+    unitSize:   3.4,
+    showUnit:   true,
+  },
+
+  /* --- MOTION -------------------------------------------------------------- */
+  pulse: { enabled: true, durationMs: 1100 },   /* Flood draws attention */
+};
+
+/* ============================================================================
+   GAUGE  —  pure SVG generator.
+   ============================================================================ */
+const f2 = n => n.toFixed(2);
+function classify(value, r){
+  if (value < r.goodLow)  return 'low';
+  if (value <= r.goodTop) return 'good';
+  if (value <= r.highMax) return 'high';
+  return 'flood';
+}
+/* how far the endpoints have bent out: 0 at top-of-good → 1 at the flood line, then stays 1 */
+function flareOf(value, r){
+  if (value <= r.goodTop) return 0;
+  return Math.min(1, (value - r.goodTop) / (r.highMax - r.goodTop));
+}
+function ring(cx, cy, R, deg){            /* point on a circle, deg from 12 o'clock, clockwise */
+  const a = deg * Math.PI / 180;
+  return [cx + R * Math.sin(a), cy - R * Math.cos(a)];
+}
+
+/* Build the outline path + its top Y. `flare` (0–1) only affects High/Flood. */
+function shape(band, flare){
+  const G = CONFIG.geo, cx = G.cx, cy = G.cy, R = G.R;
+  const bottomY = cy + R;
+
+  if (band === 'low' || band === 'good'){
+    /* open horseshoe — right rim end, clockwise around the bottom, to left rim end */
+    const half = G.gap / 2;
+    const [rx, ry] = ring(cx, cy, R, half);
+    const [lx, ly] = ring(cx, cy, R, 360 - half);
+    return { path: `M ${f2(rx)} ${f2(ry)} A ${R} ${R} 0 1 1 ${f2(lx)} ${f2(ly)}`, topY: ry };
+  }
+
+  /* High + Flood: a U whose vertical sides flare OUTWARD by `flare`.
+     Each side is a quadratic from the bottom (vertical there) to the top endpoint;
+     the endpoint slides out by flare·maxOut (and up by flare·maxUp). */
+  const W = G.u.halfWidth, top = G.u.armTop;
+  const sideY = bottomY - W;            /* where the bottom semicircle meets the sides (= cy when W=R) */
+  const Lx = cx - W, Rx = cx + W;
+  const out = G.flare.maxOut, up = G.flare.maxUp;
+  const LtopX = Lx - flare * out, RtopX = Rx + flare * out, topY = top - flare * up;
+  return {
+    path:
+      `M ${f2(LtopX)} ${f2(topY)} ` +
+      `Q ${f2(Lx)} ${f2(top)} ${f2(Lx)} ${f2(sideY)} ` +     /* left side (vertical where it meets bottom) */
+      `A ${W} ${W} 0 0 0 ${f2(Rx)} ${f2(sideY)} ` +          /* rounded bottom — radius W (= R) */
+      `Q ${f2(Rx)} ${f2(top)} ${f2(RtopX)} ${f2(topY)}`,     /* right side, flaring to its endpoint */
+    topY: Math.min(top, topY),
+  };
+}
+
+/* Returns an <svg> string for one gauge. range = {goodLow, goodTop, highMax}. */
+function flowGauge(value, range, size = 160){
+  const G = CONFIG.geo, C = CONFIG.colors, T = CONFIG.type;
+  const band  = classify(value, range);
+  const flare = flareOf(value, range);
+  const col   = C[band];
+  const VB = 56, cx = G.cx, cy = G.cy, R = G.R;
+
+  const { path, topY } = shape(band, flare);
+
+  /* the colored outline rises from the bottom to f = value / top-of-good (full once past good) */
+  const f = Math.max(0, Math.min(1, value / range.goodTop));
+  const bottomY = cy + R;
+  const waterY = bottomY - f * (bottomY - topY);
+
+  const id = 'clip' + (flowGauge._n = (flowGauge._n || 0) + 1);
+  const numStr = Math.round(value).toLocaleString();
+  const numFS  = value >= 10000 ? T.numberSize * 0.82 : T.numberSize;
+  const numCol = CONFIG.numberColor || col;
+  const pulse  = (CONFIG.pulse.enabled && band === 'flood')
+    ? `animation:fs-flood-pulse ${CONFIG.pulse.durationMs}ms ease-in-out infinite;` : '';
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${VB} ${VB}" style="display:block;overflow:visible;${pulse}" role="img" aria-label="Flow ${numStr} cfs — ${band}">
+  <defs><clipPath id="${id}"><rect x="-14" y="${f2(waterY)}" width="${VB+28}" height="${VB+14}"/></clipPath></defs>
+  <!-- faint gray base outline -->
+  <path d="${path}" fill="none" stroke="${C.base}" stroke-width="${G.stroke}" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- colored outline, risen from the bottom -->
+  <g clip-path="url(#${id})">
+    <path d="${path}" fill="none" stroke="${col}" stroke-width="${G.stroke}" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- CFS value + unit, centered in the empty ring -->
+  <text x="${cx}" y="${f2(cy+1)}" text-anchor="middle" font-family="${T.numberFont}" font-weight="600" font-size="${numFS}" fill="${numCol}">${numStr}</text>
+  ${T.showUnit ? `<text x="${cx}" y="${f2(cy+6.6)}" text-anchor="middle" font-family="${T.unitFont}" font-weight="500" font-size="${T.unitSize}" fill="${numCol}" letter-spacing="0.5" opacity="0.85">CFS</text>` : ''}
+</svg>`;
+}
+
+/* keyframes for the Flood pulse (injected so the gauge is self-contained) */
+const styleEl = document.createElement('style');
+styleEl.textContent = '@keyframes fs-flood-pulse{0%,100%{opacity:1}50%{opacity:.4}}';
+document.head.appendChild(styleEl);
+
+/* example basin used throughout */
+const RANGE = { goodLow: 800, goodTop: 3000, highMax: 6000 };
+const BAND_LABEL = { low:'Too low', good:'Good', high:'High', flood:'Flood' };
+const BAND_COLOR = CONFIG.colors;
+
+/* ---- the four canonical states -------------------------------------------- */
+const STATES = [
+  { v: 430,   lab: 'Too low', meta: 'open horseshoe · low fill' },
+  { v: 1240,  lab: 'Good',    meta: 'open horseshoe · fills with flow' },
+  { v: 4000,  lab: 'High',    meta: 'U · endpoints starting to bend out' },
+  { v: 20000, lab: 'Flood',   meta: 'U · endpoints fully flared · pulses' },
+];
+function cell(v, lab, meta){
+  const svg = flowGauge(v, RANGE, 160);
+  const esc = svg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<div class="cell">
+    ${svg}
+    <div class="lab">${lab}</div>
+    <div class="meta">${v.toLocaleString()} cfs · ${meta}</div>
+    <details><summary>SVG markup</summary><pre>${esc}</pre></details>
+  </div>`;
+}
+document.getElementById('states').innerHTML = STATES.map(s => cell(s.v, s.lab, s.meta)).join('');
+
+/* ---- full progression (one continuous sequence, low → flood) -------------- */
+const PROG = [200, 500, 800, 1300, 1900, 2500, 3000, 3500, 4200, 5000, 5800, 9000, 20000];
+document.getElementById('progression').innerHTML = PROG.map(v => {
+  const b = classify(v, RANGE);
+  return `<div class="pcell">
+    ${flowGauge(v, RANGE, 104)}
+    <div class="cfs" style="color:${BAND_COLOR[b]}">${v.toLocaleString()}</div>
+    <div class="bnd" style="color:${BAND_COLOR[b]}">${BAND_LABEL[b]}</div>
+  </div>`;
+}).join('');
+
+/* ---- background toggle ---------------------------------------------------- */
+function setBg(mode){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('sky', mode === 'sky'));
+  document.getElementById('bgLight').classList.toggle('on', mode === 'light');
+  document.getElementById('bgSky').classList.toggle('on', mode === 'sky');
+}
+</script>
+</body>
+</html>

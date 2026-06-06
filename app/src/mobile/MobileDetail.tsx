@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { STATUS_COLORS } from '../constants';
 import { BigCFS } from '../components/BigCFS';
+import { FlowGauge } from '../components/FlowGauge';
 import { StatusPill } from '../components/StatusPill';
 import { TrendChip } from '../components/TrendChip';
 import { Icon } from '../components/Icon';
@@ -98,7 +99,11 @@ export function MobileDetail({ sectionId }: MobileDetailProps) {
 					marginTop: 22, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12,
 				}}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-						<BigCFS cfs={detail.now} size="detail" color={c.solid} />
+						<div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+								{detail.now != null
+									? <FlowGauge currentFlow={detail.now} thresholds={detail.thresholds} size={132} />
+									: <BigCFS cfs={null} size="detail" color={c.solid} />}
+							</div>
 						<div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
 							<StatusPill status={detail.status} label={detail.statusLabel} size="lg" />
 							<TrendChip trend={detail.trend} pct={detail.trendPct} size="lg" />

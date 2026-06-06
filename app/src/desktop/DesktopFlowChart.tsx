@@ -40,7 +40,7 @@ function formatCfs(v: number): string {
 function flowStatus(v: number, th: Thresholds): string {
 	if (v >= th.high) return 'Danger';
 	if (v >= th.idealHi) return 'High';
-	if (v >= th.idealLo) return 'Ideal';
+	if (v >= th.idealLo) return 'Good';
 	if (v >= th.runnable) return 'Runnable';
 	return 'Low';
 }
@@ -137,7 +137,7 @@ export function DesktopFlowChart({ data, days, status, thresholds }: DesktopFlow
 			{tickVals.map((v, i) => (
 				<g key={i}>
 					<line x1={padding.l} x2={padding.l + w} y1={y(v)} y2={y(v)} stroke="var(--rule)" strokeDasharray="2 4" />
-					<text x={padding.l - 8} y={y(v)} textAnchor="end" dominantBaseline="middle" fontSize="11" fill="var(--ink-3)" fontFamily="Fira Code, monospace">
+					<text x={padding.l - 8} y={y(v)} textAnchor="end" dominantBaseline="middle" fontSize="11" fill="var(--ink-3)" fontFamily="var(--font-mono)">
 						{formatCfs(v)}
 					</text>
 				</g>
@@ -148,7 +148,7 @@ export function DesktopFlowChart({ data, days, status, thresholds }: DesktopFlow
 			{timeLabels.map((tl, i) => (
 				<text key={i} x={x(tl.t)} y={padding.t + h + 18}
 					textAnchor={i === 0 ? 'start' : i === labelCount - 1 ? 'end' : 'middle'}
-					fontSize="11" fill="var(--ink-3)" fontFamily="Fira Code, monospace">
+					fontSize="11" fill="var(--ink-3)" fontFamily="var(--font-mono)">
 					{tl.label}
 				</text>
 			))}
@@ -159,13 +159,13 @@ export function DesktopFlowChart({ data, days, status, thresholds }: DesktopFlow
 					<circle cx={hover.px} cy={hover.py} r="5" fill={c.solid} stroke="white" strokeWidth="2.5" />
 					<g transform={`translate(${tipFlip ? hover.px - tipW - 12 : hover.px + 12}, ${Math.max(padding.t, Math.min(hover.py - 36, padding.t + h - 72))})`}>
 						<rect width={tipW} height={68} rx="6" fill="var(--ink-0)" opacity="0.92" />
-						<text x="10" y="18" fontSize="11" fill="white" fontFamily="Fira Code, monospace" opacity="0.75">
+						<text x="10" y="18" fontSize="11" fill="white" fontFamily="var(--font-mono)" opacity="0.75">
 							{formatTooltipDate(hoverPoint.t)}
 						</text>
-						<text x="10" y="38" fontSize="16" fill="white" fontWeight="700" fontFamily="Fira Code, monospace">
+						<text x="10" y="38" fontSize="16" fill="white" fontWeight="700" fontFamily="var(--font-mono)">
 							{hoverPoint.v.toLocaleString()} cfs
 						</text>
-						<text x="10" y="56" fontSize="11" fill={c.line} fontFamily="Fira Code, monospace" fontWeight="600">
+						<text x="10" y="56" fontSize="11" fill={c.line} fontFamily="var(--font-mono)" fontWeight="600">
 							{flowStatus(hoverPoint.v, thresholds)}
 						</text>
 					</g>

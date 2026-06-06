@@ -419,7 +419,7 @@ const cardOuter = (density: 'desktop' | 'mobile'): React.CSSProperties => ({
 	// NOTE: do NOT set `overflow: hidden` here — it breaks `position: sticky` for the
 	// right-pane section card. The grid below masks any spine overflow at the rounded
 	// corners via clip-path on the left column instead.
-	maxWidth: density === 'desktop' ? 1100 : 720,
+	maxWidth: density === 'desktop' ? '100%' : 720,
 });
 
 const tileHeader: React.CSSProperties = {

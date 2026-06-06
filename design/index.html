@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Flow State — Design System (new direction)</title>
+<style>
+/* fonts: Manrope (sans) + Spline Sans Mono (instrument) via CDN; Inter mapped onto numerals only */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600&display=swap');
+@font-face { font-family:"FlowNum"; font-weight:200; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-200-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:300; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-300-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:400; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:500; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-500-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:600; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-600-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:700; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-700-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:800; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-800-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+
+:root{
+  --font-sans:"FlowNum","Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-mono:"FlowNum","Spline Sans Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  /* ink (cool river-stone) */
+  --ink-950:oklch(0.18 0.030 250); --ink-900:oklch(0.23 0.034 250); --ink-800:oklch(0.30 0.034 248);
+  --ink-700:oklch(0.40 0.032 247); --ink-600:oklch(0.50 0.028 246); --ink-500:oklch(0.60 0.024 245);
+  --ink-400:oklch(0.70 0.020 244); --ink-300:oklch(0.80 0.016 242); --ink-200:oklch(0.88 0.012 240);
+  --ink-100:oklch(0.94 0.008 238); --ink-50:oklch(0.975 0.006 236); --white:#fff;
+  /* flow (primary) */
+  --flow-900:oklch(0.32 0.10 245); --flow-700:oklch(0.48 0.15 243); --flow-600:oklch(0.56 0.16 242);
+  --flow-500:oklch(0.64 0.16 240); --flow-400:oklch(0.74 0.14 230); --flow-300:oklch(0.83 0.10 220);
+  --flow-200:oklch(0.91 0.055 218); --flow-100:oklch(0.96 0.025 216);
+  /* alpine (secondary) */
+  --alpine-700:oklch(0.50 0.13 150); --alpine-600:oklch(0.58 0.15 150); --alpine-500:oklch(0.66 0.16 148);
+  --alpine-300:oklch(0.84 0.11 146); --alpine-100:oklch(0.95 0.04 146);
+  /* condition status */
+  --status-low:oklch(0.80 0.15 88); --status-good:oklch(0.64 0.17 150); --status-high:oklch(0.59 0.22 28); --status-danger:oklch(0.46 0.21 25);
+  --status-info:var(--flow-500);
+  --status-low-bg:oklch(0.96 0.05 90); --status-good-bg:oklch(0.95 0.05 150); --status-high-bg:oklch(0.95 0.055 30); --status-danger-bg:oklch(0.94 0.06 25);
+  /* snowpack */
+  --snow-deep:oklch(0.45 0.13 250); --snow-good:oklch(0.62 0.13 235); --snow-thin:oklch(0.80 0.08 220); --snow-bare:oklch(0.88 0.03 70);
+  /* semantic */
+  --bg-app:var(--ink-50); --bg-surface:var(--white); --bg-subtle:var(--ink-100);
+  --border:oklch(0.90 0.012 240); --border-strong:var(--ink-200);
+  --fg-1:var(--ink-950); --fg-2:var(--ink-700); --fg-3:var(--ink-500); --fg-4:var(--ink-400);
+  --fg-brand:var(--flow-600); --fg-on-brand:var(--white);
+  --fg-on-sky-1:rgba(255,255,255,0.98); --fg-on-sky-2:rgba(255,255,255,0.74); --fg-on-sky-3:rgba(255,255,255,0.55);
+  --module-fill:rgba(255,255,255,0.16); --module-stroke:rgba(255,255,255,0.22); --module-fill-dark:rgba(8,18,31,0.28);
+  /* sky gradients */
+  --sky-dawn:linear-gradient(180deg,#3a2d6e 0%,#6f5aa8 38%,#d98b6b 82%,#f0b482 100%);
+  --sky-day:linear-gradient(180deg,#2a6fd6 0%,#4e93e6 46%,#8fc1f2 100%);
+  --sky-cloud:linear-gradient(180deg,#4a5e76 0%,#6b7e93 52%,#97a7b8 100%);
+  --sky-dusk:linear-gradient(180deg,#2b2350 0%,#6b4a82 44%,#c8633f 86%,#e89150 100%);
+  --sky-night:linear-gradient(180deg,#060f1f 0%,#102036 52%,#1c3357 100%);
+  --sky-storm:linear-gradient(180deg,#1d2a38 0%,#2f4154 54%,#46596d 100%);
+  --sky-river:linear-gradient(165deg,#0d3b66 0%,#1a6fa8 50%,#3aa0c9 100%);
+  --sky-alpine:linear-gradient(180deg,#11335a 0%,#2b6fa8 45%,#7fb6cf 100%);
+  --scrim-top:linear-gradient(180deg,rgba(0,0,0,0.32),rgba(0,0,0,0));
+  --scrim-bottom:linear-gradient(0deg,rgba(0,0,0,0.42),rgba(0,0,0,0));
+  /* radii */
+  --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-2xl:36px; --r-pill:999px;
+  /* shadows */
+  --shadow-sm:0 1px 2px rgba(11,24,40,0.06),0 1px 3px rgba(11,24,40,0.08);
+  --shadow-md:0 2px 6px rgba(11,24,40,0.07),0 8px 20px rgba(11,24,40,0.10);
+  --shadow-lg:0 8px 24px rgba(11,24,40,0.12),0 18px 48px rgba(11,24,40,0.16);
+  --shadow-xl:0 18px 60px rgba(11,24,40,0.22);
+  --glow-flow:0 0 0 1px rgba(56,189,248,0.4),0 6px 24px rgba(46,140,220,0.35);
+  --blur-module:blur(20px) saturate(160%);
+  /* spacing */
+  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-8:32px;--s-10:40px;--s-12:48px;--s-16:64px;--s-20:80px;
+  /* type */
+  --t-hero:clamp(72px,18vw,112px); --t-display:clamp(40px,9vw,56px); --t-h1:clamp(30px,6vw,36px);
+  --t-h2:26px;--t-h3:21px;--t-title:17px;--t-body:16px;--t-subhead:14px;--t-caption:13px;--t-footnote:12px;--t-label:11px;
+  --lh-tight:1.04;--lh-snug:1.2;--lh-base:1.5;
+  --tracking-tight:-0.03em;--tracking-snug:-0.015em;--tracking-label:0.14em;
+}
+
+@keyframes fs-flood-pulse { 0%, 100% { opacity:1; } 50% { opacity:0.4; } }
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;font-family:var(--font-sans);background:var(--bg-app);color:var(--fg-1);font-size:var(--t-body);line-height:var(--lh-base);-webkit-font-smoothing:antialiased;}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0;}
+a{color:inherit;text-decoration:none;}
+
+/* type classes */
+.fs-hero{font-size:var(--t-hero);font-weight:300;line-height:var(--lh-tight);letter-spacing:var(--tracking-tight);font-variant-numeric:tabular-nums;}
+.fs-display{font-size:var(--t-display);font-weight:700;line-height:var(--lh-tight);letter-spacing:var(--tracking-tight);}
+.fs-h1{font-size:var(--t-h1);font-weight:700;line-height:var(--lh-snug);letter-spacing:var(--tracking-snug);}
+.fs-h2{font-size:var(--t-h2);font-weight:700;line-height:var(--lh-snug);letter-spacing:var(--tracking-snug);}
+.fs-h3{font-size:var(--t-h3);font-weight:600;line-height:var(--lh-snug);}
+.fs-title{font-size:var(--t-title);font-weight:600;line-height:var(--lh-snug);}
+.fs-subhead{font-size:var(--t-subhead);font-weight:500;}
+.fs-caption{font-size:var(--t-caption);font-weight:500;line-height:1.4;}
+.fs-footnote{font-size:var(--t-footnote);font-weight:400;line-height:1.4;}
+.fs-label{font-size:var(--t-label);font-weight:700;line-height:1;letter-spacing:var(--tracking-label);text-transform:uppercase;}
+.fs-data{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:500;letter-spacing:-0.01em;}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+
+/* ---- layout chrome ---- */
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px;}
+.section{padding:56px 0 8px;scroll-margin-top:70px;}
+.section-eyebrow{color:var(--flow-600);}
+.section h2{margin:6px 0 6px;}
+.section .desc{color:var(--fg-3);max-width:64ch;margin:0 0 24px;font-size:15px;}
+.subhead{color:var(--fg-3);margin:28px 0 14px;}
+.subhead:first-of-type{margin-top:0;}
+
+/* sticky frosted sub-nav */
+.topnav{position:sticky;top:0;z-index:60;background:rgba(255,255,255,0.72);backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--border);}
+.topnav-inner{max-width:1080px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.topnav .brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:-0.02em;font-size:17px;}
+.topnav nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto;}
+.topnav nav a{padding:6px 11px;border-radius:var(--r-pill);font-size:13.5px;font-weight:600;color:var(--fg-3);}
+.topnav nav a:hover{color:var(--fg-1);background:var(--bg-subtle);}
+
+/* immersive hero */
+.hero{position:relative;min-height:560px;background:var(--sky-dusk);overflow:hidden;display:flex;flex-direction:column;}
+.hero .scrim-t{position:absolute;top:0;left:0;right:0;height:160px;background:var(--scrim-top);pointer-events:none;}
+.hero .scrim-b{position:absolute;bottom:0;left:0;right:0;height:240px;background:var(--scrim-bottom);pointer-events:none;}
+.hero-inner{position:relative;z-index:1;max-width:1080px;margin:0 auto;width:100%;padding:26px 20px 56px;color:#fff;}
+
+/* frosted instrument module */
+.module{background:var(--module-fill);backdrop-filter:var(--blur-module);-webkit-backdrop-filter:var(--blur-module);box-shadow:inset 0 0 0 1px var(--module-stroke);border-radius:var(--r-lg);padding:15px;color:#fff;}
+.module-label{display:flex;align-items:center;gap:7px;color:var(--fg-on-sky-2);font-size:11px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;margin-bottom:12px;}
+
+/* solid surface card */
+.surface{background:var(--bg-surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);border-radius:var(--r-lg);padding:16px;}
+
+/* status badge — color label, NO decorative dot */
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:var(--r-pill);font-size:12.5px;font-weight:700;}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:var(--r-pill);font-weight:700;font-size:15px;transition:transform .12s,box-shadow .12s;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--flow-600);color:#fff;box-shadow:var(--shadow-sm);}
+.btn-go{background:var(--alpine-600);color:#fff;box-shadow:var(--shadow-sm);}
+.btn-secondary{background:var(--bg-surface);color:var(--fg-1);border:1px solid var(--border);}
+.btn-ghost{background:transparent;color:var(--fg-brand);}
+.btn-onsky{background:rgba(255,255,255,0.92);color:var(--flow-700);}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:7px;flex:none;padding:8px 14px;border-radius:var(--r-pill);font-size:14px;font-weight:600;border:1px solid var(--border);background:var(--bg-surface);color:var(--fg-2);}
+.chip.on{background:var(--flow-600);color:#fff;border-color:transparent;}
+.chip-onsky{border:none;background:rgba(255,255,255,0.16);color:#fff;backdrop-filter:blur(8px);}
+.chip-onsky.on{background:rgba(255,255,255,0.92);color:var(--flow-700);}
+.seg{display:inline-flex;background:var(--bg-subtle);border-radius:var(--r-pill);padding:3px;}
+.seg button{padding:7px 16px;border-radius:var(--r-pill);font-size:13.5px;font-weight:700;color:var(--fg-3);}
+.seg button.on{background:var(--bg-surface);color:var(--fg-1);box-shadow:var(--shadow-sm);}
+
+/* generic stages */
+.stage{border-radius:var(--r-xl);padding:24px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;}
+.stage-light{background:var(--bg-app);border:1px solid var(--border);}
+.stage-sky{position:relative;overflow:hidden;color:#fff;}
+.spec-cap{color:var(--fg-3);margin:0 0 10px;}
+.grid{display:grid;gap:14px;}
+
+/* color swatches */
+.sw{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border);background:var(--bg-surface);}
+.sw .chip-c{height:60px;}
+.sw .meta{padding:8px 10px;}
+.sw .nm{font-size:12px;font-weight:700;}
+.sw .vl{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sky-sw{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border);}
+.sky-sw .g{height:78px;}
+.sky-sw .meta{padding:8px 10px;background:var(--bg-surface);}
+
+.icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px;}
+.icon-cell{display:flex;flex-direction:column;align-items:center;gap:9px;padding:15px 6px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--bg-surface);color:var(--fg-1);}
+.icon-cell .nm{font-family:var(--font-mono);font-size:9.5px;color:var(--fg-3);}
+
+.callout{background:var(--flow-100);border:1px solid var(--flow-200);border-left:3px solid var(--flow-500);border-radius:var(--r-md);padding:15px 17px;font-size:14px;line-height:1.6;color:var(--fg-2);}
+.callout strong{color:var(--fg-1);}
+footer{border-top:1px solid var(--border);margin-top:48px;padding:24px 0 64px;color:var(--fg-4);font-size:13px;}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:560px){.metric-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- ============ STICKY NAV ============ -->
+<div class="topnav">
+  <div class="topnav-inner">
+    <div class="brand">
+      <img src="assets/flowstate-icon.svg" alt="" width="26" height="26" style="border-radius:7px;display:block" />
+      Flow State
+    </div>
+    <nav>
+      <a href="#foundations">Foundations</a>
+      <a href="#color">Color</a>
+      <a href="#sky">Sky</a>
+      <a href="#type">Type</a>
+      <a href="#instrument">Instruments</a>
+      <a href="#surface">Surfaces</a>
+      <a href="#trips">Trips</a>
+      <a href="#map">Map</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ============ IMMERSIVE HERO (the signature canvas) ============ -->
+<header class="hero" id="top">
+  <div class="scrim-t"></div>
+  <div class="scrim-b"></div>
+  <div class="hero-inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+      <img src="assets/flowstate-wordmark-light.svg" alt="Flow State" height="34" />
+      <span class="fs-label" style="color:var(--fg-on-sky-2)">Design system · new direction</span>
+    </div>
+
+    <!-- Apple-Weather centered hero readout, real Flow State data -->
+    <div style="text-align:center;margin-top:30px;">
+      <div class="fs-h2" style="color:#fff;">Gunnison · Almont</div>
+      <div class="fs-subhead" style="color:var(--fg-on-sky-2);margin-top:2px;">Below the confluence · Class III</div>
+      <div style="display:inline-flex;align-items:flex-start;gap:7px;margin-top:12px;">
+        <span class="fs-hero" style="color:#fff;">1,240</span>
+        <span class="mono" style="font-size:22px;margin-top:16px;color:var(--fg-on-sky-2);">cfs</span>
+      </div>
+      <div style="font-size:19px;font-weight:600;color:var(--fg-on-sky-1);margin-top:-2px;">Good</div>
+      <div class="mono" style="font-size:13px;color:var(--fg-on-sky-2);margin-top:6px;">USGS 09112500 · medium water · updated 8 min ago</div>
+    </div>
+
+    <!-- a frosted module floating on the sky -->
+    <div class="module" style="margin-top:22px;max-width:560px;margin-left:auto;margin-right:auto;">
+      <div style="font-size:15px;line-height:1.5;">A snapshot of the new look. We kept Flow State's real data — USGS gauges, flow status,
+      corridors, guided trips — and re-skinned it in an Apple Weather × AllTrails language: immersive
+      sky canvases, frosted instrument modules, big airy numbers, calm color. Scroll to explore the system.</div>
+    </div>
+
+    <!-- day discharge chart on the gradient -->
+    <div class="module" style="margin-top:12px;max-width:560px;margin-left:auto;margin-right:auto;" >
+      <div class="module-label"><span data-icon="waves"></span>Riverflow · today</div>
+      <div data-chart="hero"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+        <span class="mono" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-on-sky-2);">
+          <span style="width:14px;height:8px;border-radius:3px;background:var(--status-good);opacity:.55;display:inline-block;"></span>Good window</span>
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--fg-on-sky-1);">Open gauge <span data-icon="chevron-right"></span></span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ FOUNDATIONS INTRO ============ -->
+  <section class="section" id="foundations" style="padding-top:48px;">
+    <div class="callout">
+      <strong>What changed.</strong> This is a ground-up visual + experience shift. Out: flat light cards, the single river-blue accent,
+      tiny mono eyebrows everywhere, decorative status dots. In: condition-reactive <strong>sky gradients</strong>, <strong>frosted instrument
+      modules</strong>, <strong>Manrope</strong> with <strong>Inter numerals</strong>, big light-weight readouts, a calm 4-step status ramp, and an
+      immersive, mobile-first feel that broadens from rivers into <strong>snowpack, weather and guided trips</strong>. The status colors still carry
+      data meaning and numbers stay tabular — the bones the old system got right.
+    </div>
+  </section>
+
+  <!-- ============ COLOR ============ -->
+  <section class="section" id="color">
+    <div class="fs-label section-eyebrow">Foundations</div>
+    <h2 class="fs-h2">Color</h2>
+    <p class="desc">Flow blue is the primary brand (river / glacier); alpine green is secondary (trails / land / "go"). A cool, faintly-blue
+    ink scale carries text and light surfaces. Condition status is a strict 4-step ramp reserved for data meaning. Colors are authored in OKLCH.</p>
+
+    <p class="subhead fs-label">Flow blue · primary</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(116px,1fr));">
+      <div class="sw"><div class="chip-c" style="background:var(--flow-900)"></div><div class="meta"><div class="nm">flow-900</div><div class="vl">oklch(.32 .10 245)</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--flow-700)"></div><div class="meta"><div class="nm">flow-700</div><div class="vl">oklch(.48 .15 243)</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--flow-600)"></div><div class="meta"><div class="nm">flow-600 ·brand</div><div class="vl">oklch(.56 .16 242)</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--flow-500)"></div><div class="meta"><div class="nm">flow-500</div><div class="vl">oklch(.64 .16 240)</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--flow-400)"></div><div class="meta"><div class="nm">flow-400</div><div class="vl">oklch(.74 .14 230)</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--flow-300)"></div><div class="meta"><div class="nm">flow-300</div><div class="vl">oklch(.83 .10 220)</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--flow-200)"></div><div class="meta"><div class="nm">flow-200</div><div class="vl">oklch(.91 .055 218)</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--flow-100)"></div><div class="meta"><div class="nm">flow-100</div><div class="vl">oklch(.96 .025 216)</div></div></div>
+    </div>
+
+    <p class="subhead fs-label">Alpine green · secondary &nbsp;·&nbsp; Ink · neutral</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(108px,1fr));">
+      <div class="sw"><div class="chip-c" style="background:var(--alpine-700)"></div><div class="meta"><div class="nm">alpine-700</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--alpine-600)"></div><div class="meta"><div class="nm">alpine-600</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--alpine-500)"></div><div class="meta"><div class="nm">alpine-500</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--alpine-300)"></div><div class="meta"><div class="nm">alpine-300</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--alpine-100)"></div><div class="meta"><div class="nm">alpine-100</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--ink-950)"></div><div class="meta"><div class="nm">ink-950</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--ink-700)"></div><div class="meta"><div class="nm">ink-700</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--ink-500)"></div><div class="meta"><div class="nm">ink-500</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--ink-300)"></div><div class="meta"><div class="nm">ink-300</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--ink-100)"></div><div class="meta"><div class="nm">ink-100</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--ink-50)"></div><div class="meta"><div class="nm">ink-50</div></div></div>
+    </div>
+
+    <p class="subhead fs-label">Condition status &nbsp;·&nbsp; reserved for data meaning</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));">
+      <div class="sw"><div class="chip-c" style="background:var(--status-low)"></div><div class="meta"><div class="nm" style="color:var(--status-low)">Too low</div><div class="vl">status-low · amber</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--status-good)"></div><div class="meta"><div class="nm" style="color:var(--status-good)">Good</div><div class="vl">status-good · green</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--status-high)"></div><div class="meta"><div class="nm" style="color:var(--status-high)">High</div><div class="vl">status-high · red</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--status-danger)"></div><div class="meta"><div class="nm" style="color:var(--status-danger)">Flood</div><div class="vl">status-danger · deep red</div></div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));margin-top:12px;">
+      <div class="sw"><div class="chip-c" style="background:var(--snow-bare)"></div><div class="meta"><div class="nm">Bare</div><div class="vl">snow-bare</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--snow-thin)"></div><div class="meta"><div class="nm">Thin</div><div class="vl">snow-thin</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--snow-good)"></div><div class="meta"><div class="nm" style="color:#fff;mix-blend-mode:difference">Good</div><div class="vl">snow-good</div></div></div>
+      <div class="sw"><div class="chip-c" style="background:var(--snow-deep)"></div><div class="meta"><div class="nm">Deep</div><div class="vl">snow-deep · depth ramp</div></div></div>
+    </div>
+  </section>
+
+  <!-- ============ SKY GRADIENTS ============ -->
+  <section class="section" id="sky">
+    <div class="fs-label section-eyebrow">Foundations</div>
+    <h2 class="fs-h2">Sky gradients</h2>
+    <p class="desc">The signature device. An immersive screen's background reflects time of day + sky state. These are functional — representing the real sky — not decoration. The only place gradients are encouraged.</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));">
+      <div class="sky-sw"><div class="g" style="background:var(--sky-dawn)"></div><div class="meta fs-caption">sky-dawn</div></div>
+      <div class="sky-sw"><div class="g" style="background:var(--sky-day)"></div><div class="meta fs-caption">sky-day</div></div>
+      <div class="sky-sw"><div class="g" style="background:var(--sky-cloud)"></div><div class="meta fs-caption">sky-cloud</div></div>
+      <div class="sky-sw"><div class="g" style="background:var(--sky-dusk)"></div><div class="meta fs-caption">sky-dusk</div></div>
+      <div class="sky-sw"><div class="g" style="background:var(--sky-night)"></div><div class="meta fs-caption">sky-night</div></div>
+      <div class="sky-sw"><div class="g" style="background:var(--sky-storm)"></div><div class="meta fs-caption">sky-storm</div></div>
+      <div class="sky-sw"><div class="g" style="background:var(--sky-river)"></div><div class="meta fs-caption">sky-river</div></div>
+      <div class="sky-sw"><div class="g" style="background:var(--sky-alpine)"></div><div class="meta fs-caption">sky-alpine</div></div>
+    </div>
+  </section>
+
+  <!-- ============ TYPE ============ -->
+  <section class="section" id="type">
+    <div class="fs-label section-eyebrow">Foundations</div>
+    <h2 class="fs-h2">Type</h2>
+    <p class="desc">Manrope carries headings, body and UI. Numerals render in Inter (mapped onto digits via <span class="mono">unicode-range</span>) — notice the numbers below are Inter while letters stay Manrope. Spline Sans Mono is the instrument face for codes, coordinates and axis labels. Big condition numbers are light (300) and large for an airy, premium feel.</p>
+    <div class="surface" style="display:flex;flex-direction:column;gap:4px;">
+      <div class="fs-hero">1,240<span class="mono" style="font-size:.28em;color:var(--fg-3);vertical-align:super;"> cfs</span></div>
+      <div style="color:var(--fg-3)" class="mono fs-caption">t-hero · 300 · Inter numerals, Apple-Weather scale</div>
+      <div class="fs-display" style="margin-top:14px;">Know before you go</div>
+      <div style="color:var(--fg-3)" class="mono fs-caption">t-display · Manrope 700 · tight tracking</div>
+      <div class="fs-h1" style="margin-top:14px;">Browns Canyon · 11 mi</div>
+      <div class="fs-h2">The Numbers · Class IV–V</div>
+      <div class="fs-h3">Below the confluence</div>
+      <div class="fs-title" style="margin-top:10px;">Almont gauge · steady through the afternoon</div>
+      <div class="fs-body" style="margin-top:6px;">Body — 16px Manrope 400. Holding around 1,240 cfs; we expect a small bump from upstream releases after 4pm.</div>
+      <div class="fs-subhead" style="color:var(--fg-2)">Subhead — 14px 500, secondary captions and supporting copy.</div>
+      <div class="fs-caption" style="color:var(--fg-3)">Caption — 13px 500.</div>
+      <div class="fs-data" style="margin-top:10px;font-size:14px;color:var(--fg-2)">USGS 09112500 · 38.6699°N −106.8470°W · 14:08 MDT &nbsp;— Spline Sans Mono</div>
+      <div class="fs-label" style="margin-top:10px;color:var(--flow-600)">RIVERFLOW · 10-DAY · SNOWPACK &nbsp;— module label</div>
+    </div>
+  </section>
+
+  <!-- ============ SPACING / RADII / ELEVATION / MOTION ============ -->
+  <section class="section">
+    <div class="fs-label section-eyebrow">Foundations</div>
+    <h2 class="fs-h2">Space, radius &amp; elevation</h2>
+    <p class="desc">A 4px base grid with generous breathing room. Friendly round corners (20px modules, 28px hero, 999px pills). Soft, cool-tinted shadows — frosted modules use no shadow; active flow controls get a cyan glow.</p>
+    <div class="surface">
+      <p class="subhead fs-label" style="margin-top:0">Radii</p>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="text-align:center"><div style="width:64px;height:64px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r-xs)"></div><div class="mono fs-footnote" style="color:var(--fg-3);margin-top:6px">xs·6</div></div>
+        <div style="text-align:center"><div style="width:64px;height:64px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r-sm)"></div><div class="mono fs-footnote" style="color:var(--fg-3);margin-top:6px">sm·10</div></div>
+        <div style="text-align:center"><div style="width:64px;height:64px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r-md)"></div><div class="mono fs-footnote" style="color:var(--fg-3);margin-top:6px">md·14</div></div>
+        <div style="text-align:center"><div style="width:64px;height:64px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r-lg)"></div><div class="mono fs-footnote" style="color:var(--fg-3);margin-top:6px">lg·20</div></div>
+        <div style="text-align:center"><div style="width:64px;height:64px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r-xl)"></div><div class="mono fs-footnote" style="color:var(--fg-3);margin-top:6px">xl·28</div></div>
+        <div style="text-align:center"><div style="width:64px;height:64px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--r-2xl)"></div><div class="mono fs-footnote" style="color:var(--fg-3);margin-top:6px">2xl·36</div></div>
+      </div>
+      <p class="subhead fs-label">Elevation</p>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">
+        <div style="text-align:center"><div style="width:130px;height:74px;background:var(--bg-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)"></div><div class="mono fs-footnote" style="color:var(--fg-3);margin-top:10px">shadow-sm</div></div>
+        <div style="text-align:center"><div style="width:130px;height:74px;background:var(--bg-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-md)"></div><div class="mono fs-footnote" style="color:var(--fg-3);margin-top:10px">shadow-md</div></div>
+        <div style="text-align:center"><div style="width:130px;height:74px;background:var(--bg-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-lg)"></div><div class="mono fs-footnote" style="color:var(--fg-3);margin-top:10px">shadow-lg</div></div>
+        <div style="text-align:center"><div style="width:130px;height:74px;background:var(--bg-surface);border-radius:var(--r-lg);box-shadow:var(--glow-flow)"></div><div class="mono fs-footnote" style="color:var(--fg-3);margin-top:10px">glow-flow</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ICONS ============ -->
+  <section class="section">
+    <div class="fs-label section-eyebrow">Foundations</div>
+    <h2 class="fs-h2">Icons</h2>
+    <p class="desc">Lucide — consistent 2px rounded stroke, outdoor-friendly glyphs, weather-app feel. Outline only; icons inherit text color.</p>
+    <div class="icon-grid" id="icon-grid"></div>
+  </section>
+
+  <!-- ============ INSTRUMENT COMPONENTS (on sky) ============ -->
+  <section class="section" id="instrument">
+    <div class="fs-label section-eyebrow">Components · instrument</div>
+    <h2 class="fs-h2">Instruments on the sky</h2>
+    <p class="desc">Frosted modules and data viz that float over a gradient canvas. White text, translucent fill, no shadow — depth comes from blur. These are the heart of the immersive experience.</p>
+
+    <div class="stage stage-sky" style="background:var(--sky-river);flex-direction:column;">
+      <div class="scrim-b" style="position:absolute;bottom:0;left:0;right:0;height:160px;background:var(--scrim-bottom)"></div>
+
+      <!-- status badges row -->
+      <div style="position:relative;z-index:1;width:100%;">
+        <div class="fs-label" style="color:var(--fg-on-sky-2);margin-bottom:10px;">Status badges · color label, never a decorative dot</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="badge" style="color:var(--status-low);background:rgba(255,255,255,0.16);">Too low</span>
+          <span class="badge" style="color:#fff;background:var(--status-good);">Good</span>
+          <span class="badge" style="color:var(--status-high);background:rgba(255,255,255,0.16);">High</span>
+          <span class="badge" style="color:#fff;background:var(--status-danger);">Flood</span>
+          <span class="badge" style="color:var(--flow-300);background:rgba(255,255,255,0.16);"><span data-icon="trending-up"></span>Rising</span>
+        </div>
+      </div>
+
+      <!-- flow gauge row: the morphing vessel -->
+      <div class="module" style="position:relative;z-index:1;width:100%;">
+        <div class="module-label"><span data-icon="gauge"></span>Flow-range gauge · fills 0→top of Good, rim morphs past it</div>
+        <div style="display:flex;gap:18px;justify-content:space-between;text-align:center;flex-wrap:wrap;">
+          <div style="flex:1;min-width:120px;"><div data-gauge="430" style="display:flex;justify-content:center"></div><div style="font-weight:700;margin-top:8px">Too low</div><div class="mono fs-caption" style="color:var(--status-low)">430 <span style="color:var(--fg-on-sky-3)">cfs</span></div><div class="fs-footnote" style="color:var(--fg-on-sky-3)">outline rises · yellow</div></div>
+          <div style="flex:1;min-width:120px;"><div data-gauge="1240" style="display:flex;justify-content:center"></div><div style="font-weight:700;margin-top:8px">Good</div><div class="mono fs-caption" style="color:var(--status-good)">1,240 <span style="color:var(--fg-on-sky-3)">cfs</span></div><div class="fs-footnote" style="color:var(--fg-on-sky-3)">outline rises · green</div></div>
+          <div style="flex:1;min-width:120px;"><div data-gauge="2600" style="display:flex;justify-content:center"></div><div style="font-weight:700;margin-top:8px">High</div><div class="mono fs-caption" style="color:var(--status-high)">2,600 <span style="color:var(--fg-on-sky-3)">cfs</span></div><div class="fs-footnote" style="color:var(--fg-on-sky-3)">arms bend up</div></div>
+          <div style="flex:1;min-width:120px;"><div data-gauge="3900" style="display:flex;justify-content:center"></div><div style="font-weight:700;margin-top:8px">Flood</div><div class="mono fs-caption" style="color:var(--status-danger)">3,900 <span style="color:var(--fg-on-sky-3)">cfs</span></div><div class="fs-footnote" style="color:var(--fg-on-sky-3)">arms flare out</div></div>
+        </div>
+      </div>
+
+      <!-- metric tile grid -->
+      <div class="module" style="position:relative;z-index:1;flex:1;min-width:240px;">
+        <div class="metric-grid">
+          <div><div class="module-label"><span data-icon="snowflake"></span>Snowpack</div><div style="display:flex;align-items:baseline;gap:5px"><span style="font-weight:300;font-size:34px;line-height:1">112</span><span class="mono" style="font-size:14px;color:var(--fg-on-sky-2)">%</span></div><div class="mono fs-caption" style="color:var(--fg-on-sky-3);margin-top:6px">18.4 in SWE · Deep</div></div>
+          <div><div class="module-label"><span data-icon="thermometer"></span>Air</div><div style="display:flex;align-items:baseline;gap:5px"><span style="font-weight:300;font-size:34px;line-height:1">61°</span></div><div class="mono fs-caption" style="color:var(--fg-on-sky-3);margin-top:6px">Partly cloudy</div></div>
+          <div><div class="module-label"><span data-icon="wind"></span>Wind</div><div style="display:flex;align-items:baseline;gap:5px"><span style="font-weight:300;font-size:34px;line-height:1">8</span><span class="mono" style="font-size:13px;color:var(--fg-on-sky-2)">mph WSW</span></div><div class="mono fs-caption" style="color:var(--fg-on-sky-3);margin-top:6px">Gusts to 14</div></div>
+          <div><div class="module-label"><span data-icon="droplet"></span>Water temp</div><div style="display:flex;align-items:baseline;gap:5px"><span style="font-weight:300;font-size:34px;line-height:1">48</span><span class="mono" style="font-size:13px;color:var(--fg-on-sky-2)">°F</span></div><div class="mono fs-caption" style="color:var(--fg-on-sky-3);margin-top:6px">Cold — dress for it</div></div>
+        </div>
+      </div>
+
+      <!-- channel & velocity -->
+      <div class="module" style="position:relative;z-index:1;width:100%;">
+        <div class="module-label"><span data-icon="waves"></span>Channel &amp; velocity · same CFS behaves differently by channel shape</div>
+        <div id="channels-sky" style="display:flex;gap:12px;align-items:flex-start;"></div>
+      </div>
+
+      <!-- snow depth -->
+      <div class="module" style="position:relative;z-index:1;flex:1;min-width:240px;">
+        <div class="module-label"><span data-icon="mountain-snow"></span>Snow depth · 5 stations</div>
+        <div id="snowdepth-sky"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SURFACE COMPONENTS (on light) ============ -->
+  <section class="section" id="surface">
+    <div class="fs-label section-eyebrow">Components · surface</div>
+    <h2 class="fs-h2">Surfaces on light</h2>
+    <p class="desc">Opaque white cards for lists, the explore feed and settings. Same friendly radius, soft shadow, hairline border.</p>
+
+    <div class="stage stage-light" style="flex-direction:column;gap:14px;">
+
+      <!-- conditions list rows -->
+      <div style="width:100%;">
+        <div class="fs-label" style="color:var(--fg-3);margin-bottom:10px;">Conditions list rows · saved spots</div>
+        <div class="surface" style="padding:0;overflow:hidden;">
+          <!-- row -->
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);">
+            <div data-gauge-sm="1240"></div>
+            <div style="flex:1;min-width:0;">
+              <div class="fs-title">Arkansas · Browns Canyon</div>
+              <div class="fs-caption mono" style="color:var(--fg-3)">USGS 07091200 · Class III–IV</div>
+            </div>
+            <div data-spark='{"id":"r1","color":"var(--status-good)","data":[3,4,3,5,6,5,7,8,7,9]}'></div>
+            <div style="text-align:right;min-width:92px;">
+              <div><span class="fs-data" style="font-size:20px;">1,240</span> <span class="mono fs-footnote" style="color:var(--fg-3)">cfs</span></div>
+              <div class="fs-caption" style="color:var(--status-good);font-weight:700;">Good ↑</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);">
+            <div data-gauge-sm="2980"></div>
+            <div style="flex:1;min-width:0;">
+              <div class="fs-title">Arkansas · The Numbers</div>
+              <div class="fs-caption mono" style="color:var(--fg-3)">USGS 07087050 · Class IV–V</div>
+            </div>
+            <div data-spark='{"id":"r2","color":"var(--status-high)","data":[5,5,6,7,9,10,11,12,12,13]}'></div>
+            <div style="text-align:right;min-width:92px;">
+              <div><span class="fs-data" style="font-size:20px;">2,980</span> <span class="mono fs-footnote" style="color:var(--fg-3)">cfs</span></div>
+              <div class="fs-caption" style="color:var(--status-high);font-weight:700;">High ↑</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;">
+            <div data-gauge-sm="3900"></div>
+            <div style="flex:1;min-width:0;">
+              <div class="fs-title">Crystal · above Avalanche</div>
+              <div class="fs-caption mono" style="color:var(--fg-3)">USGS 09081600 · Class IV+</div>
+            </div>
+            <div data-spark='{"id":"r3","color":"var(--status-danger)","data":[7,8,10,11,13,14,16,17,18,19]}'></div>
+            <div style="text-align:right;min-width:92px;">
+              <div><span class="fs-data" style="font-size:20px;">3,900</span> <span class="mono fs-footnote" style="color:var(--fg-3)">cfs</span></div>
+              <div class="fs-caption" style="color:var(--status-danger);font-weight:700;">Flood ↑</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- badges on light + buttons + chips -->
+      <div style="display:flex;gap:24px;flex-wrap:wrap;width:100%;">
+        <div style="flex:1;min-width:240px;">
+          <div class="fs-label" style="color:var(--fg-3);margin-bottom:10px;">Status badges · light</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="badge" style="color:var(--status-low);background:var(--status-low-bg)">Too low</span>
+            <span class="badge" style="color:var(--status-good);background:var(--status-good-bg)">Good</span>
+            <span class="badge" style="color:var(--status-high);background:var(--status-high-bg)">High</span>
+            <span class="badge" style="color:var(--status-danger);background:var(--status-danger-bg)">Flood</span>
+          </div>
+          <div class="fs-label" style="color:var(--fg-3);margin:18px 0 10px;">Chips &amp; segmented</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <span class="chip on"><span data-icon="waves"></span>Paddle</span>
+            <span class="chip"><span data-icon="snowflake"></span>Ski</span>
+            <span class="chip"><span data-icon="activity"></span>Fish</span>
+            <span class="seg"><button class="on">CFS</button><button>Gauge ht</button></span>
+          </div>
+        </div>
+        <div style="flex:1;min-width:240px;">
+          <div class="fs-label" style="color:var(--fg-3);margin-bottom:10px;">Buttons</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary">Open gauge</button>
+            <button class="btn btn-go"><span data-icon="navigation"></span>Directions</button>
+            <button class="btn btn-secondary">Save spot</button>
+            <button class="btn btn-ghost">Share</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- river data card -->
+      <div style="width:100%;">
+        <div class="fs-label" style="color:var(--fg-3);margin-bottom:10px;">River data card · critical-only</div>
+        <div class="surface" style="max-width:360px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+            <div>
+              <div class="fs-title">Gunnison · Almont</div>
+              <div class="fs-caption mono" style="color:var(--fg-3)">USGS 09112500</div>
+            </div>
+            <span class="badge" style="color:var(--status-good);background:var(--status-good-bg)">Good</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-top:14px;">
+            <span class="fs-data" style="font-size:40px;font-weight:400;">1,240</span>
+            <span class="mono" style="font-size:14px;color:var(--fg-3)">cfs</span>
+            <span class="fs-caption" style="color:var(--status-good);font-weight:700;margin-left:6px;">↑ 4% · steady</span>
+          </div>
+          <div data-spark='{"id":"card","color":"var(--flow-500)","w":320,"h":48,"data":[6,6,7,6,8,9,8,10,11,10,12,12]}' style="margin-top:8px;"></div>
+          <div class="fs-footnote mono" style="color:var(--fg-3);margin-top:6px;">Good 800–1,800 cfs · updated 8 min ago</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRIPS / BOOKING (the experience shift) ============ -->
+  <section class="section" id="trips">
+    <div class="fs-label section-eyebrow">Components · experience</div>
+    <h2 class="fs-h2">Guided trips</h2>
+    <p class="desc">The new direction broadens Flow State from a gauge reader into a planning companion — condition-aware guided-trip listings that map to the app's real outfitters and trip logs. Calm, trustworthy, non-hype.</p>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;">
+
+      <!-- trip listing card with photo slot -->
+      <div class="surface" style="padding:0;overflow:hidden;width:340px;">
+        <div style="height:150px;background:var(--sky-river);position:relative;display:flex;align-items:flex-end;padding:12px;">
+          <div style="position:absolute;inset:0;background:var(--scrim-bottom)"></div>
+          <div style="position:absolute;top:12px;left:12px;" class="fs-label">PHOTO</div>
+          <span class="badge" style="position:relative;color:#fff;background:var(--status-good);">Running today · Good</span>
+        </div>
+        <div style="padding:15px;">
+          <div class="fs-h3">Browns Canyon · full day</div>
+          <div class="fs-caption" style="color:var(--fg-3);margin-top:2px;">Class III–IV · 11 mi · with Arkansas Valley Adventures</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
+            <span class="fs-caption mono" style="display:inline-flex;align-items:center;gap:5px;color:var(--fg-2)"><span data-icon="activity" data-size="15"></span>Raft</span>
+            <span class="fs-caption mono" style="display:inline-flex;align-items:center;gap:5px;color:var(--fg-2)"><span data-icon="map-pin" data-size="15"></span>Buena Vista</span>
+            <span class="fs-caption mono" style="display:inline-flex;align-items:center;gap:5px;color:var(--fg-2)"><span data-icon="sun" data-size="15"></span>9:00a</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;">
+            <div><span class="fs-data" style="font-size:22px;">$129</span> <span class="fs-caption" style="color:var(--fg-3)">/ person</span></div>
+            <button class="btn btn-go" style="padding:9px 16px;font-size:14px;">Reserve</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- booking summary (airline-style) -->
+      <div class="surface" style="width:340px;">
+        <div class="fs-label" style="color:var(--fg-3)">SELECTED TRIP</div>
+        <div class="fs-h3" style="margin-top:8px;">Browns Canyon · full day</div>
+        <div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
+          <div style="text-align:center"><div class="fs-data" style="font-size:18px;">9:00a</div><div class="fs-footnote mono" style="color:var(--fg-3)">Hecla</div></div>
+          <div style="flex:1;height:2px;background:repeating-linear-gradient(90deg,var(--border) 0 6px,transparent 6px 11px);position:relative;"><span data-icon="navigation" data-size="16" style="position:absolute;right:-2px;top:-9px;color:var(--flow-600)"></span></div>
+          <div style="text-align:center"><div class="fs-data" style="font-size:18px;">3:30p</div><div class="fs-footnote mono" style="color:var(--fg-3)">Stone Br.</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border);"><span class="fs-subhead" style="color:var(--fg-2)">Condition</span><span class="fs-subhead" style="color:var(--status-good);font-weight:700;">Good · 1,240 cfs</span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border);"><span class="fs-subhead" style="color:var(--fg-2)">2 paddlers</span><span class="fs-data">$258</span></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px;">Confirm reservation</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MAP ============ -->
+  <section class="section" id="map">
+    <div class="fs-label section-eyebrow">Components</div>
+    <h2 class="fs-h2">Blend map</h2>
+    <p class="desc">A frameless "blend" map — no boxed frame, the river network drawn directly: flow-blue main stem with a glowing selected reach, tributaries, access points (alpine = put-in, flow = take-out), live FlowGauge markers with CFS chips, and soft snowpack blotches. Production rides on MapLibre + OSM + USGS NHD hydrography.</p>
+    <div class="surface" style="padding:18px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        <span class="chip on"><span data-icon="waves" data-size="14"></span>Rivers</span>
+        <span class="chip"><span data-icon="waves" data-size="14"></span>Tributaries</span>
+        <span class="chip on"><span data-icon="map-pin" data-size="14"></span>Access</span>
+        <span class="chip on"><span data-icon="gauge" data-size="14"></span>Gauges</span>
+        <span class="chip"><span data-icon="snowflake" data-size="14"></span>Snowpack</span>
+      </div>
+      <div style="position:relative;background:var(--bg-app);border-radius:var(--r-lg);overflow:hidden;">
+        <div id="blendmap" style="position:relative;width:100%;height:380px;"></div>
+        <!-- floating map controls -->
+        <div style="position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:9px;">
+          <button class="mapctl" data-icon-btn="plus"></button>
+          <button class="mapctl" data-icon-btn="move"></button>
+          <button class="mapctl" data-icon-btn="sliders"></button>
+          <button class="mapctl" data-icon-btn="locate"></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Flow State — new design direction · ported from the supplied design system, applied to Flow State's real rivers, gauges and trips.
+    Tokens mirror in <span class="mono">tokens.css</span> · written brief in <a href="./DESIGN-SPEC.md" style="color:var(--flow-600)">DESIGN-SPEC.md</a> · the previous look is archived in <span class="mono">archive/</span>.
+  </footer>
+</main>
+
+<style>
+.mapctl{width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,0.9);color:var(--fg-1);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);backdrop-filter:blur(8px);}
+.mapctl:first-child{background:var(--flow-600);color:#fff;}
+</style>
+
+<script>
+/* ---------- Lucide-ish icon set (2px round stroke) ---------- */
+const ICONS={
+  droplet:'<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>',
+  waves:'<path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 1.3 0 1.9-.5 2.5-1"/><path d="M2 12c.6.5 1.2 1 2.5 1C7 13 7 11 9.5 11c2.6 0 2.4 2 5 2 1.3 0 1.9-.5 2.5-1"/><path d="M2 18c.6.5 1.2 1 2.5 1C7 19 7 17 9.5 17c2.6 0 2.4 2 5 2 1.3 0 1.9-.5 2.5-1"/>',
+  snowflake:'<path d="M12 2v20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07M2 12h20"/><path d="M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/>',
+  mountain:'<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>',
+  'mountain-snow':'<path d="m8 3 4 8 5-5 5 15H2L8 3z"/><path d="M4.5 14.5c2-1.2 4-1 6 .3 2 1.4 4 1.5 6 .2"/>',
+  wind:'<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>',
+  cloud:'<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
+  'cloud-rain':'<path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 0 9H7"/><path d="M8 19v2M12 19v3M16 19v2"/>',
+  thermometer:'<path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>',
+  gauge:'<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
+  'map-pin':'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  navigation:'<path d="m3 11 19-9-9 19-2-8-8-2z"/>',
+  'triangle-alert':'<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/>',
+  activity:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  sunrise:'<path d="M12 2v6M4.2 10.2l1.4 1.4M1 18h2M21 18h2M18.4 11.6l1.4-1.4M22 22H2M16 18a4 4 0 0 0-8 0M8 6l4-4 4 4"/>',
+  sunset:'<path d="M12 10V2M4.2 10.2l1.4 1.4M1 18h2M21 18h2M18.4 11.6l1.4-1.4M22 22H2M16 18a4 4 0 0 0-8 0M16 5l-4 4-4-4"/>',
+  'chevron-right':'<path d="m9 18 6-6-6-6"/>',
+  'chevron-left':'<path d="m15 18-6-6 6-6"/>',
+  bookmark:'<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
+  'trending-up':'<path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/>',
+  plus:'<path d="M5 12h14M12 5v14"/>',
+  sliders:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+  move:'<path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/>',
+  locate:'<path d="M2 12h3M19 12h3M12 2v3M12 19v3"/><circle cx="12" cy="12" r="7"/>',
+  ruler:'<path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4Z"/><path d="m7.5 10.5 2 2M10.5 7.5l2 2M13.5 4.5l2 2"/>',
+};
+function svgIcon(name,size=20,color='currentColor'){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block">${ICONS[name]||''}</svg>`;
+}
+document.querySelectorAll('[data-icon]').forEach(el=>{
+  el.innerHTML=svgIcon(el.dataset.icon, +(el.dataset.size||18));
+  el.style.display='inline-flex';
+});
+document.querySelectorAll('[data-icon-btn]').forEach(el=>{ el.innerHTML=svgIcon(el.dataset.iconBtn,20); });
+// icon gallery
+(function(){
+  const names=['droplet','waves','snowflake','mountain','mountain-snow','wind','sun','cloud','cloud-rain','thermometer','gauge','map-pin','navigation','triangle-alert','activity','sunrise','sunset','bookmark','chevron-right','ruler'];
+  const g=document.getElementById('icon-grid');
+  g.innerHTML=names.map(n=>`<div class="icon-cell">${svgIcon(n,24)}<span class="nm">${n}</span></div>`).join('');
+})();
+
+/* ---------- chart math (ported from the kit's charts.jsx) ---------- */
+function smoothPath(pts){
+  if(pts.length<2) return '';
+  let d=`M ${pts[0][0]} ${pts[0][1]}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    const c1x=p1[0]+(p2[0]-p0[0])/6, c1y=p1[1]+(p2[1]-p0[1])/6;
+    const c2x=p2[0]-(p3[0]-p1[0])/6, c2y=p2[1]-(p3[1]-p1[1])/6;
+    d+=` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`;
+  }
+  return d;
+}
+let _n=0;
+function flowGauge(value,range,size=96,onMap=false){
+  const r=range||{goodLow:800,goodTop:3000,highMax:6000};
+  let band; if(value<r.goodLow)band='low'; else if(value<=r.goodTop)band='good'; else if(value<=r.highMax)band='high'; else band='flood';
+  const col={low:'var(--status-low)',good:'var(--status-good)',high:'var(--status-high)',flood:'var(--status-danger)'}[band];
+  const VB=56,cx=28,cy=29,R=16;
+  const cfg={low:{gap:40,arm:'none'},good:{gap:150,arm:'none'},high:{gap:120,arm:'up'},flood:{gap:120,arm:'out'}}[band];
+  const half=cfg.gap/2;
+  const PT=(d)=>{const a=d*Math.PI/180;return [cx+R*Math.sin(a),cy-R*Math.cos(a)];};
+  const f2=n=>n.toFixed(2);
+  const [rx,ry]=PT(half),[lx,ly]=PT(360-half);
+  const cup=`M ${f2(rx)} ${f2(ry)} A ${R} ${R} 0 1 1 ${f2(lx)} ${f2(ly)}`;
+  let armR='',armL='',armTopY=ry;
+  if(cfg.arm==='up'){const ty=ry-20;armTopY=ty;
+    armR=`M ${f2(rx)} ${f2(ry)} C ${f2(rx+2)} ${f2(ry-9)} ${f2(rx+1)} ${f2(ry-15)} ${f2(rx+0.5)} ${f2(ty)}`;
+    armL=`M ${f2(lx)} ${f2(ly)} C ${f2(lx-2)} ${f2(ly-9)} ${f2(lx-1)} ${f2(ly-15)} ${f2(lx-0.5)} ${f2(ty)}`;}
+  else if(cfg.arm==='out'){const ty=ry-16;armTopY=ty-3;
+    armR=`M ${f2(rx)} ${f2(ry)} C ${f2(rx+2)} ${f2(ry-10)} ${f2(rx+11)} ${f2(ry-10)} ${f2(rx+16)} ${f2(ty)}`;
+    armL=`M ${f2(lx)} ${f2(ly)} C ${f2(lx-2)} ${f2(ly-10)} ${f2(lx-11)} ${f2(ly-10)} ${f2(lx-16)} ${f2(ty)}`;}
+  const full=`${cup} ${armR} ${armL}`.trim();
+  const f=Math.max(0,Math.min(1,value/r.goodTop));
+  const bottomY=cy+R,topY=cfg.arm==='none'?ry:armTopY,waterY=bottomY-f*(bottomY-topY);
+  const id='fg'+(flowGauge._n=(flowGauge._n||0)+1);
+  const sw=2.6, numStr=Math.round(value).toLocaleString(), numFS=value>=10000?7.4:9;
+  const pulse=band==='flood'?'animation:fs-flood-pulse 1.1s ease-in-out infinite;':'';
+  if(onMap){return `<svg width="${size}" height="${size}" viewBox="0 0 ${VB} ${VB}" style="display:block;overflow:visible;${pulse}"><path d="${full}" fill="none" stroke="#fff" stroke-width="${sw+2}" stroke-linecap="round" stroke-linejoin="round"/><path d="${full}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${VB} ${VB}" style="display:block;overflow:visible;${pulse}">
+    <defs><clipPath id="${id}"><rect x="-10" y="${f2(waterY)}" width="${VB+20}" height="${VB}"/></clipPath></defs>
+    <path d="${full}" fill="none" stroke="var(--ink-300)" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/>
+    <g clip-path="url(#${id})"><path d="${full}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="${cx}" y="${f2(cy+1)}" text-anchor="middle" font-family="var(--font-num)" font-weight="600" font-size="${numFS}" fill="${col}">${numStr}</text>
+    <text x="${cx}" y="${f2(cy+6.6)}" text-anchor="middle" font-family="var(--font-sans)" font-weight="600" font-size="3.4" fill="${col}" letter-spacing="0.5" opacity="0.85">CFS</text>
+  </svg>`;
+}
+function sparkline(vals,{width=120,height=36,color='var(--flow-500)',fill=true,dot=true,strokeWidth=2}={}){
+  const min=Math.min(...vals),max=Math.max(...vals),pad=3;
+  const x=i=>pad+(i/(vals.length-1))*(width-pad*2);
+  const y=v=>max===min?height/2:pad+(1-(v-min)/(max-min))*(height-pad*2);
+  const pts=vals.map((v,i)=>[x(i),y(v)]), line=smoothPath(pts), last=pts[pts.length-1];
+  const id='spk'+(++_n);
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="display:block;overflow:visible">
+   <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+   ${fill?`<path d="${line} L ${last[0]} ${height} L ${pts[0][0]} ${height} Z" fill="url(#${id})"/>`:''}
+   <path d="${line}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/>
+   ${dot?`<circle cx="${last[0]}" cy="${last[1]}" r="${strokeWidth+0.8}" fill="${color}"/>`:''}</svg>`;
+}
+function flowChart(data,optimal,nowIndex,labels,{height=150,accent='rgba(255,255,255,0.95)',onSky=true}={}){
+  const W=320,H=height,padB=22,padT=12;
+  const vals=data.map(d=>d.v);
+  const min=Math.min(...vals,optimal?optimal[0]:Infinity)*0.9;
+  const max=Math.max(...vals,optimal?optimal[1]:0)*1.08;
+  const x=i=>(i/(data.length-1))*(W-8)+4;
+  const y=v=>padT+(1-(v-min)/(max-min))*(H-padB-padT);
+  const pts=data.map((d,i)=>[x(i),y(d.v)]), line=smoothPath(pts);
+  const area=`${line} L ${x(data.length-1)} ${H-padB} L ${x(0)} ${H-padB} Z`;
+  const labelColor=onSky?'var(--fg-on-sky-3)':'var(--fg-3)';
+  const gid='fcg'+(++_n);
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" preserveAspectRatio="none">
+   <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${accent}" stop-opacity="0.32"/><stop offset="1" stop-color="${accent}" stop-opacity="0.02"/></linearGradient></defs>
+   ${optimal?`<rect x="0" y="${y(optimal[1])}" width="${W}" height="${Math.max(0,y(optimal[0])-y(optimal[1]))}" fill="var(--status-good)" opacity="0.16"/>`:''}
+   <path d="${area}" fill="url(#${gid})"/>
+   <path d="${line}" fill="none" stroke="${accent}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+   ${nowIndex!=null?`<line x1="${x(nowIndex)}" y1="${padT}" x2="${x(nowIndex)}" y2="${H-padB}" stroke="#fff" stroke-opacity="0.4" stroke-width="1" stroke-dasharray="2 3"/><circle cx="${x(nowIndex)}" cy="${y(data[nowIndex].v)}" r="4.5" fill="#fff" stroke="${accent}" stroke-width="2"/>`:''}
+   ${labels?labels.map(l=>`<text x="${x(l.i)}" y="${H-6}" fill="${labelColor}" font-size="9.5" font-family="var(--font-mono)" text-anchor="middle">${l.t}</text>`).join(''):''}
+  </svg>`;
+}
+const CHANNELS={
+  canyon:{d:'M22 13 L30 54 L34 54 L42 13 Z',rim:13,bot:54,label:'Steep canyon'},
+  poolDrop:{d:'M15 13 L22 50 C24 54 40 54 42 50 L49 13 Z',rim:13,bot:52,label:'Pool-drop'},
+  wide:{d:'M4 26 L16 50 L48 50 L60 26 Z',rim:26,bot:50,label:'Wide valley'},
+  tailwater:{d:'M20 17 L20 52 L44 52 L44 17 Z',rim:17,bot:52,label:'Tailwater'},
+};
+function channelFill(reach,onSky=false,w=64){
+  const ch=CHANNELS[reach.channel]||CHANNELS.poolDrop;
+  const VBW=64,VBH=60;
+  const waterTopY=ch.bot-reach.stage*(ch.bot-ch.rim);
+  const water=onSky?'rgba(255,255,255,0.92)':'var(--flow-500)';
+  const waterDeep=onSky?'rgba(255,255,255,0.55)':'var(--flow-700)';
+  const earth=onSky?'rgba(255,255,255,0.16)':'var(--ink-100)';
+  const bank=onSky?'rgba(255,255,255,0.45)':'var(--ink-300)';
+  const streak=onSky?'rgba(13,59,102,0.45)':'rgba(255,255,255,0.85)';
+  const txt=onSky?'#fff':'var(--fg-1)', sub=onSky?'var(--fg-on-sky-3)':'var(--fg-3)';
+  const cid='ch'+(++_n);
+  const sLen=6+reach.vel*2.6, streakYs=[];
+  for(let y=waterTopY+4;y<ch.bot-2;y+=6) streakYs.push(y);
+  return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0">
+    <div style="display:flex;align-items:baseline;gap:3px"><span style="font-weight:700;font-size:15px;color:${txt};font-variant-numeric:tabular-nums">${reach.cfs.toLocaleString()}</span><span class="mono" style="font-size:9px;color:${sub}">cfs</span></div>
+    <svg width="100%" height="60" viewBox="0 0 ${VBW} ${VBH}" style="max-width:${w}px;display:block" preserveAspectRatio="xMidYMid meet">
+      <defs><clipPath id="${cid}"><path d="${ch.d}"/></clipPath>
+      <linearGradient id="${cid}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${water}"/><stop offset="1" stop-color="${waterDeep}"/></linearGradient></defs>
+      <path d="M0 ${ch.rim-1} H${VBW} V${VBH} H0 Z ${ch.d}" fill="${earth}" fill-rule="evenodd"/>
+      <g clip-path="url(#${cid})">
+        <rect x="0" y="${waterTopY}" width="${VBW}" height="${VBH}" fill="url(#${cid}g)"/>
+        ${streakYs.map((y,i)=>`<line x1="${32-sLen/2}" y1="${y}" x2="${32+sLen/2}" y2="${y}" stroke="${streak}" stroke-width="1.3" stroke-linecap="round" opacity="${0.5+0.4*(i===0?1:0.6)}"/>`).join('')}
+        <line x1="0" y1="${waterTopY}" x2="${VBW}" y2="${waterTopY}" stroke="${onSky?'#fff':'var(--flow-300)'}" stroke-width="1.4" opacity="0.9"/>
+      </g>
+      <path d="${ch.d}" fill="none" stroke="${bank}" stroke-width="1.4" stroke-linejoin="round"/>
+    </svg>
+    <div class="mono" style="font-size:10.5px;color:${txt};font-weight:600;display:flex;align-items:center;gap:3px;white-space:nowrap">${svgIcon('wind',11,sub)}${reach.vel}<span style="color:${sub};font-weight:400"> ft/s</span></div>
+    <div class="mono" style="font-size:9.5px;color:${sub};white-space:nowrap">${reach.grad} ft/mi</div>
+    <div style="font-size:11px;font-weight:700;color:${txt};text-align:center;line-height:1.15">${reach.name}</div>
+    <div style="font-size:9.5px;color:${sub};text-align:center">${ch.label}</div>
+  </div>`;
+}
+function snowDepthBars(data,{height=150,onSky=false}={}){
+  const max=Math.max(...data.map(d=>d.depth))*1.15;
+  const barFill=onSky?'rgba(255,255,255,0.92)':'var(--snow-good)';
+  const mtFill=onSky?'rgba(255,255,255,0.30)':'var(--ink-200)';
+  const txt=onSky?'#fff':'var(--fg-1)', sub=onSky?'var(--fg-on-sky-3)':'var(--fg-3)';
+  return `<div style="display:flex;align-items:flex-end;gap:12px;height:${height}px">`+data.map(d=>{
+    const bh=(d.depth/max)*(height-42);
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px">
+      <div style="font-weight:700;font-size:13px;color:${txt};font-variant-numeric:tabular-nums">${d.depth}<span class="mono" style="font-size:9px;color:${sub}">in</span></div>
+      <div style="width:12px;height:${bh}px;border-radius:6px 6px 0 0;background:${onSky?barFill:'linear-gradient(180deg,var(--snow-deep),var(--snow-good))'}"></div>
+      <svg width="100%" height="26" viewBox="0 0 40 26" preserveAspectRatio="none" style="max-width:44px"><path d="M0 26 L14 6 L20 14 L27 4 L40 26 Z" fill="${mtFill}"/><path d="M14 6 L18 11 L14 13 L11 9 Z M27 4 L31 9 L27 11 L24 8 Z" fill="${onSky?'rgba(255,255,255,0.6)':'#fff'}"/></svg>
+      <div class="mono" style="font-size:10px;color:${sub};text-align:center;line-height:1.1">${d.t}</div></div>`;
+  }).join('')+`</div>`;
+}
+
+/* ---------- render data viz ---------- */
+const GR={goodLow:800,goodTop:1800,highMax:3500};
+document.querySelectorAll('[data-gauge]').forEach(el=>el.innerHTML=flowGauge(+el.dataset.gauge,GR,96));
+document.querySelectorAll('[data-gauge-sm]').forEach(el=>el.innerHTML=flowGauge(+el.dataset.gaugeSm,GR,40));
+document.querySelectorAll('[data-spark]').forEach(el=>{const c=JSON.parse(el.dataset.spark);el.innerHTML=sparkline(c.data,{width:c.w||92,height:c.h||34,color:c.color});});
+
+// hero chart (day discharge with optimal band)
+(function(){
+  const day=[700,760,820,900,1050,1180,1240,1300,1280,1220,1180,1140].map(v=>({v}));
+  const labels=[{i:0,t:'6a'},{i:3,t:'9a'},{i:6,t:'12p'},{i:9,t:'3p'},{i:11,t:'6p'}];
+  document.querySelector('[data-chart="hero"]').innerHTML=flowChart(day,[800,1800],6,labels,{height:150});
+})();
+
+// channel & velocity (real CO reaches at similar CFS)
+(function(){
+  const ch=[
+    {name:'Crystal',channel:'canyon',cfs:1180,stage:0.84,vel:6.4,grad:92},
+    {name:'Gunnison',channel:'poolDrop',cfs:1240,stage:0.6,vel:4.1,grad:38},
+    {name:'Uncompahgre',channel:'wide',cfs:1210,stage:0.32,vel:2.0,grad:14},
+    {name:'Taylor',channel:'tailwater',cfs:1190,stage:0.5,vel:3.0,grad:9},
+  ];
+  document.getElementById('channels-sky').innerHTML=ch.map(r=>channelFill(r,true)).join('');
+})();
+
+// snow depth
+document.getElementById('snowdepth-sky').innerHTML=snowDepthBars(
+  [{depth:62,t:'Schofield'},{depth:48,t:'Butte'},{depth:71,t:'McClure'},{depth:39,t:'Independence'},{depth:55,t:'Slumgullion'}],
+  {onSky:true,height:140});
+
+/* ---------- blend map ---------- */
+(function(){
+  const VB={w:380,h:340};
+  const pct=(v,a)=>(a==='x'?(v/VB.w)*100:(v/VB.h)*100);
+  const mainStem='M70 18 C 92 58, 58 92, 96 130 C 126 166, 108 206, 150 236 C 186 264, 222 272, 300 312';
+  const reach='M96 130 C 126 166, 108 206, 150 236';
+  const tribs=['M26 64 C 58 82, 72 104, 96 130','M196 70 C 168 120, 150 168, 124 192','M330 176 C 270 198, 214 214, 150 236','M58 290 C 96 264, 122 250, 150 236'];
+  const access=[{x:96,y:130,kind:'put-in',label:'Put-in · Almont'},{x:150,y:236,kind:'take-out',label:'Take-out · Gunnison'},{x:300,y:312,kind:'access',label:'River access'}];
+  const gauges=[{x:118,y:200,cfs:1240,range:{goodLow:800,goodTop:1800,highMax:3500}},{x:196,y:250,cfs:2980,range:{goodLow:700,goodTop:2500,highMax:4200}}];
+  const snow=[{x:64,y:40,r:78,pct:112},{x:150,y:26,r:60,pct:98},{x:24,y:96,r:52,pct:121}];
+  const host=document.getElementById('blendmap');
+  let html='';
+  // snow blotches
+  snow.forEach(s=>{html+=`<div style="position:absolute;left:${pct(s.x,'x')}%;top:${pct(s.y,'y')}%;width:${s.r*2}px;height:${s.r*2}px;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;background:radial-gradient(circle,${s.pct>=110?'rgba(58,95,143,0.45)':'rgba(127,182,207,0.4)'} 0%,rgba(127,182,207,0) 70%);filter:blur(4px)"></div>`;});
+  // network svg
+  html+=`<svg viewBox="0 0 ${VB.w} ${VB.h}" width="100%" height="100%" style="position:absolute;inset:0;overflow:visible" preserveAspectRatio="xMidYMid meet">
+    <defs><filter id="reachGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    ${[0,1,2].map(i=>`<path d="M${10+i*8} ${50+i*30} C 90 ${30+i*30}, 150 ${70+i*30}, 230 ${40+i*30} S 360 ${60+i*30}, 380 ${50+i*30}" fill="none" stroke="var(--ink-200)" stroke-width="1" opacity="0.5"/>`).join('')}
+    ${tribs.map(d=>`<path d="${d}" fill="none" stroke="var(--flow-400)" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/>`).join('')}
+    <path d="${mainStem}" fill="none" stroke="var(--flow-500)" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="${reach}" fill="none" stroke="var(--flow-300)" stroke-width="6" stroke-linecap="round" filter="url(#reachGlow)" opacity="0.95"/>
+  </svg>`;
+  // selected-reach chip (left of the reach, clear of the put-in label)
+  html+=`<div style="position:absolute;left:${pct(92,'x')}%;top:${pct(186,'y')}%;transform:translate(-100%,-50%);background:var(--flow-600);color:#fff;border-radius:var(--r-pill);padding:4px 10px;font-size:11px;font-weight:700;box-shadow:var(--shadow-md);white-space:nowrap">Selected reach · Class III</div>`;
+  // gauges
+  gauges.forEach(g=>{const gb=(g.cfs<g.range.goodLow?'low':g.cfs<=g.range.goodTop?'good':g.cfs<=g.range.highMax?'high':'flood');
+    html+=`<div style="position:absolute;left:${pct(g.x,'x')}%;top:${pct(g.y,'y')}%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:6px">
+      ${flowGauge(g.cfs,g.range,34,true)}
+      <div class="mono" style="white-space:nowrap;background:rgba(255,255,255,0.92);font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;box-shadow:var(--shadow-sm);display:flex;align-items:baseline;gap:3px">
+      <span style="color:var(--status-${gb})">${g.cfs.toLocaleString()}</span><span style="font-size:8.5px;color:var(--fg-3);font-weight:500">cfs</span></div></div>`;});
+  // access points
+  access.forEach(a=>{const c=a.kind==='put-in'?'var(--alpine-600)':a.kind==='take-out'?'var(--flow-600)':'var(--ink-500)';
+    const parts=a.label.split(' · '), sub=parts[1]||'';
+    html+=`<div style="position:absolute;left:${pct(a.x,'x')}%;top:${pct(a.y,'y')}%;transform:translate(-50%,-50%)">
+      <div style="width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid ${c};box-shadow:0 1px 5px rgba(11,24,40,.3)"></div>
+      <div style="position:absolute;left:24px;top:-1px;white-space:nowrap"><div style="font-size:11.5px;font-weight:700;color:var(--fg-1)">${parts[0]}</div>${sub?`<div class="mono" style="font-size:9.5px;color:var(--fg-3)">${sub}</div>`:''}</div></div>`;});
+  host.innerHTML=html;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1A2436" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#1A2436" stop-opacity="0.15"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="720" fill="#F7F4EE"/>
+
+  <text x="600" y="60" text-anchor="middle" font-size="28" font-weight="700" fill="#1A2436">Detail concentrates where you are.</text>
+  <text x="600" y="90" text-anchor="middle" font-size="14" fill="#6B7280">Far-out plans rot. Near-term plans pay. Calibrate the spec to the distance.</text>
+
+  <!-- Axis arrow -->
+  <line x1="100" y1="640" x2="1100" y2="640" stroke="#1A2436" stroke-width="1.5"/>
+  <polygon points="1100,640 1090,635 1090,645" fill="#1A2436"/>
+  <text x="100" y="668" font-size="13" fill="#6B7280">now</text>
+  <text x="1080" y="668" font-size="13" fill="#6B7280" text-anchor="end">later →</text>
+  <text x="600" y="668" font-size="12" fill="#6B7280" text-anchor="middle" font-style="italic">distance from the present</text>
+
+  <!-- Gradient strip showing detail decay -->
+  <rect x="100" y="600" width="1000" height="22" fill="url(#fade)" rx="3"/>
+  <text x="100" y="592" font-size="12" fill="#6B7280">detail →</text>
+
+  <!-- Zone 1: Active -->
+  <g>
+    <rect x="120" y="150" width="230" height="420" rx="12" fill="#FFFFFF" stroke="#1A2436" stroke-width="2.5"/>
+    <rect x="120" y="150" width="230" height="42" rx="12" fill="#1A2436"/>
+    <text x="235" y="178" text-anchor="middle" font-size="15" font-weight="700" fill="#F7F4EE" letter-spacing="1">ACTIVE</text>
+
+    <text x="140" y="222" font-size="13" font-weight="700" fill="#1A2436">plan.md</text>
+    <text x="140" y="246" font-size="12" fill="#1A2436">▪ Every file path</text>
+    <text x="140" y="266" font-size="12" fill="#1A2436">▪ Schema additions</text>
+    <text x="140" y="286" font-size="12" fill="#1A2436">▪ Acceptance criteria</text>
+    <text x="140" y="306" font-size="12" fill="#1A2436">▪ Verification steps</text>
+    <text x="140" y="326" font-size="12" fill="#1A2436">▪ Out-of-scope list</text>
+    <text x="140" y="346" font-size="12" fill="#1A2436">▪ References to lessons</text>
+
+    <line x1="140" y1="368" x2="330" y2="368" stroke="#E8DDD0" stroke-width="1"/>
+
+    <text x="140" y="392" font-size="13" font-weight="700" fill="#1A2436">status.md</text>
+    <text x="140" y="412" font-size="12" fill="#1A2436">▪ Dated breadcrumbs</text>
+    <text x="140" y="432" font-size="12" fill="#1A2436">▪ Decisions made</text>
+    <text x="140" y="452" font-size="12" fill="#1A2436">▪ Blockers</text>
+
+    <line x1="140" y1="474" x2="330" y2="474" stroke="#E8DDD0" stroke-width="1"/>
+
+    <text x="140" y="498" font-size="11" font-style="italic" fill="#D2693A">"Copy-paste actionable.</text>
+    <text x="140" y="514" font-size="11" font-style="italic" fill="#D2693A">No vagueness."</text>
+
+    <circle cx="235" cy="555" r="6" fill="#1A2436"/>
+  </g>
+
+  <!-- Zone 2: Next 1-2 -->
+  <g>
+    <rect x="370" y="190" width="230" height="340" rx="12" fill="#FFFFFF" stroke="#2C7DA0" stroke-width="2"/>
+    <rect x="370" y="190" width="230" height="40" rx="12" fill="#2C7DA0"/>
+    <text x="485" y="216" text-anchor="middle" font-size="14" font-weight="700" fill="#F7F4EE" letter-spacing="1">NEXT 1–2</text>
+
+    <text x="388" y="258" font-size="13" font-weight="700" fill="#1A2436">plan.md (lighter)</text>
+    <text x="388" y="282" font-size="12" fill="#1A2436">▪ Goals + acceptance</text>
+    <text x="388" y="302" font-size="12" fill="#1A2436">▪ Known unknowns</text>
+    <text x="388" y="322" font-size="12" fill="#1A2436">▪ Key files (not all)</text>
+    <text x="388" y="342" font-size="12" fill="#1A2436">▪ Dependencies named</text>
+
+    <line x1="388" y1="364" x2="580" y2="364" stroke="#E8DDD0" stroke-width="1"/>
+
+    <text x="388" y="388" font-size="11" font-style="italic" fill="#6B7280">Enough to start when</text>
+    <text x="388" y="404" font-size="11" font-style="italic" fill="#6B7280">the active slice ships.</text>
+
+    <circle cx="485" cy="515" r="5" fill="#2C7DA0"/>
+  </g>
+
+  <!-- Zone 3: Queued -->
+  <g>
+    <rect x="620" y="230" width="230" height="260" rx="12" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <rect x="620" y="230" width="230" height="38" rx="12" fill="#6B7280"/>
+    <text x="735" y="255" text-anchor="middle" font-size="13" font-weight="700" fill="#F7F4EE" letter-spacing="1">QUEUED (4–10)</text>
+
+    <text x="638" y="296" font-size="13" font-weight="700" fill="#1A2436">plan.md or intent.md</text>
+    <text x="638" y="320" font-size="12" fill="#1A2436">▪ Goal + rough sketch</text>
+    <text x="638" y="340" font-size="12" fill="#1A2436">▪ References to vision/</text>
+    <text x="638" y="360" font-size="12" fill="#1A2436">▪ Open questions</text>
+
+    <line x1="638" y1="382" x2="830" y2="382" stroke="#E8DDD0" stroke-width="1"/>
+
+    <text x="638" y="408" font-size="11" font-style="italic" fill="#6B7280">Don't lock implementation —</text>
+    <text x="638" y="424" font-size="11" font-style="italic" fill="#6B7280">it will be wrong by then.</text>
+
+    <circle cx="735" cy="475" r="4" fill="#6B7280" opacity="0.7"/>
+  </g>
+
+  <!-- Zone 4: Far horizon -->
+  <g>
+    <rect x="870" y="280" width="220" height="160" rx="12" fill="#FFFFFF" stroke="#D2693A" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <rect x="870" y="280" width="220" height="36" rx="12" fill="#D2693A" opacity="0.85"/>
+    <text x="980" y="304" text-anchor="middle" font-size="13" font-weight="700" fill="#F7F4EE" letter-spacing="1">FAR HORIZON</text>
+
+    <text x="888" y="342" font-size="13" font-weight="700" fill="#1A2436">intent.md</text>
+    <text x="888" y="365" font-size="12" fill="#1A2436">▪ What success looks like</text>
+    <text x="888" y="385" font-size="12" fill="#1A2436">▪ What it is NOT</text>
+    <text x="888" y="405" font-size="12" fill="#1A2436">▪ A paragraph or two</text>
+
+    <circle cx="980" cy="425" r="3" fill="#D2693A" opacity="0.5"/>
+  </g>
+
+  <!-- Bottom callout -->
+  <text x="600" y="700" text-anchor="middle" font-size="13" fill="#6B7280" font-style="italic">
+    When an intent reaches the front, a fresh session writes its plan — against the codebase as it is, not as it was.
+  </text>
+</svg>

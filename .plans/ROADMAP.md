@@ -2,9 +2,9 @@
 
 Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies and explicit user priority. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
-**Last updated:** 2026-06-03
-**Active slice:** **24-trust-reputation-governance** — flags, community verification, reputation tiers, trust-weighted acceptance (the self-policing layer).
-**Next up:** **25-zero-layers-deep-ia** — flat section page surfacing all qual + quant inline by activity (Plan / Data / Community tabs); domain-switcher scaffold.
+**Last updated:** 2026-06-05
+**Active slice:** **29-design-system-refresh** — adopt the new Apple Weather × AllTrails visual system in the app (Manrope + Inter numerals + Spline mono, flow/alpine/ink/status palettes, sky gradients, frosted modules, FlowGauge). User-prioritized; see `/design`.
+**Next up:** **24-trust-reputation-governance** (paused mid-flight — governance backend already landed; resume from the frontend/UX phase), then **25-zero-layers-deep-ia**.
 
 ---
 
@@ -34,7 +34,13 @@ The slices below reflect this pivot. The v2 strategic spine (20 → 21 → 22 �
 
 | # | Slice | Value | Effort | Goal |
 |---|---|---|---|---|
-| 24 | [trust-reputation-governance](slices/24-trust-reputation-governance/intent.md) | 8 | L | Flags, community verification/voting, contributor reputation tiers, moderation queues, trust-weighted auto-acceptance. The self-policing layer. |
+| 29 | [design-system-refresh](slices/29-design-system-refresh/plan.md) | 8 | M | Adopt the new Apple Weather × AllTrails system in the app: Manrope + Inter numerals + Spline mono, flow/alpine/ink/status OKLCH palettes, sky gradients, frosted modules, dot-less status, FlowGauge. Token-swap-with-aliases + targeted re-skins. |
+
+### Paused
+
+| # | Slice | Value | Effort | Goal |
+|---|---|---|---|---|
+| 24 | [trust-reputation-governance](slices/24-trust-reputation-governance/intent.md) | 8 | L | Flags, community verification/voting, reputation tiers, moderation queues, trust-weighted auto-acceptance. **Paused mid-flight** for user-prioritized 29 — governance backend (Phase A) landed; resume from the frontend/UX phase. |
 
 ---
 

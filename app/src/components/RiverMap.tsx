@@ -18,7 +18,7 @@ const STATUS_HEX: Record<DesignStatus, string> = {
 };
 
 const STATUS_LABEL: Record<string, string> = {
-	ideal: 'Ideal', runnable: 'Runnable', high: 'High',
+	ideal: 'Good', runnable: 'Runnable', high: 'High',
 	low: 'Low', dangerous: 'Dangerous',
 };
 
@@ -112,7 +112,7 @@ export function RiverMap({ style }: RiverMapProps) {
 		const p = feature.properties;
 
 		const tooltipHtml = `
-			<div style="font-family: 'Ubuntu', system-ui, sans-serif; min-width: 200px;">
+			<div style="font-family: var(--font-sans); min-width: 200px;">
 				<div style="font-size: 11px; color: #6b7886; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">
 					${p.river} · ${p.classification}
 				</div>
@@ -120,7 +120,7 @@ export function RiverMap({ style }: RiverMapProps) {
 					${p.section}
 				</div>
 				<div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;">
-					<span style="font-family: 'Fira Code', monospace; font-size: 22px; font-weight: 700; color: ${STATUS_HEX[p.status as DesignStatus] || '#6b7886'};">
+					<span style="font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: ${STATUS_HEX[p.status as DesignStatus] || '#6b7886'};">
 						${p.now !== null ? p.now.toLocaleString() : '—'}
 					</span>
 					<span style="font-size: 13px; color: #6b7886;">cfs</span>

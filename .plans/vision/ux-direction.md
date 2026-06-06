@@ -10,15 +10,40 @@ How Flow-State should feel, and the visual principles that constrain every slice
 4. **Editorial > generated.** LLM-drafted summaries are clearly tagged as drafts until a human approves. Especially for safety-relevant text.
 5. **Mobile parity.** The site is checked before driving to a river. Mobile is not a degraded desktop.
 
-## Visual language (existing tokens — keep)
+## Visual language (current system — Apple Weather × AllTrails)
 
-- **Type**: Ubuntu (UI) + Fira Code (numbers / mono)
-- **Status palette**: 5 scales (low / runnable / ideal / high / dangerous), each with `bg / fg / line / solid` variants — see `tokens.css`
-- **Surface**: layered inks (`--bg-canvas` / `--bg-app` / `--bg-card` / `--bg-raised` / `--bg-sunken`)
-- **Eyebrow pattern**: small all-caps label above headings (`// SUMMARY`, `WATERSHED · MAY 13`)
-- **Inline styles via React.CSSProperties**, no Tailwind / CSS modules
+Superseded the original Ubuntu/Fira-Code light-dashboard look in slice **29-design-system-refresh**
+(2026-06-05). The full system + rationale live in [`/design`](../../design) (styleguide, tokens,
+spec); `app/src/tokens.css` is the applied token set (new tokens + a back-compat alias layer that
+remaps the legacy names, so components keep composing from `var(--token)`).
 
-Don't drift from these. New components should compose from the same tokens.
+- **Type**: **Manrope** (UI / headings / body) + **Inter numerals** (mapped onto digits via the
+  `FlowNum` `unicode-range` trick, so every number is Inter while letters stay Manrope) +
+  **Spline Sans Mono** (instrument/data: station codes, coordinates, timestamps, axis labels).
+  Big condition numbers are **light weight (300)** and large — airy, Apple-Weather feel.
+- **Color**: **flow** blue (primary brand) + **alpine** green (secondary / "go") + cool **ink**
+  neutral. Condition status is a **4-step ramp** (`--status-low` amber → `good` green → `high`
+  orange → `danger` red, each with a soft `-bg` tint) + a **snow** depth ramp. OKLCH-authored.
+- **Sky gradients** (`--sky-*`): condition-reactive immersive canvases — the signature device,
+  *functional not decorative*. Used on **section-detail / immersive** screens, never on the dense home.
+- **Surfaces**: frosted instrument **modules** over gradients (`--module-fill` + `--blur-module`,
+  no shadow) and opaque white cards on light (`--bg-surface`, `--border`, `--shadow-sm/md`).
+- **Radii** friendly/round (20px module, 28px hero, pill); **shadows** soft + cool-tinted; active
+  flow controls get `--glow-flow`.
+- **Status = color + text label — no decorative dots** (the old colored dot is gone). Trend via
+  unicode arrows in the mono face. This still satisfies the accessibility floor (color is never
+  the *sole* carrier; the label carries meaning).
+- **Eyebrow pattern**: small uppercase tracked **module labels** (`RIVERFLOW`, `WATERSHED · …`) —
+  reserve for true instrument labels; sentence case elsewhere.
+- **Inline styles via React.CSSProperties**, no Tailwind / CSS modules — unchanged.
+- **Signature glyph**: `FlowGauge` (`components/FlowGauge.tsx`) — a cut-circle vessel that fills
+  bottom-up and morphs its rim by stress (in → flat → flared). On section-detail heroes.
+
+**Home stays dense; detail goes immersive.** The "dense when scanning / interpretive when
+single-section" anchors above still hold — the new immersive treatment (sky heroes, big light
+numbers) belongs on detail, not the home dashboard.
+
+Don't drift from these. New components compose from the same tokens.
 
 ## New visual primitives (slice 01+)
 

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="arr1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1A2436"/>
+    </marker>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2C7DA0"/>
+    </marker>
+    <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#D2693A"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="720" fill="#F7F4EE"/>
+
+  <!-- Title -->
+  <text x="600" y="70" text-anchor="middle" font-size="32" font-weight="700" fill="#1A2436" letter-spacing="-0.5">The repo is two systems, stacked.</text>
+  <text x="600" y="102" text-anchor="middle" font-size="16" fill="#6B7280">An app, and the plan-for-the-app — sharing one runtime and one git history.</text>
+
+  <!-- Top layer: THE APP -->
+  <rect x="120" y="160" width="960" height="180" rx="14" fill="#FFFFFF" stroke="#1A2436" stroke-width="2"/>
+  <text x="148" y="200" font-size="13" font-weight="700" fill="#2C7DA0" letter-spacing="2">LAYER 1 — THE APP</text>
+  <text x="148" y="234" font-size="22" font-weight="700" fill="#1A2436">What boaters see</text>
+
+  <!-- App components -->
+  <g font-size="13" fill="#1A2436">
+    <rect x="148" y="258" width="170" height="62" rx="8" fill="#EAF2F7" stroke="#2C7DA0" stroke-width="1.5"/>
+    <text x="233" y="284" text-anchor="middle" font-weight="600">Harper</text>
+    <text x="233" y="304" text-anchor="middle" font-size="11" fill="#6B7280">db · REST · static host</text>
+
+    <rect x="340" y="258" width="170" height="62" rx="8" fill="#EAF2F7" stroke="#2C7DA0" stroke-width="1.5"/>
+    <text x="425" y="284" text-anchor="middle" font-weight="600">React 19 + Vite</text>
+    <text x="425" y="304" text-anchor="middle" font-size="11" fill="#6B7280">dashboard · maps · charts</text>
+
+    <rect x="532" y="258" width="200" height="62" rx="8" fill="#EAF2F7" stroke="#2C7DA0" stroke-width="1.5"/>
+    <text x="632" y="284" text-anchor="middle" font-weight="600">Ingestion worker</text>
+    <text x="632" y="304" text-anchor="middle" font-size="11" fill="#6B7280">USGS · CDSS · SNOTEL · BOR · NOAA</text>
+
+    <rect x="754" y="258" width="186" height="62" rx="8" fill="#EAF2F7" stroke="#2C7DA0" stroke-width="1.5"/>
+    <text x="847" y="284" text-anchor="middle" font-weight="600">FlowBands</text>
+    <text x="847" y="304" text-anchor="middle" font-size="11" fill="#6B7280">craft × skill interpretation</text>
+
+    <rect x="962" y="258" width="100" height="62" rx="8" fill="#FBEDE3" stroke="#D2693A" stroke-width="1.5"/>
+    <text x="1012" y="282" text-anchor="middle" font-weight="600">Forecasts</text>
+    <text x="1012" y="304" text-anchor="middle" font-size="11" fill="#6B7280">+ accuracy</text>
+  </g>
+
+  <!-- Middle "shared" channel — centered between the directional arrows -->
+  <g>
+    <line x1="525" y1="390" x2="568" y2="390" stroke="#6B7280" stroke-width="1" stroke-dasharray="3,4"/>
+    <line x1="632" y1="390" x2="675" y2="390" stroke="#6B7280" stroke-width="1" stroke-dasharray="3,4"/>
+    <text x="600" y="394" text-anchor="middle" font-size="11" fill="#6B7280" font-style="italic">one git history · one runtime</text>
+  </g>
+
+  <!-- Bidirectional arrows: learning -->
+  <path d="M 460 350 C 460 388, 460 388, 460 430" fill="none" stroke="#D2693A" stroke-width="2.2" marker-end="url(#arr3)"/>
+  <text x="370" y="395" font-size="12" fill="#D2693A" font-weight="600">↑ lessons</text>
+  <text x="370" y="411" font-size="10" fill="#6B7280">(what we learned)</text>
+
+  <path d="M 740 430 C 740 388, 740 388, 740 350" fill="none" stroke="#2C7DA0" stroke-width="2.2" marker-end="url(#arr2)"/>
+  <text x="755" y="395" font-size="12" fill="#2C7DA0" font-weight="600">↓ direction</text>
+  <text x="755" y="411" font-size="10" fill="#6B7280">(what to build next)</text>
+
+  <!-- Bottom layer: THE PLAN -->
+  <rect x="120" y="430" width="960" height="220" rx="14" fill="#FFFFFF" stroke="#1A2436" stroke-width="2"/>
+  <text x="148" y="470" font-size="13" font-weight="700" fill="#D2693A" letter-spacing="2">LAYER 2 — THE PLAN</text>
+  <text x="148" y="504" font-size="22" font-weight="700" fill="#1A2436">What the next session sees</text>
+
+  <g font-size="13" fill="#1A2436">
+    <rect x="148" y="528" width="170" height="86" rx="8" fill="#F5EFE6" stroke="#D2693A" stroke-width="1.5"/>
+    <text x="233" y="552" text-anchor="middle" font-weight="600">vision/</text>
+    <text x="233" y="572" text-anchor="middle" font-size="11" fill="#6B7280">evergreen "why"</text>
+    <text x="233" y="589" text-anchor="middle" font-size="11" fill="#6B7280">product · data ·</text>
+    <text x="233" y="605" text-anchor="middle" font-size="11" fill="#6B7280">forecasting · UX</text>
+
+    <rect x="340" y="528" width="170" height="86" rx="8" fill="#F5EFE6" stroke="#D2693A" stroke-width="1.5"/>
+    <text x="425" y="552" text-anchor="middle" font-weight="600">slices/</text>
+    <text x="425" y="572" text-anchor="middle" font-size="11" fill="#6B7280">the queue</text>
+    <text x="425" y="589" text-anchor="middle" font-size="11" fill="#6B7280">one is active</text>
+    <text x="425" y="605" text-anchor="middle" font-size="11" fill="#6B7280">rest ranked by value</text>
+
+    <rect x="532" y="528" width="200" height="86" rx="8" fill="#F5EFE6" stroke="#D2693A" stroke-width="1.5"/>
+    <text x="632" y="552" text-anchor="middle" font-weight="600">lessons/</text>
+    <text x="632" y="572" text-anchor="middle" font-size="11" fill="#6B7280">mistakes, structured</text>
+    <text x="632" y="589" text-anchor="middle" font-size="11" fill="#6B7280">wrong-model → right-model</text>
+    <text x="632" y="605" text-anchor="middle" font-size="11" fill="#6B7280">→ recognition pattern</text>
+
+    <rect x="754" y="528" width="186" height="86" rx="8" fill="#F5EFE6" stroke="#D2693A" stroke-width="1.5"/>
+    <text x="847" y="552" text-anchor="middle" font-weight="600">completed/</text>
+    <text x="847" y="572" text-anchor="middle" font-size="11" fill="#6B7280">shipped slices</text>
+    <text x="847" y="589" text-anchor="middle" font-size="11" fill="#6B7280">kept for context,</text>
+    <text x="847" y="605" text-anchor="middle" font-size="11" fill="#6B7280">never deleted</text>
+
+    <rect x="962" y="528" width="100" height="86" rx="8" fill="#FBEDE3" stroke="#D2693A" stroke-width="1.5"/>
+    <text x="1012" y="552" text-anchor="middle" font-weight="600">ROADMAP</text>
+    <text x="1012" y="572" text-anchor="middle" font-size="11" fill="#6B7280">queue at a</text>
+    <text x="1012" y="589" text-anchor="middle" font-size="11" fill="#6B7280">glance</text>
+  </g>
+
+  <!-- Footer caption -->
+  <text x="600" y="685" text-anchor="middle" font-size="13" fill="#6B7280" font-style="italic">The app evolves; the plan evolves; the lessons travel both ways.</text>
+</svg>

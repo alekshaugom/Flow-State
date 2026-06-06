@@ -148,7 +148,7 @@ test('bandToDesignStatus maps band names to legacy status enum', () => {
 
 test('bandToLabel produces friendly UI labels', () => {
 	assert.equal(bandToLabel('low-runnable'), 'Runnable (technical)');
-	assert.equal(bandToLabel('ideal'), 'Ideal');
+	assert.equal(bandToLabel('ideal'), 'Good');
 	assert.equal(bandToLabel('expert-only'), 'Expert Only');
 });
 

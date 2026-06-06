@@ -91,7 +91,7 @@ export function MobileDashboard() {
 	const tiles: Array<{ key: DashboardFilter; label: string; value: number; valueColor?: string; trendIcon?: 'up' | 'down' }> = [
 		{ key: 'all',     label: 'All',     value: totalCount },
 		{ key: 'running', label: 'Running', value: runningCount },
-		{ key: 'ideal',   label: 'Ideal',   value: idealCount,  valueColor: 'var(--ideal-line)' },
+		{ key: 'ideal',   label: 'Good',    value: idealCount,  valueColor: 'var(--ideal-line)' },
 		{ key: 'rising',  label: 'Rising',  value: risingCount, valueColor: '#ffd58a', trendIcon: 'up' },
 		{ key: 'low',     label: 'Low',     value: lowCount,    valueColor: '#ffd58a' },
 	];

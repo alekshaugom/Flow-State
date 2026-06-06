@@ -1,0 +1,124 @@
+/* Flow State — design tokens (SOURCE OF TRUTH MIRROR)
+   --------------------------------------------------------------------------
+   This file mirrors app/src/tokens.css. It is the machine-readable token set
+   the app actually ships. Keep it in sync when the app tokens change, or
+   regenerate it. Hand this file (plus DESIGN-SPEC.md and index.html) to a
+   design assistant when you want the system reworked.
+
+   Current direction: light-primary mode, river blues, earthy semantic colors,
+   Ubuntu (sans) + Fira Code (mono).
+   -------------------------------------------------------------------------- */
+
+/* ---------- Fonts (app ships local woff2; the showcase falls back to Google Fonts) ---------- */
+@font-face { font-family: 'Ubuntu'; font-weight: 300; src: url('/fonts/Ubuntu-Light.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Ubuntu'; font-weight: 400; src: url('/fonts/Ubuntu-Regular.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Ubuntu'; font-weight: 500; src: url('/fonts/Ubuntu-Medium.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Ubuntu'; font-weight: 700; src: url('/fonts/Ubuntu-Bold.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Fira Code'; font-weight: 400; src: url('/fonts/FiraCode-Regular.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Fira Code'; font-weight: 500; src: url('/fonts/FiraCode-Medium.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Fira Code'; font-weight: 700; src: url('/fonts/FiraCode-Bold.woff2') format('woff2'); font-display: swap; }
+
+:root {
+  /* ---------- Surfaces ---------- */
+  --bg-canvas:    #e9eef3;
+  --bg-app:       #f4f6f8;
+  --bg-card:      #ffffff;
+  --bg-raised:    #fbfcfd;
+  --bg-sunken:    #eef2f6;
+  --bg-tint:      #f7faff;
+
+  /* ---------- Ink ---------- */
+  --ink-0:        #0d1620;
+  --ink-1:        #1b2733;
+  --ink-2:        #45525f;
+  --ink-3:        #6b7886;
+  --ink-4:        #93a0ad;
+  --ink-5:        #c4ccd5;
+
+  /* ---------- Borders ---------- */
+  --rule:         rgba(15, 31, 51, 0.08);
+  --rule-strong:  rgba(15, 31, 51, 0.14);
+
+  /* ---------- River blue scale ---------- */
+  --river-50:     #eef5fb;
+  --river-100:    #d7e7f4;
+  --river-200:    #aecde8;
+  --river-300:    #7eaed7;
+  --river-400:    #4a8fc2;
+  --river-500:    #1f6ea8;
+  --river-600:    #155789;
+  --river-700:    #0f4269;
+  --river-800:    #0a2e4c;
+  --river-900:    #06223a;
+
+  /* ---------- Status palette ---------- */
+  --low-bg:       #f6efde;
+  --low-fg:       #8a6a1f;
+  --low-solid:    #c9982b;
+  --low-line:     #d4a73d;
+
+  --runnable-bg: #e6efe0;
+  --runnable-fg: #4a6932;
+  --runnable-solid: #6b8f48;
+  --runnable-line:  #7ea157;
+
+  --ideal-bg:    #d8f4ea;
+  --ideal-fg:    #086148;
+  --ideal-solid: #16a37a;
+  --ideal-line:  #2dd4a0;
+
+  --high-bg:     #d9e6f6;
+  --high-fg:     #0f3e6d;
+  --high-solid:  #2563c7;
+  --high-line:   #3a7fda;
+
+  --danger-bg:   #f6dedb;
+  --danger-fg:   #7a1f15;
+  --danger-solid:#b0382a;
+  --danger-line: #c75547;
+
+  /* ---------- Trend arrows ---------- */
+  --trend-up:    var(--ideal-solid);
+  --trend-down:  #c87528;
+  --trend-stable: var(--ink-3);
+
+  /* ---------- Harper accent ---------- */
+  --harper-teal: #2dd4a0;
+
+  /* ---------- Typography ---------- */
+  --font-sans: 'Ubuntu', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-display: 56px;
+  --fs-h1:      32px;
+  --fs-h2:      24px;
+  --fs-h3:      20px;
+  --fs-h4:      17px;
+  --fs-body:    15px;
+  --fs-body-sm: 13px;
+  --fs-caption: 12px;
+  --fs-micro:   11px;
+  --fs-cfs-card: 38px;
+  --fs-cfs-detail: 84px;
+
+  --ls-tight:    -0.02em;
+  --ls-display:  -0.025em;
+  --ls-eyebrow:  0.14em;
+
+  /* ---------- Spacing ---------- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 40px;
+  --sp-9: 48px; --sp-10: 64px;
+
+  /* ---------- Radii ---------- */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-2xl: 28px; --r-pill: 999px;
+
+  /* ---------- Shadows ---------- */
+  --shadow-card:   0 1px 0 rgba(15,31,51,0.04), 0 6px 18px rgba(15,31,51,0.06);
+  --shadow-raise:  0 2px 0 rgba(15,31,51,0.04), 0 14px 30px rgba(15,31,51,0.10);
+  --shadow-press:  0 1px 0 rgba(15,31,51,0.04), 0 2px 6px rgba(15,31,51,0.06);
+
+  /* ---------- Motion ---------- */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 120ms; --dur-med: 220ms; --dur-slow: 380ms;
+}

@@ -1,129 +1,235 @@
-/* Flow State — design tokens
-   Light primary mode, river blues, earthy semantic colors, Ubuntu + Fira Code */
+/* Flow State — design tokens (NEW SYSTEM, applied to the app)
+   ------------------------------------------------------------------
+   Apple Weather × AllTrails direction. Manrope (UI) + Inter numerals
+   (FlowNum, mapped onto digits via unicode-range) + Spline Sans Mono
+   (instrument/data). OKLCH palettes: flow / alpine / ink / status / snow.
+   Condition-reactive sky gradients, frosted modules, friendly radii.
 
-/* ---------- Fonts ---------- */
-@font-face { font-family: 'Ubuntu'; font-weight: 300; src: url('/fonts/Ubuntu-Light.woff2') format('woff2'); font-display: swap; }
-@font-face { font-family: 'Ubuntu'; font-weight: 400; src: url('/fonts/Ubuntu-Regular.woff2') format('woff2'); font-display: swap; }
-@font-face { font-family: 'Ubuntu'; font-weight: 500; src: url('/fonts/Ubuntu-Medium.woff2') format('woff2'); font-display: swap; }
-@font-face { font-family: 'Ubuntu'; font-weight: 700; src: url('/fonts/Ubuntu-Bold.woff2') format('woff2'); font-display: swap; }
-@font-face { font-family: 'Fira Code'; font-weight: 400; src: url('/fonts/FiraCode-Regular.woff2') format('woff2'); font-display: swap; }
-@font-face { font-family: 'Fira Code'; font-weight: 500; src: url('/fonts/FiraCode-Medium.woff2') format('woff2'); font-display: swap; }
-@font-face { font-family: 'Fira Code'; font-weight: 700; src: url('/fonts/FiraCode-Bold.woff2') format('woff2'); font-display: swap; }
+   The block at the bottom (“BACK-COMPAT ALIASES”) remaps every legacy
+   token name the components still reference (--river-*, --ink-0..5,
+   --rule, status quads, --r-*, --shadow-*, --fs-*, …) onto the new
+   values, so the whole app reskins without per-component edits.
+   Full system + rationale: /design/. ------------------------------- */
+
+/* instrument/data mono (CDN substitute) — @import must lead */
+@import url("https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600&display=swap");
+
+/* Manrope — self-hosted variable font */
+@font-face {
+  font-family: "Manrope";
+  src: url("/fonts/Manrope-VariableFont_wght.ttf") format("truetype-variations");
+  font-weight: 200 800; font-style: normal; font-display: swap;
+}
+
+/* NUMERALS: Inter mapped onto digits + number punctuation only, via unicode-range.
+   "FlowNum" leads the sans/mono stacks, so every number renders Inter while
+   all letters fall through to Manrope / Spline Sans Mono. */
+@font-face { font-family:"FlowNum"; font-weight:200; font-style:normal; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-200-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:300; font-style:normal; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-300-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:400; font-style:normal; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:500; font-style:normal; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-500-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:600; font-style:normal; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-600-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:700; font-style:normal; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-700-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
+@font-face { font-family:"FlowNum"; font-weight:800; font-style:normal; font-display:swap; src:url("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-800-normal.woff2") format("woff2"); unicode-range:U+0030-0039,U+002C,U+002E,U+0025,U+002B,U+002D,U+2212,U+00B0,U+003A,U+002F; }
 
 :root {
-  /* ---------- Surfaces ---------- */
-  --bg-canvas:    #e9eef3;
-  --bg-app:       #f4f6f8;
-  --bg-card:      #ffffff;
-  --bg-raised:    #fbfcfd;
-  --bg-sunken:    #eef2f6;
-  --bg-tint:      #f7faff;
+  /* ============================================================
+     FONT FAMILIES  (FlowNum = Inter numerals, applied to digits only)
+     ============================================================ */
+  --font-sans: "FlowNum", "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "FlowNum", "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-num:  "FlowNum", "Inter", sans-serif;
 
-  /* ---------- Ink ---------- */
-  --ink-0:        #0d1620;
-  --ink-1:        #1b2733;
-  --ink-2:        #45525f;
-  --ink-3:        #6b7886;
-  --ink-4:        #93a0ad;
-  --ink-5:        #c4ccd5;
+  /* ---------- INK / NEUTRAL (cool river-stone) ---------- */
+  --ink-950: oklch(0.18 0.030 250);
+  --ink-900: oklch(0.23 0.034 250);
+  --ink-800: oklch(0.30 0.034 248);
+  --ink-700: oklch(0.40 0.032 247);
+  --ink-600: oklch(0.50 0.028 246);
+  --ink-500: oklch(0.60 0.024 245);
+  --ink-400: oklch(0.70 0.020 244);
+  --ink-300: oklch(0.80 0.016 242);
+  --ink-200: oklch(0.88 0.012 240);
+  --ink-100: oklch(0.94 0.008 238);
+  --ink-50:  oklch(0.975 0.006 236);
+  --white:   #ffffff;
 
-  /* ---------- Borders ---------- */
-  --rule:         rgba(15, 31, 51, 0.08);
-  --rule-strong:  rgba(15, 31, 51, 0.14);
+  /* ---------- FLOW (primary brand: river / glacier blue) ---------- */
+  --flow-900: oklch(0.32 0.10 245);
+  --flow-700: oklch(0.48 0.15 243);
+  --flow-600: oklch(0.56 0.16 242);
+  --flow-500: oklch(0.64 0.16 240);
+  --flow-400: oklch(0.74 0.14 230);
+  --flow-300: oklch(0.83 0.10 220);
+  --flow-200: oklch(0.91 0.055 218);
+  --flow-100: oklch(0.96 0.025 216);
 
-  /* ---------- River blue scale ---------- */
-  --river-50:     #eef5fb;
-  --river-100:    #d7e7f4;
-  --river-200:    #aecde8;
-  --river-300:    #7eaed7;
-  --river-400:    #4a8fc2;
-  --river-500:    #1f6ea8;
-  --river-600:    #155789;
-  --river-700:    #0f4269;
-  --river-800:    #0a2e4c;
-  --river-900:    #06223a;
+  /* ---------- ALPINE (secondary: trail green / "go") ---------- */
+  --alpine-700: oklch(0.50 0.13 150);
+  --alpine-600: oklch(0.58 0.15 150);
+  --alpine-500: oklch(0.66 0.16 148);
+  --alpine-300: oklch(0.84 0.11 146);
+  --alpine-100: oklch(0.95 0.04 146);
 
-  /* ---------- Status palette ---------- */
-  --low-bg:       #f6efde;
-  --low-fg:       #8a6a1f;
-  --low-solid:    #c9982b;
-  --low-line:     #d4a73d;
+  /* ---------- CONDITION STATUS (4-step ramp) ---------- */
+  /* Flow-status ramp: yellow (low + runnable) → green (good) → red (high) → deep red (flood). */
+  --status-low:    oklch(0.80 0.15 88);   /* yellow */
+  --status-good:   oklch(0.64 0.17 150);  /* green */
+  --status-high:   oklch(0.59 0.22 28);   /* red */
+  --status-danger: oklch(0.46 0.21 25);   /* deep red (flood) */
+  --status-info:   var(--flow-500);
+  --status-low-bg:    oklch(0.96 0.05 90);
+  --status-good-bg:   oklch(0.95 0.05 150);
+  --status-high-bg:   oklch(0.95 0.055 30);
+  --status-danger-bg: oklch(0.94 0.06 25);
 
-  --runnable-bg: #e6efe0;
-  --runnable-fg: #4a6932;
-  --runnable-solid: #6b8f48;
-  --runnable-line:  #7ea157;
+  /* ---------- SNOWPACK depth ramp ---------- */
+  --snow-deep: oklch(0.45 0.13 250);
+  --snow-good: oklch(0.62 0.13 235);
+  --snow-thin: oklch(0.80 0.08 220);
+  --snow-bare: oklch(0.88 0.03 70);
 
-  --ideal-bg:    #d8f4ea;
-  --ideal-fg:    #086148;
-  --ideal-solid: #16a37a;
-  --ideal-line:  #2dd4a0;
+  /* ---------- SEMANTIC SURFACES & TEXT (light default) ---------- */
+  --bg-surface:    var(--white);
+  --bg-subtle:     var(--ink-100);
+  --border:        oklch(0.90 0.012 240);
+  --border-strong: var(--ink-200);
+  --fg-1: var(--ink-950);
+  --fg-2: var(--ink-700);
+  --fg-3: var(--ink-500);
+  --fg-4: var(--ink-400);
+  --fg-brand: var(--flow-600);
+  --fg-on-brand: var(--white);
+  --fg-on-sky-1: rgba(255,255,255,0.98);
+  --fg-on-sky-2: rgba(255,255,255,0.74);
+  --fg-on-sky-3: rgba(255,255,255,0.55);
+  --module-fill:   rgba(255,255,255,0.16);
+  --module-stroke: rgba(255,255,255,0.22);
+  --module-fill-dark: rgba(8,18,31,0.28);
 
-  --high-bg:     #d9e6f6;
-  --high-fg:     #0f3e6d;
-  --high-solid:  #2563c7;
-  --high-line:   #3a7fda;
+  /* ---------- SKY GRADIENTS (condition-reactive canvases) ---------- */
+  --sky-dawn:   linear-gradient(180deg, #3a2d6e 0%, #6f5aa8 38%, #d98b6b 82%, #f0b482 100%);
+  --sky-day:    linear-gradient(180deg, #2a6fd6 0%, #4e93e6 46%, #8fc1f2 100%);
+  --sky-cloud:  linear-gradient(180deg, #4a5e76 0%, #6b7e93 52%, #97a7b8 100%);
+  --sky-dusk:   linear-gradient(180deg, #2b2350 0%, #6b4a82 44%, #c8633f 86%, #e89150 100%);
+  --sky-night:  linear-gradient(180deg, #060f1f 0%, #102036 52%, #1c3357 100%);
+  --sky-storm:  linear-gradient(180deg, #1d2a38 0%, #2f4154 54%, #46596d 100%);
+  --sky-river:  linear-gradient(165deg, #0d3b66 0%, #1a6fa8 50%, #3aa0c9 100%);
+  --sky-alpine: linear-gradient(180deg, #11335a 0%, #2b6fa8 45%, #7fb6cf 100%);
+  --scrim-top:    linear-gradient(180deg, rgba(0,0,0,0.32), rgba(0,0,0,0));
+  --scrim-bottom: linear-gradient(0deg, rgba(0,0,0,0.42), rgba(0,0,0,0));
 
-  --danger-bg:   #f6dedb;
-  --danger-fg:   #7a1f15;
-  --danger-solid:#b0382a;
-  --danger-line: #c75547;
+  /* ---------- RADII (friendly / round) ---------- */
+  --r-xs: 6px; --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-2xl: 36px; --r-pill: 999px;
 
-  /* ---------- Trend arrows ---------- */
-  --trend-up:    var(--ideal-solid);
-  --trend-down:  #c87528;
-  --trend-stable: var(--ink-3);
+  /* ---------- SHADOWS / ELEVATION (soft, cool-tinted) ---------- */
+  --shadow-sm:  0 1px 2px rgba(11,24,40,0.06), 0 1px 3px rgba(11,24,40,0.08);
+  --shadow-md:  0 2px 6px rgba(11,24,40,0.07), 0 8px 20px rgba(11,24,40,0.10);
+  --shadow-lg:  0 8px 24px rgba(11,24,40,0.12), 0 18px 48px rgba(11,24,40,0.16);
+  --shadow-xl:  0 18px 60px rgba(11,24,40,0.22);
+  --glow-flow:  0 0 0 1px rgba(56,189,248,0.4), 0 6px 24px rgba(46,140,220,0.35);
+  --blur-module: blur(20px) saturate(160%);
 
-  /* ---------- Harper accent ---------- */
-  --harper-teal: #2dd4a0;
+  /* ---------- SPACING (4px base) ---------- */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px; --s-20: 80px;
 
-  /* ---------- Typography ---------- */
-  --font-sans: 'Ubuntu', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* ---------- TYPE SCALE (mobile-first; ramps on desktop) ---------- */
+  --t-hero:     clamp(72px, 18vw, 112px);
+  --t-display:  clamp(40px, 9vw, 56px);
+  --t-h1:       clamp(30px, 6vw, 36px);
+  --t-h2: 26px; --t-h3: 21px; --t-title: 17px; --t-body: 16px;
+  --t-subhead: 14px; --t-caption: 13px; --t-footnote: 12px; --t-label: 11px;
+  --lh-tight: 1.04; --lh-snug: 1.2; --lh-base: 1.5;
+  --tracking-tight: -0.03em; --tracking-snug: -0.015em; --tracking-label: 0.14em;
 
-  --fs-display: 56px;
-  --fs-h1:      32px;
-  --fs-h2:      24px;
-  --fs-h3:      20px;
-  --fs-h4:      17px;
-  --fs-body:    15px;
-  --fs-body-sm: 13px;
-  --fs-caption: 12px;
-  --fs-micro:   11px;
-  --fs-cfs-card: 38px;
-  --fs-cfs-detail: 84px;
+  /* ---------- MOTION ---------- */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast: 160ms; --dur-med: 240ms; --dur-slow: 320ms;
 
-  --ls-tight:    -0.02em;
-  --ls-display:  -0.025em;
-  --ls-eyebrow:  0.14em;
+  /* ============================================================
+     BACK-COMPAT ALIASES — legacy token names → new values.
+     Everything below maps an old name the components still use onto
+     the new system, so nothing breaks and the whole app reskins.
+     ============================================================ */
 
-  /* ---------- Spacing ---------- */
-  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
-  --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 40px;
-  --sp-9: 48px; --sp-10: 64px;
+  /* surfaces */
+  --bg-app:     var(--ink-50);
+  --bg-base:    var(--ink-50);
+  --bg-canvas:  var(--ink-100);
+  --bg-card:    var(--white);
+  --bg-raised:  var(--ink-50);
+  --bg-sunken:  var(--ink-100);
+  --bg-tint:    var(--flow-100);
 
-  /* ---------- Radii ---------- */
-  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-2xl: 28px; --r-pill: 999px;
+  /* ink (legacy 0..5 = dark → light) */
+  --ink-0: var(--ink-950);
+  --ink-1: var(--ink-900);
+  --ink-2: var(--ink-700);
+  --ink-3: var(--ink-500);
+  --ink-4: var(--ink-400);
+  --ink-5: var(--ink-300);
 
-  /* ---------- Shadows ---------- */
-  --shadow-card:   0 1px 0 rgba(15,31,51,0.04), 0 6px 18px rgba(15,31,51,0.06);
-  --shadow-raise:  0 2px 0 rgba(15,31,51,0.04), 0 14px 30px rgba(15,31,51,0.10);
-  --shadow-press:  0 1px 0 rgba(15,31,51,0.04), 0 2px 6px rgba(15,31,51,0.06);
+  /* borders */
+  --rule:        var(--border);
+  --rule-strong: var(--border-strong);
 
-  /* ---------- Motion ---------- */
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --dur-fast: 120ms; --dur-med: 220ms; --dur-slow: 380ms;
+  /* legacy river blue → flow */
+  --river-50:  var(--flow-100);
+  --river-100: var(--flow-200);
+  --river-200: var(--flow-200);
+  --river-300: var(--flow-300);
+  --river-400: var(--flow-400);
+  --river-500: var(--flow-500);
+  --river-600: var(--flow-600);
+  --river-700: var(--flow-700);
+  --river-800: var(--flow-900);
+  --river-900: var(--flow-900);
+
+  /* legacy status quads (bg / fg / line / solid) → new ramp */
+  --low-bg: var(--status-low-bg);   --low-fg: var(--status-low);   --low-line: var(--status-low);   --low-solid: var(--status-low);
+  /* runnable + runnable-technical now read YELLOW (caution), not green */
+  --runnable-bg: var(--status-low-bg); --runnable-fg: var(--status-low); --runnable-line: var(--status-low); --runnable-solid: var(--status-low);
+  --ideal-bg: var(--status-good-bg); --ideal-fg: var(--status-good); --ideal-line: var(--status-good); --ideal-solid: var(--status-good);
+  --high-bg: var(--status-high-bg); --high-fg: var(--status-high); --high-line: var(--status-high); --high-solid: var(--status-high);
+  --danger-bg: var(--status-danger-bg); --danger-fg: var(--status-danger); --danger-line: var(--status-danger); --danger-solid: var(--status-danger);
+
+  /* legacy named colors → semantic ramp */
+  --accent-50: var(--flow-100); --accent-500: var(--flow-500); --accent-700: var(--flow-700);
+  --green-50: var(--status-good-bg); --green-200: var(--alpine-100); --green-500: var(--alpine-500); --green-600: var(--alpine-600); --green-700: var(--alpine-700);
+  --amber-50: var(--status-low-bg); --amber-200: var(--status-low-bg); --amber-400: var(--status-low); --amber-600: var(--status-low); --amber-700: var(--status-low);
+  --orange-50: var(--status-high-bg); --orange-700: var(--status-high);
+  --red-50: var(--status-danger-bg); --red-600: var(--status-danger); --red-700: var(--status-danger);
+  --harper-teal: var(--alpine-500);
+
+  /* trend */
+  --trend-up: var(--status-good); --trend-down: oklch(0.68 0.14 64); --trend-stable: var(--fg-3);
+
+  /* legacy shadows */
+  --shadow-card:  var(--shadow-sm);
+  --shadow-raise: var(--shadow-lg);
+  --shadow-press: var(--shadow-sm);
+
+  /* legacy type sizes (kept) */
+  --fs-display: 56px; --fs-h1: 32px; --fs-h2: 24px; --fs-h3: 20px; --fs-h4: 17px;
+  --fs-body: 16px; --fs-body-sm: 14px; --fs-caption: 13px; --fs-micro: 11px;
+  --fs-cfs-card: 40px; --fs-cfs-detail: 92px;
+  --ls-tight: var(--tracking-snug); --ls-display: var(--tracking-tight); --ls-eyebrow: var(--tracking-label);
+
+  /* legacy spacing names */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+  --sp-6: 24px; --sp-7: 32px; --sp-8: 40px; --sp-9: 48px; --sp-10: 64px;
 }
 
+/* legacy helper classes (kept; restyled to the new system) */
 .eyebrow {
-  font-family: var(--font-mono);
-  font-size: var(--fs-caption);
-  letter-spacing: var(--ls-eyebrow);
+  font-family: var(--font-sans);
+  font-size: var(--t-label);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--river-600);
-  font-weight: 500;
+  color: var(--fg-brand);
+  font-weight: 700;
 }
-
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;

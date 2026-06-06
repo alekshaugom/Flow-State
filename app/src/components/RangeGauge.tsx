@@ -10,7 +10,7 @@ export function RangeGauge({ currentFlow, thresholds: t }: RangeGaugeProps) {
 	const zones = [
 		{ v: t.runnable, c: 'var(--low-solid)', label: 'Low' },
 		{ v: t.idealLo,  c: 'var(--runnable-solid)', label: 'Run' },
-		{ v: t.idealHi,  c: 'var(--ideal-solid)', label: 'Ideal' },
+		{ v: t.idealHi,  c: 'var(--ideal-solid)', label: 'Good' },
 		{ v: t.high,     c: 'var(--high-solid)', label: 'High' },
 		{ v: totalMax,   c: 'var(--danger-solid)', label: 'Danger' },
 	];

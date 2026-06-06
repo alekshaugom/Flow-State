@@ -14,7 +14,7 @@ export function BigCFS({ cfs, size = 'card', color }: BigCFSProps) {
 			color: color || 'var(--ink-0)',
 			lineHeight: 1,
 		}}>
-			<span style={{ fontSize: fs, fontWeight: 500, letterSpacing: '-0.04em' }}>
+			<span style={{ fontSize: fs, fontWeight: 300, letterSpacing: '-0.03em' }}>
 				{cfs !== null ? cfs.toLocaleString() : '—'}
 			</span>
 			<span style={{

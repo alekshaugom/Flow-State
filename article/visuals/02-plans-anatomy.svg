@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+  <rect width="1200" height="820" fill="#F7F4EE"/>
+
+  <!-- Title -->
+  <text x="600" y="60" text-anchor="middle" font-size="28" font-weight="700" fill="#1A2436">Anatomy of /.plans/</text>
+  <text x="600" y="90" text-anchor="middle" font-size="14" fill="#6B7280">Predictable paths, machine-readable metadata, depth that grades by distance.</text>
+
+  <!-- Tree on the left -->
+  <g font-family="'JetBrains Mono','SF Mono','Menlo',monospace" font-size="15" fill="#1A2436">
+    <text x="100" y="160" font-weight="700">.plans/</text>
+
+    <text x="120" y="200">├── README.md</text>
+    <text x="120" y="228">├── ROADMAP.md</text>
+    <text x="120" y="256">├── CONTRIBUTING-AI.md</text>
+
+    <text x="120" y="298">├── vision/</text>
+    <text x="160" y="322" fill="#6B7280" font-size="13">│   ├── product-vision.md</text>
+    <text x="160" y="344" fill="#6B7280" font-size="13">│   ├── data-model-philosophy.md</text>
+    <text x="160" y="366" fill="#6B7280" font-size="13">│   ├── forecasting-philosophy.md</text>
+    <text x="160" y="388" fill="#6B7280" font-size="13">│   ├── self-improving-system.md</text>
+    <text x="160" y="410" fill="#6B7280" font-size="13">│   └── ux-direction.md</text>
+
+    <text x="120" y="446">├── slices/</text>
+    <text x="160" y="470" fill="#6B7280" font-size="13">│   ├── 02-watershed-corridor-ia/</text>
+    <text x="200" y="492" fill="#6B7280" font-size="12">│   │   ├── plan.md         </text>
+    <text x="448" y="492" fill="#D2693A" font-size="12" font-style="italic">status: active</text>
+    <text x="200" y="512" fill="#6B7280" font-size="12">│   │   ├── status.md       </text>
+    <text x="200" y="532" fill="#6B7280" font-size="12">│   │   └── decisions.md</text>
+    <text x="160" y="556" fill="#6B7280" font-size="13">│   ├── 03-forecast-snapshot-infra/plan.md</text>
+    <text x="160" y="578" fill="#6B7280" font-size="13">│   ├── ...</text>
+    <text x="160" y="600" fill="#6B7280" font-size="13">│   └── 11-rapid-stub-pages/intent.md</text>
+
+    <text x="120" y="636">├── completed/</text>
+    <text x="160" y="660" fill="#6B7280" font-size="13">│   ├── 00-v1-foundation.md</text>
+    <text x="160" y="682" fill="#6B7280" font-size="13">│   └── 01-flowband-browns-fix/</text>
+
+    <text x="120" y="718">└── lessons/</text>
+    <text x="160" y="742" fill="#6B7280" font-size="13">    ├── L001-deploy-worktrees.md</text>
+    <text x="160" y="764" fill="#6B7280" font-size="13">    ├── L002-env-newlines.md</text>
+    <text x="160" y="786" fill="#6B7280" font-size="13">    ├── L003 · L004 · ...</text>
+  </g>
+
+  <!-- Annotation labels on the right side -->
+  <g font-size="13" fill="#1A2436">
+    <!-- README / ROADMAP / CONTRIBUTING -->
+    <line x1="450" y1="228" x2="720" y2="228" stroke="#6B7280" stroke-width="1" stroke-dasharray="3,3"/>
+    <rect x="720" y="190" width="380" height="78" rx="8" fill="#FFFFFF" stroke="#1A2436" stroke-width="1.5"/>
+    <text x="740" y="214" font-weight="700" fill="#2C7DA0" font-size="12" letter-spacing="1.5">ENTRY POINTS</text>
+    <text x="740" y="236" font-size="13">Read these first. README explains the system,</text>
+    <text x="740" y="254" font-size="13">ROADMAP is the queue, CONTRIBUTING-AI is the contract.</text>
+
+    <!-- vision -->
+    <line x1="375" y1="370" x2="720" y2="320" stroke="#6B7280" stroke-width="1" stroke-dasharray="3,3"/>
+    <rect x="720" y="290" width="380" height="60" rx="8" fill="#FFFFFF" stroke="#D2693A" stroke-width="1.5"/>
+    <text x="740" y="314" font-weight="700" fill="#D2693A" font-size="12" letter-spacing="1.5">VISION (evergreen)</text>
+    <text x="740" y="334" font-size="13">Principles that hold across every slice. Rarely change.</text>
+
+    <!-- slices -->
+    <line x1="490" y1="490" x2="720" y2="420" stroke="#6B7280" stroke-width="1" stroke-dasharray="3,3"/>
+    <rect x="720" y="380" width="380" height="120" rx="8" fill="#FFFFFF" stroke="#2C7DA0" stroke-width="1.5"/>
+    <text x="740" y="404" font-weight="700" fill="#2C7DA0" font-size="12" letter-spacing="1.5">SLICES (the queue)</text>
+    <text x="740" y="424" font-size="13">Exactly one is <tspan font-weight="700" fill="#D2693A">status: active</tspan>. Frontmatter</text>
+    <text x="740" y="442" font-size="13">declares value, effort, depends_on, unlocks.</text>
+    <text x="740" y="462" font-size="13">Near slices have full <tspan font-family="'JetBrains Mono',monospace" font-size="12">plan.md</tspan>.</text>
+    <text x="740" y="480" font-size="13">Far slices have only <tspan font-family="'JetBrains Mono',monospace" font-size="12">intent.md</tspan>.</text>
+
+    <!-- completed -->
+    <line x1="480" y1="660" x2="720" y2="540" stroke="#6B7280" stroke-width="1" stroke-dasharray="3,3"/>
+    <rect x="720" y="520" width="380" height="58" rx="8" fill="#FFFFFF" stroke="#1A2436" stroke-width="1.5"/>
+    <text x="740" y="544" font-weight="700" fill="#1A2436" font-size="12" letter-spacing="1.5">COMPLETED (archive)</text>
+    <text x="740" y="564" font-size="13">Shipped slices stay readable. Context for "why".</text>
+
+    <!-- lessons -->
+    <line x1="490" y1="752" x2="720" y2="628" stroke="#6B7280" stroke-width="1" stroke-dasharray="3,3"/>
+    <rect x="720" y="598" width="380" height="104" rx="8" fill="#FFFFFF" stroke="#D2693A" stroke-width="1.5"/>
+    <text x="740" y="624" font-weight="700" fill="#D2693A" font-size="12" letter-spacing="1.5">LESSONS (self-learning)</text>
+    <text x="740" y="648" font-size="13">Mistakes captured structurally so a future</text>
+    <text x="740" y="668" font-size="13">session doesn't re-learn them. Patterns that</text>
+    <text x="740" y="688" font-size="13">recur get promoted into vision/.</text>
+  </g>
+
+  <text x="600" y="800" text-anchor="middle" font-size="13" fill="#6B7280" font-style="italic">grep "status: active" .plans/slices/*/plan.md → one match, always.</text>
+</svg>

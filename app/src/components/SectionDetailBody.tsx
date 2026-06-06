@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { STATUS_COLORS } from '../constants';
 import { BigCFS } from './BigCFS';
+import { FlowGauge } from './FlowGauge';
 import { StatusPill } from './StatusPill';
 import { TrendChip } from './TrendChip';
 import { Icon } from './Icon';
@@ -175,7 +176,11 @@ export function SectionDetailBody({
 						alignItems: 'baseline', justifyContent: 'space-between',
 						columnGap: 14, rowGap: 10,
 					}}>
-						<BigCFS cfs={detail.now} size="lg" color={c.fg} />
+						<div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+							{detail.now != null
+								? <FlowGauge currentFlow={detail.now} thresholds={detail.thresholds} size={140} />
+								: <BigCFS cfs={null} size="lg" color={c.fg} />}
+						</div>
 						<div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
 							<StatusPill status={detail.status} label={detail.statusLabel} size="md" />
 							<TrendChip trend={detail.trend} pct={detail.trendPct} size="md" />
@@ -192,7 +197,7 @@ export function SectionDetailBody({
 					)}
 				</div>
 				<div style={{ ...statCard, minWidth: 0 }}>
-					<div style={statLabel}>Ideal band</div>
+					<div style={statLabel}>Good band</div>
 					<div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: 'var(--ink-0)', letterSpacing: '-0.02em', marginTop: 6 }}>
 						{detail.thresholds.idealLo.toLocaleString()}–{detail.thresholds.idealHi.toLocaleString()}
 						<span style={{ fontSize: 12, color: 'var(--ink-3)', marginLeft: 4 }}>cfs</span>

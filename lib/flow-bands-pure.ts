@@ -20,7 +20,7 @@ export function bandToLabel(bandName: string): string {
 		case 'too-low': return 'Too Low';
 		case 'low-runnable': return 'Runnable (technical)';
 		case 'technical': return 'Runnable';
-		case 'ideal': return 'Ideal';
+		case 'ideal': return 'Good';
 		case 'pushy': return 'Pushy';
 		case 'expert-only': return 'Expert Only';
 		case 'unsafe': return 'Dangerous';

@@ -1,5 +1,11 @@
 # Slice 24 status
 
+## 2026-06-05 — PAUSED
+- Set `status: queued` (paused). User redirected priority to the design-system refresh
+  (slice **29-design-system-refresh**), now active. Phase A governance backend already
+  landed (schema + reputation logic + resources — see entries below). Resume from the
+  frontend/UX phase when 29 ships. Queue pointer updated in ROADMAP.
+
 ## 2026-06-03
 - Slice opened, set `status: active`. Slice 23b (karma economy) closed + moved to completed/; slice 23 (real payments) remains parked/deferred.
 - This is an intent.md; entering Plan phase — the main session will expand it into a full plan.md grounded against the current codebase (Contribution verification states, capability model, karma ledger, bounty award flow).

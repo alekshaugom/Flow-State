@@ -40,7 +40,7 @@ function formatCfs(v: number): string {
 function flowStatus(v: number, th: Thresholds): string {
 	if (v >= th.high) return 'Danger';
 	if (v >= th.idealHi) return 'High';
-	if (v >= th.idealLo) return 'Ideal';
+	if (v >= th.idealLo) return 'Good';
 	if (v >= th.runnable) return 'Runnable';
 	return 'Low';
 }
@@ -143,7 +143,7 @@ export function MobileFlowChart({ data, days, status, thresholds }: MobileFlowCh
 					<g key={i}>
 						<line x1={padding.l} x2={padding.l + w} y1={y(v)} y2={y(v)} stroke="var(--rule)" strokeWidth="1" strokeDasharray="2 3" />
 						<text x={padding.l - 6} y={y(v)} textAnchor="end" dominantBaseline="middle"
-							fontSize="9" fill="var(--ink-3)" fontFamily="Fira Code, monospace">
+							fontSize="9" fill="var(--ink-3)" fontFamily="var(--font-mono)">
 							{formatCfs(v)}
 						</text>
 					</g>
@@ -154,7 +154,7 @@ export function MobileFlowChart({ data, days, status, thresholds }: MobileFlowCh
 				{timeLabels.map((tl, i) => (
 					<text key={i} x={x(tl.t)} y={padding.t + h + 14}
 						textAnchor={i === 0 ? 'start' : i === timeLabels.length - 1 ? 'end' : 'middle'}
-						fontSize="9" fill="var(--ink-3)" fontFamily="Fira Code, monospace">
+						fontSize="9" fill="var(--ink-3)" fontFamily="var(--font-mono)">
 						{tl.label}
 					</text>
 				))}
@@ -165,13 +165,13 @@ export function MobileFlowChart({ data, days, status, thresholds }: MobileFlowCh
 						<circle cx={hover.px} cy={hover.py} r="4" fill={c.solid} stroke="white" strokeWidth="2" />
 						<g transform={`translate(${tipFlip ? hover.px - tipW - 10 : hover.px + 10}, ${Math.max(padding.t, Math.min(hover.py - 32, padding.t + h - 64))})`}>
 							<rect width={tipW} height={60} rx="5" fill="var(--ink-0)" opacity="0.92" />
-							<text x="8" y="15" fontSize="9" fill="white" fontFamily="Fira Code, monospace" opacity="0.75">
+							<text x="8" y="15" fontSize="9" fill="white" fontFamily="var(--font-mono)" opacity="0.75">
 								{formatTooltipDate(hoverPoint.t)}
 							</text>
-							<text x="8" y="33" fontSize="14" fill="white" fontWeight="700" fontFamily="Fira Code, monospace">
+							<text x="8" y="33" fontSize="14" fill="white" fontWeight="700" fontFamily="var(--font-mono)">
 								{hoverPoint.v.toLocaleString()} cfs
 							</text>
-							<text x="8" y="49" fontSize="9" fill={c.line} fontFamily="Fira Code, monospace" fontWeight="600">
+							<text x="8" y="49" fontSize="9" fill={c.line} fontFamily="var(--font-mono)" fontWeight="600">
 								{flowStatus(hoverPoint.v, thresholds)}
 							</text>
 						</g>

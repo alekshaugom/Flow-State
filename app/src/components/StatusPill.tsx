@@ -15,11 +15,10 @@ export function StatusPill({ status, label, size = 'md' }: StatusPillProps) {
 			display: 'inline-flex', alignItems: 'center', gap: 6,
 			padding, borderRadius: 'var(--r-pill)',
 			background: c.bg, color: c.fg,
-			fontSize: fs, fontWeight: 600, letterSpacing: 0.2,
+			fontSize: fs, fontWeight: 700, letterSpacing: 0.1,
 			fontFamily: 'var(--font-sans)',
 			lineHeight: 1,
 		}}>
-			<span style={{ width: 6, height: 6, borderRadius: '50%', background: c.solid }} />
 			{label || STATUS_LABEL[status] || status}
 		</span>
 	);
