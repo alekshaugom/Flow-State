@@ -20,3 +20,6 @@ export { FlowChart, Sparkline, CorridorSpark, classRangeLabel, skillWord, status
 export type { FlowChartProps, FlowChartDatum, FlowChartLabel, SparklineProps, SparklineDatum, CorridorSparkProps, SectionLike } from './charts';
 
 export { statusColor, statusLabel } from './status';
+
+export { CorridorMap, SectionMap } from './CorridorSchematic';
+export type { CorridorMapProps, SectionMapProps, SchematicSection, SchematicAccessPoint, SchematicGauge } from './CorridorSchematic';

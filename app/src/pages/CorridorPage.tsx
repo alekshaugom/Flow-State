@@ -1,13 +1,9 @@
-import { useParams, Navigate } from 'react-router-dom';
-import { useMediaQuery } from '../hooks/useMediaQuery';
-import { DesktopCorridor } from '../desktop/DesktopCorridor';
-import { MobileCorridor } from '../mobile/MobileCorridor';
+import { Corridor } from '../screens/Corridor';
 
+/**
+ * Route entry point for /corridor/:corridorSlug.
+ * Delegates entirely to the new immersive Corridor screen.
+ */
 export function CorridorPage() {
-	const { corridorSlug } = useParams<{ corridorSlug: string }>();
-	const isDesktop = useMediaQuery('(min-width: 768px)');
-	if (!corridorSlug) return <Navigate to="/" replace />;
-	return isDesktop
-		? <DesktopCorridor slug={corridorSlug} />
-		: <MobileCorridor slug={corridorSlug} />;
+	return <Corridor />;
 }

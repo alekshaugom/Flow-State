@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { RiversHome } from './screens/RiversHome';
 import { TripsStub } from './screens/TripsStub';
+import { Section } from './screens/Section';
 import { SectionRedirect } from './pages/SectionRedirect';
 
 const MapPage          = lazy(() => import('./pages/MapPage').then(m => ({ default: m.MapPage })));
@@ -30,7 +31,7 @@ export function App() {
 
 				{/* ── Existing routes (unchanged, point at existing pages) ── */}
 				<Route path="/corridor/:corridorSlug" element={<Suspense><CorridorPage /></Suspense>} />
-				<Route path="/section/:sectionId"     element={<SectionRedirect />} />
+				<Route path="/section/:sectionId"     element={<Section />} />
 
 				<Route path="/log"         element={<Suspense><MyLogsPage /></Suspense>} />
 				<Route path="/profile"     element={<Suspense><ProfileSetupPage /></Suspense>} />
