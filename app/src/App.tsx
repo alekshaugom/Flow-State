@@ -1,7 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { RiversHome } from './screens/RiversHome';
-import { TripsStub } from './screens/TripsStub';
+import { Trips, TripDetailScreen } from './screens/Trips';
+import { Log } from './screens/Log';
+import { Profile } from './screens/Profile';
 import { Section } from './screens/Section';
 import { SectionRedirect } from './pages/SectionRedirect';
 
@@ -27,14 +29,14 @@ export function App() {
 			<Routes>
 				{/* ── New IA routes ── */}
 				<Route index element={<RiversHome />} />
-				<Route path="/trips" element={<TripsStub />} />
+				<Route path="/trips" element={<Trips />} />
+				<Route path="/trips/:outfitterId" element={<TripDetailScreen />} />
+				<Route path="/log" element={<Log />} />
+				<Route path="/profile" element={<Profile />} />
 
 				{/* ── Existing routes (unchanged, point at existing pages) ── */}
 				<Route path="/corridor/:corridorSlug" element={<Suspense><CorridorPage /></Suspense>} />
 				<Route path="/section/:sectionId"     element={<Section />} />
-
-				<Route path="/log"         element={<Suspense><MyLogsPage /></Suspense>} />
-				<Route path="/profile"     element={<Suspense><ProfileSetupPage /></Suspense>} />
 
 				{/* Legacy / secondary routes — kept intact */}
 				<Route path="/section/:sectionId/logs" element={<Suspense><SectionLogsPage /></Suspense>} />

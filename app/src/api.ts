@@ -380,6 +380,10 @@ export const api = {
 			body: JSON.stringify({ userId, ...patch }),
 		}).then(json<any>),
 
+	// --- Outfitters ---
+	outfitters: () =>
+		fetch('/Outfitter/').then(json<any[]>),
+
 	// --- Follow / bookmark (slice 29) ---
 	myFollows: () =>
 		fetch('/FollowResource').then(json<MyFollowsResponse>),
