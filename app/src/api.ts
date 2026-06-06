@@ -1,4 +1,4 @@
-import type { RiverLogEntry, RiverLogInput, SectionLogsResponse, MyLogsResponse, MyLogsAggregateResponse, UserCraftEntry, UserCraftInput, MyCraftsResponse, EmailLoginResult, AdminLoginLinkResult, AdminLoginTokenList, AdminInviteUserInput, AdminInviteUserResult, AdminDeleteUserResult, SetMyPasswordResult, SetMyNameResult, MyConnectionsResponse, MintShareResult, SharePreviewResult, ShareConsumeResult, ParticipantView } from './types';
+import type { RiverLogEntry, RiverLogInput, SectionLogsResponse, MyLogsResponse, MyLogsAggregateResponse, UserCraftEntry, UserCraftInput, MyCraftsResponse, EmailLoginResult, AdminLoginLinkResult, AdminLoginTokenList, AdminInviteUserInput, AdminInviteUserResult, AdminDeleteUserResult, SetMyPasswordResult, SetMyNameResult, MyConnectionsResponse, MintShareResult, SharePreviewResult, ShareConsumeResult, ParticipantView, MyFollowsResponse } from './types';
 
 async function json<T>(res: Response): Promise<T> {
 	if (!res.ok) {
@@ -379,6 +379,17 @@ export const api = {
 			headers: JSON_HEADERS,
 			body: JSON.stringify({ userId, ...patch }),
 		}).then(json<any>),
+
+	// --- Follow / bookmark (slice 29) ---
+	myFollows: () =>
+		fetch('/FollowResource').then(json<MyFollowsResponse>),
+
+	toggleFollow: (targetType: 'corridor' | 'section', targetId: string, action?: 'toggle' | 'add' | 'remove') =>
+		fetch('/FollowResource', {
+			method: 'POST',
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ targetType, targetId, ...(action ? { action } : {}) }),
+		}).then(json<{ ok: true; following: boolean; targetType: string; targetId: string }>),
 };
 
 export interface SearchHit {

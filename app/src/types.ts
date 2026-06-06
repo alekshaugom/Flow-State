@@ -444,6 +444,21 @@ export interface MyLogsResponse {
 	total: number;
 }
 
+// --- Follow / bookmark (slice 29) ---
+
+export interface FollowEntry {
+	targetType: 'corridor' | 'section';
+	targetId: string;
+	createdAt: string;
+}
+
+export interface MyFollowsResponse {
+	authenticated: boolean;
+	follows: FollowEntry[];
+	corridorIds: string[];
+	sectionIds: string[];
+}
+
 export interface ApiRiverSummary {
 	id: string;
 	name: string;

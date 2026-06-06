@@ -1,0 +1,7 @@
+type Follow @table @export {
+	id: ID @primaryKey
+	userId: ID @indexed
+	targetType: String @indexed
+	targetId: String @indexed
+	createdAt: String @indexed
+}
