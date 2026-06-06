@@ -240,36 +240,57 @@ function buildRiverDetail(sectionId: string) {
 		history.push({ t, v: Math.max(80, Math.round(v)) });
 	}
 
+	// Return the REAL RiverDetail resource shape (raw), since useRiverDetail runs
+	// transformDetail() over it. transformDetail expects: section (object),
+	// river, flow{current,…}, charts{[gaugeId]:[{timestamp,value,unit}]}, gauges,
+	// reservoirs, snowpack, weatherForecast, rapids, flowBands, breadcrumb.
+	const gauge = (CURATED_GAUGES as any[]).find((g: any) => g.id === section.primaryGaugeId);
+	const series = history.map(h => ({ timestamp: new Date(h.t).toISOString(), value: h.v, unit: 'cfs' }));
+	const today = new Date();
+	const dayIso = (offset: number) => new Date(today.getTime() + offset * 86_400_000).toISOString().split('T')[0];
+	const weatherForecast = [
+		{ date: dayIso(0), tempHighF: 68, tempLowF: 41, condition: 'clear', precipProb: 0, windMph: 6, weatherCode: 0 },
+		{ date: dayIso(1), tempHighF: 71, tempLowF: 43, condition: 'partly-cloudy', precipProb: 10, windMph: 8, weatherCode: 2 },
+		{ date: dayIso(2), tempHighF: 64, tempLowF: 39, condition: 'rain', precipProb: 55, windMph: 11, weatherCode: 61 },
+		{ date: dayIso(3), tempHighF: 66, tempLowF: 40, condition: 'cloudy', precipProb: 20, windMph: 7, weatherCode: 3 },
+		{ date: dayIso(4), tempHighF: 70, tempLowF: 42, condition: 'clear', precipProb: 0, windMph: 5, weatherCode: 0 },
+	];
+	const rapids = [
+		{ id: `${section.id}-r1`, name: 'Entrance Rapid', classRating: section.difficultyMax || section.difficultyMin, riverMile: 1.2, hazardsJson: JSON.stringify(['Undercut on river left', 'Cold water']), linesJson: JSON.stringify(['Center tongue, then eddy right']), scoutPortageNotes: 'Scout from river right at higher flows.' },
+		{ id: `${section.id}-r2`, name: 'The Crux', classRating: section.difficultyMax || section.difficultyMin, riverMile: 3.8, hazardsJson: JSON.stringify(['Sieve at the bottom drop']), linesJson: null, scoutPortageNotes: null },
+	];
 	return {
-		id: section.id,
-		section: section.name,
-		river: river?.name ?? 'River',
-		classification: section.difficultyMin === section.difficultyMax
-			? section.difficultyMin
-			: `${section.difficultyMin}-${section.difficultyMax}`,
-		miles: section.lengthMiles,
-		now: currentFlow,
-		trend: m?.trend ?? 'unknown',
-		trendPct: m ? Math.round((m.change24h / Math.max(1, m.currentFlow)) * 100) : null,
-		change24h: m?.change24h ?? null,
-		updatedAt: new Date().toISOString(),
-		status: statusOf(section, currentFlow),
-		statusLabel: null,
-		resolvedBand: { description: section.notes || '' },
-		thresholds: { idealLo: section.flowIdealMin, idealHi: section.flowIdealMax },
-		flowThresholds: sectionThresholds(section),
-		history,
-		forecastBand: null,
-		forecastDirection: 'stable',
-		weatherForecast: [],
-		snowpackPct: 110,
-		damControlled: false,
-		snowpack: null,
+		section: {
+			...section,
+			difficulty: section.difficultyMin === section.difficultyMax
+				? section.difficultyMin
+				: `${section.difficultyMin}-${section.difficultyMax}`,
+		},
+		river: river ?? { name: 'River' },
+		corridor,
+		watershed,
+		flow: {
+			current: currentFlow != null ? Math.round(currentFlow) : null,
+			unit: 'cfs',
+			status: statusOf(section, currentFlow),
+			statusLabel: null,
+			change24h: m?.change24h ?? null,
+			trend: m?.trend ?? 'unknown',
+			timestamp: new Date().toISOString(),
+		},
+		charts: section.primaryGaugeId ? { [section.primaryGaugeId]: series } : {},
+		gauges: section.primaryGaugeId
+			? [{ id: section.primaryGaugeId, name: gauge?.name ?? section.primaryGaugeId, source: gauge?.source ?? 'USGS' }]
+			: [],
 		reservoirs: [],
+		snowpack: [{ basin: `${watershed?.name ?? 'Basin'}`, latest: { swePercentMedian: 108, sweInches: 14.2, snowDepthInches: 38 } }],
+		weatherForecast,
+		forecast: null,
+		flowBands: [],
+		resolvedBand: null,
+		rapids,
 		myLogs: [],
 		myLogTotalCount: 0,
-		notes: section.notes || '',
-		nearestTown: null,
 		breadcrumb: [
 			{ slug: 'colorado', name: 'Colorado', href: '/' },
 			...(watershed ? [{ slug: watershed.id, name: watershed.name, href: `/watershed/${watershed.id}` }] : []),
@@ -567,8 +588,28 @@ export function mockCorridorPlugin(): Plugin {
 					return jsonResponse(res, detail);
 				}
 
-				// --- Auth / Me ---
-				if (url === '/Me') return jsonResponse(res, { authenticated: false, user: null });
+				// --- Auth / Me (mock as a signed-in admin so signed-in + admin UIs render) ---
+				if (url === '/Me') return jsonResponse(res, {
+					authenticated: true,
+					user: { id: 'mock-admin', email: 'demo@flowstate.test', name: 'Demo Paddler', firstName: 'Demo', lastName: 'Paddler', avatarUrl: null, status: 'approved', role: 'admin' },
+					capabilities: { isAdmin: true, canContribute: true, canFund: true },
+				});
+
+				// --- Follows (mock: follow the first seeded corridor so "Your rivers" populates) ---
+				if (url === '/FollowResource' || url.startsWith('/FollowResource')) {
+					const firstCorridor = (CORRIDORS as any[])[0];
+					const corridorIds = firstCorridor ? [firstCorridor.id] : [];
+					return jsonResponse(res, { authenticated: true, follows: corridorIds.map((id: string) => ({ targetType: 'corridor', targetId: id, createdAt: new Date().toISOString() })), corridorIds, sectionIds: [] });
+				}
+
+				// --- Outfitters (mock list for the Trips tab) ---
+				if (url === '/Outfitter' || url.startsWith('/Outfitter')) {
+					const cid = (CORRIDORS as any[])[0]?.id ?? 'arkansas-headwaters';
+					return jsonResponse(res, [
+						{ id: 'of-1', name: 'Arkansas River Tours', phone: '(719) 555-0110', website: 'https://example.com', licenseNumber: 'CO-1234', licenseState: 'CO', serviceCorridorIds: JSON.stringify([cid]), tripTypesJson: JSON.stringify([{ label: 'Browns Canyon — Full Day', durationHours: 7, priceUsd: 119 }]), notes: 'Family-run, since 1985.' },
+						{ id: 'of-2', name: 'Wilderness Aware Rafting', phone: '(719) 555-0173', website: 'https://example.com', licenseNumber: 'CO-5678', licenseState: 'CO', serviceCorridorIds: JSON.stringify([cid]), tripTypesJson: JSON.stringify([{ label: 'The Numbers — Half Day', durationHours: 3.5, priceUsd: 99 }]), notes: '' },
+					]);
+				}
 
 				// --- Auth-only or write endpoints: safe empty stubs so pages don't crash ---
 				if (url === '/MyLogsView') return jsonResponse(res, { generated_at: new Date().toISOString(), watersheds: [], totalCount: 0 });

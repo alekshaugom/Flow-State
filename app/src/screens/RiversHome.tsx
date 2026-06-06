@@ -121,7 +121,7 @@ function SectionRow({ section: s, onClick }: SectionRowProps) {
           {s.section}
         </div>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'rgba(255,255,255,0.62)', marginTop: 2 }}>
-          {s.classification ? `Class ${s.classification}` : ''}{s.classification ? ' · ' : ''}{sl}
+          {s.classification ? `${s.classification} · ` : ''}{sl}
         </div>
       </div>
       {s.sparkline.length > 1 && (
