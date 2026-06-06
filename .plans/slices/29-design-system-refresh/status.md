@@ -1,5 +1,9 @@
 # Status — 29-design-system-refresh
 
+> **SUPERSEDED by slice 30 (design-overhaul, 2026-06-06).** The token/font foundation built
+> here is kept and folded into slice 30's full IA rebuild. See `../30-design-overhaul/`.
+
+
 ## 2026-06-05
 - Opened slice (user-prioritized; supersedes 24 as active for now — 24 returned to queued).
 - Design reference built earlier in `design/` (new system applied to real data); this slice applies it to `app/`.
