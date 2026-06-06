@@ -5,10 +5,10 @@ import { Trips, TripDetailScreen } from './screens/Trips';
 import { Log } from './screens/Log';
 import { Profile } from './screens/Profile';
 import { Section } from './screens/Section';
+import { Admin } from './screens/Admin';
 import { SectionRedirect } from './pages/SectionRedirect';
 
 const MapPage          = lazy(() => import('./pages/MapPage').then(m => ({ default: m.MapPage })));
-const AdminPage        = lazy(() => import('./admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const LoginPage        = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
 const AccountSetupPage = lazy(() => import('./pages/AccountSetupPage').then(m => ({ default: m.AccountSetupPage })));
 const WatershedPage    = lazy(() => import('./pages/WatershedPage').then(m => ({ default: m.WatershedPage })));
@@ -21,7 +21,6 @@ const MyLogsPage       = lazy(() => import('./pages/MyLogsPage').then(m => ({ de
 const CraftsPage       = lazy(() => import('./pages/CraftsPage').then(m => ({ default: m.CraftsPage })));
 const AcceptInvitePage = lazy(() => import('./pages/AcceptInvitePage').then(m => ({ default: m.AcceptInvitePage })));
 const WorldRiverPage   = lazy(() => import('./pages/WorldRiverPage').then(m => ({ default: m.WorldRiverPage })));
-const ModerationQueuePage = lazy(() => import('./pages/ModerationQueuePage').then(m => ({ default: m.ModerationQueuePage })));
 
 export function App() {
 	return (
@@ -50,8 +49,7 @@ export function App() {
 				<Route path="/share/:token"            element={<Suspense><AcceptInvitePage /></Suspense>} />
 				<Route path="/map"                     element={<Suspense><MapPage /></Suspense>} />
 				<Route path="/river/:slug"             element={<Suspense><WorldRiverPage /></Suspense>} />
-				<Route path="/admin"                   element={<Suspense><AdminPage /></Suspense>} />
-				<Route path="/moderation"              element={<Suspense><ModerationQueuePage /></Suspense>} />
+				<Route path="/admin"                   element={<Admin />} />
 			</Routes>
 		</BrowserRouter>
 	);
