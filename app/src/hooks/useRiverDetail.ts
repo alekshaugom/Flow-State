@@ -2,11 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { api } from '../api';
 import { transformDetail } from '../lib/transform';
-import { useCraftSkill } from '../lib/craftContext';
 import type { DetailViewModel } from '../types';
 
 export function useRiverDetail(sectionId: string | undefined) {
-	const { craft, skill } = useCraftSkill();
 	const query = useQuery({
 		queryKey: ['riverDetail', sectionId],
 		queryFn: async () => api.riverDetail(sectionId!),
@@ -16,8 +14,8 @@ export function useRiverDetail(sectionId: string | undefined) {
 
 	const transformed = useMemo<DetailViewModel | undefined>(() => {
 		if (!query.data) return undefined;
-		return transformDetail(query.data, craft, skill);
-	}, [query.data, craft, skill]);
+		return transformDetail(query.data);
+	}, [query.data]);
 
 	return { ...query, data: transformed };
 }

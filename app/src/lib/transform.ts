@@ -7,9 +7,9 @@ import {
 
 export function transformDashboard(
 	data: ApiDashboardResponse,
-	craft: CraftType = 'raft',
-	skill: SkillLevel = 'intermediate',
 ): DashboardSection[] {
+	const craft: CraftType = 'raft';
+	const skill: SkillLevel = 'intermediate';
 	const sections: DashboardSection[] = [];
 	for (const river of data.rivers) {
 		for (const s of river.sections) {
@@ -64,9 +64,9 @@ export function transformDashboard(
 
 export function transformDetail(
 	data: any,
-	craft: CraftType = 'raft',
-	skill: SkillLevel = 'intermediate',
 ): DetailViewModel {
+	const craft: CraftType = 'raft';
+	const skill: SkillLevel = 'intermediate';
 	const { section, river, corridor, flow, charts, gauges, reservoirs, snowpack, weatherForecast, forecast, flowBands, resolvedBand: serverBand, breadcrumb, myLogs, myLogTotalCount, rapids, bounties } = data;
 
 	// Re-resolve the band client-side based on the global craft/skill context.
