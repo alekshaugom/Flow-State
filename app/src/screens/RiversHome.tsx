@@ -163,6 +163,7 @@ function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSec
 
   return (
     <div
+      className="fs-river-tile"
       onClick={onOpenCorridor}
       onMouseEnter={() => onHoverChange?.(new Set(group.sections.map(s => s.id)))}
       onMouseLeave={() => onHoverChange?.(null)}
@@ -264,6 +265,7 @@ function OtherRiverRowLg({ group, onClick, onHoverChange }: OtherRiverRowProps) 
 
   return (
     <button
+      className="fs-river-tile"
       onClick={onClick}
       onMouseEnter={() => onHoverChange?.(new Set(group.sections.map(s => s.id)))}
       onMouseLeave={() => onHoverChange?.(null)}
@@ -510,8 +512,17 @@ export function RiversHome() {
   if (isDesktop) {
     return (
       <Shell active="rivers" light={false}>
-        {/* pulse keyframes injected once */}
-        <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }`}</style>
+        {/* pulse keyframes + river-tile hover glow */}
+        <style>{`
+          @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+          .fs-river-tile { transition: box-shadow .18s ease; }
+          .fs-river-tile:hover {
+            box-shadow:
+              0 0 0 1.5px rgba(130,200,255,0.95),
+              0 0 22px 1px rgba(120,190,255,0.55),
+              0 16px 40px rgba(6,19,33,0.34) !important;
+          }
+        `}</style>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 438px' }}>
           {/* Left: content column */}
           <div style={{ padding: '38px 32px 56px' }}>
