@@ -24,6 +24,9 @@ type RiverSection @table @export {
 	difficultyMin: String
 	difficultyMax: String
 	lengthMiles: Float
+	gradientFtPerMile: Float
+	elevationDropFt: Float
+	velocityFps: Float
 	flowLow: Int
 	flowRunnable: Int
 	flowIdealMin: Int

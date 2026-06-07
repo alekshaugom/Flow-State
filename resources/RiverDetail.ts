@@ -1,5 +1,6 @@
 import { Resource, tables } from 'harper';
-import { getFlowStatus, daysAgo, isoNow } from '../lib/utils.ts';
+import { getFlowStatus, daysAgo, isoNow, compositeId } from '../lib/utils.ts';
+import { dayOfYearUTC, classifyVsMedian } from '../lib/gauge-rollup-pure.ts';
 import { loadBandsForSection, resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
 import { getCorridorById } from '../lib/corridors.ts';
 import { getWatershedById } from '../lib/watersheds.ts';
@@ -14,7 +15,7 @@ async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	return out;
 }
 
-function splitIds(ids: string | null | undefined): string[] {
+export function splitIds(ids: string | null | undefined): string[] {
 	if (!ids) return [];
 	return ids.split(',').map(s => s.trim()).filter(Boolean);
 }
@@ -30,6 +31,11 @@ type Cache<T> = { rows: T[]; loadedAt: number };
 const _damCache: Cache<any> = { rows: [], loadedAt: 0 };
 const _snowCache: Cache<any> = { rows: [], loadedAt: 0 };
 const _weatherCache: Cache<any> = { rows: [], loadedAt: 0 };
+// Metadata tables — looked up by id. Keyed .get() against these is L004-prone
+// (returns null transiently post-restart even when the row exists), so resolve
+// them from a cached full-scan + in-memory find, like the reading tables above.
+const _basinCache: Cache<any> = { rows: [], loadedAt: 0 };
+const _reservoirCache: Cache<any> = { rows: [], loadedAt: 0 };
 
 async function loadAllCached(cache: Cache<any>, table: any): Promise<any[]> {
 	if (cache.loadedAt && cache.rows.length > 0 && (Date.now() - cache.loadedAt) < CACHE_TTL_MS) {
@@ -97,13 +103,14 @@ async function getFlowData(gaugeIds: string[], days = 360) {
 	return { series, gaugeList, latest, prev24h };
 }
 
-async function getDamReleases(reservoirIds: string[]) {
+export async function getDamReleases(reservoirIds: string[]) {
 	const cutoff = daysAgo(14).toISOString();
 	const all = await loadAllCached(_damCache, tables.DamRelease);
+	const reservoirs = await loadAllCached(_reservoirCache, tables.Reservoir);
 	const results: any[] = [];
 
 	for (const rid of reservoirIds) {
-		const reservoir = await tables.Reservoir.get(rid);
+		const reservoir = reservoirs.find(r => r.id === rid);
 		if (!reservoir) continue;
 
 		const releases = all
@@ -119,13 +126,14 @@ async function getDamReleases(reservoirIds: string[]) {
 	return results;
 }
 
-async function getSnowpackData(basinIds: string[]) {
+export async function getSnowpackData(basinIds: string[]) {
 	const cutoff = daysAgo(30).toISOString();
 	const all = await loadAllCached(_snowCache, tables.SnowpackReading);
+	const basins = await loadAllCached(_basinCache, tables.SnowpackBasin);
 	const results: any[] = [];
 
 	for (const bid of basinIds) {
-		const basin = await tables.SnowpackBasin.get(bid);
+		const basin = basins.find(b => b.id === bid);
 		if (!basin) continue;
 
 		const readings = all
@@ -155,6 +163,8 @@ export function invalidateRiverDetailCaches() {
 	_damCache.loadedAt = 0;
 	_snowCache.loadedAt = 0;
 	_weatherCache.loadedAt = 0;
+	_basinCache.loadedAt = 0;
+	_reservoirCache.loadedAt = 0;
 }
 
 async function getLatestForecast(sectionId: string) {
@@ -271,7 +281,7 @@ export class RiverDetail extends Resource {
 		const reservoirIds = splitIds(section.reservoirIds);
 		const basinIds = splitIds(section.snowpackBasinIds);
 
-		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands, myLogsData, rapids] = await Promise.all([
+		const [flowData, damReleases, snowpack, weatherForecast, forecast, flowBands, myLogsData, rapids, allAps, allSections, allOutfitters, allShuttles, weatherCurrentRow, allWeatherHourlySection, allDailyRollups] = await Promise.all([
 			getFlowData(gaugeIds),
 			getDamReleases(reservoirIds),
 			getSnowpackData(basinIds),
@@ -280,7 +290,117 @@ export class RiverDetail extends Resource {
 			loadBandsForSection(sectionId),
 			getMyLogsForSection(userId, sectionId),
 			getRapidsForSection(sectionId),
+			collect(tables.AccessPoint.search({ conditions: [] })),
+			collect(tables.RiverSection.search({ conditions: [] })),
+			collect((tables as any).Outfitter.search({ conditions: [] })),
+			collect((tables as any).ShuttleBusiness.search({ conditions: [] })),
+			// WeatherCurrent row for this section (id = sectionId)
+			(tables as any).WeatherCurrent.get(sectionId).catch(() => null),
+			// WeatherHourly rows for this section (L004-safe single-attribute search)
+			collect((tables as any).WeatherHourly.search({
+				conditions: [{ attribute: 'sectionId', value: sectionId, comparator: 'equals' as const }],
+			})).catch(() => []),
+			// DailyGaugeRollup rows for the primary gauge (single-attribute search)
+			section.primaryGaugeId
+				? collect(tables.DailyGaugeRollup.search({
+					conditions: [{ attribute: 'gaugeId', value: section.primaryGaugeId, comparator: 'equals' as const }],
+				})).catch(() => [])
+				: Promise.resolve([]),
 		]);
+
+		const cid = section.corridorId ?? null;
+
+		const corridorAps = allAps
+			.filter((ap: any) => ap.corridorId === cid)
+			.sort((a: any, b: any) => (a.sortIndex ?? 999) - (b.sortIndex ?? 999))
+			.map((ap: any) => ({
+				id: ap.id,
+				name: ap.name,
+				altNames: ap.altNames || '',
+				kind: ap.kind,
+				sortIndex: ap.sortIndex ?? 0,
+				latitude: ap.latitude ?? null,
+				longitude: ap.longitude ?? null,
+				riverMile: ap.riverMile ?? null,
+				fee: ap.fee ?? null,
+				vehicleAccess: ap.vehicleAccess ?? null,
+				notes: ap.notes || '',
+				directions: ap.directions ?? null,
+				permitRequired: ap.permitRequired ?? null,
+				feeUsd: ap.feeUsd ?? null,
+				parkingSpaces: ap.parkingSpaces ?? null,
+				lastVerifiedAt: ap.lastVerifiedAt ?? null,
+				verifiedBy: ap.verifiedBy ?? null,
+				currentContributionId: ap.currentContributionId ?? null,
+			}));
+
+		const putIn = corridorAps.find((ap: any) => ap.id === section.fromAccessPointId) ?? null;
+		const takeOut = corridorAps.find((ap: any) => ap.id === section.toAccessPointId) ?? null;
+		const loMile = Math.min(putIn?.riverMile ?? NaN, takeOut?.riverMile ?? NaN);
+		const hiMile = Math.max(putIn?.riverMile ?? NaN, takeOut?.riverMile ?? NaN);
+		const alternatives = (Number.isFinite(loMile) && Number.isFinite(hiMile))
+			? corridorAps.filter((ap: any) =>
+				ap.id !== putIn?.id &&
+				ap.id !== takeOut?.id &&
+				ap.riverMile != null &&
+				ap.riverMile > loMile &&
+				ap.riverMile < hiMile
+			)
+			: [];
+		const sectionAccess = { putIn, takeOut, alternatives };
+
+		function servicesCorridor(entity: any): boolean {
+			if (!entity.serviceCorridorIds) return false;
+			try {
+				const ids: string[] = JSON.parse(entity.serviceCorridorIds);
+				return Array.isArray(ids) && ids.includes(cid as string);
+			} catch {
+				return false;
+			}
+		}
+
+		const outfitters = allOutfitters
+			.filter(servicesCorridor)
+			.map((o: any) => ({
+				id: o.id,
+				name: o.name,
+				slug: o.slug ?? null,
+				licenseNumber: o.licenseNumber ?? null,
+				licenseState: o.licenseState ?? null,
+				phone: o.phone ?? null,
+				website: o.website ?? null,
+				serviceCorridorIds: o.serviceCorridorIds ?? null,
+				tripTypesJson: o.tripTypesJson ?? null,
+				notes: o.notes ?? null,
+				lastVerifiedAt: o.lastVerifiedAt ?? null,
+				verifiedBy: o.verifiedBy ?? null,
+				currentContributionId: o.currentContributionId ?? null,
+			}));
+
+		const shuttleBusinesses = allShuttles
+			.filter(servicesCorridor)
+			.map((s: any) => ({
+				id: s.id,
+				name: s.name,
+				slug: s.slug ?? null,
+				phone: s.phone ?? null,
+				website: s.website ?? null,
+				serviceCorridorIds: s.serviceCorridorIds ?? null,
+				ratesJson: s.ratesJson ?? null,
+				notes: s.notes ?? null,
+				lastVerifiedAt: s.lastVerifiedAt ?? null,
+				verifiedBy: s.verifiedBy ?? null,
+				currentContributionId: s.currentContributionId ?? null,
+			}));
+
+		const siblingSections = allSections
+			.filter((s: any) => s.corridorId === cid)
+			.sort((a: any, b: any) => (a.sortIndex ?? 999) - (b.sortIndex ?? 999))
+			.map((s: any) => ({
+				id: s.id,
+				name: s.name,
+				sortIndex: s.sortIndex ?? 0,
+			}));
 
 		const currentFlow = flowData.latest?.value ?? null;
 		const roundedFlow = currentFlow !== null ? Math.round(currentFlow) : null;
@@ -304,6 +424,37 @@ export class RiverDetail extends Resource {
 		const change24h = (currentFlow && flowData.prev24h)
 			? Math.round(currentFlow - flowData.prev24h.value)
 			: null;
+
+		// WeatherCurrent / WeatherHourly for this section
+		const weatherCurrent = weatherCurrentRow ?? null;
+		const weatherHourly = (allWeatherHourlySection as any[])
+			.sort((a: any, b: any) => (a.timestamp || '').localeCompare(b.timestamp || ''))
+			.slice(0, 12);
+
+		// Historic context: compare today's flow vs. the primary gauge's rollup for today's day-of-year
+		let historicContext: any = null;
+		const primaryGaugeId = section.primaryGaugeId ?? null;
+		if (primaryGaugeId && roundedFlow !== null) {
+			const todayDoy = dayOfYearUTC(isoNow());
+			const rollup = (allDailyRollups as any[]).find(
+				(r: any) => r.gaugeId === primaryGaugeId && r.dayOfYear === todayDoy
+			) ?? null;
+			if (rollup) {
+				const cls = classifyVsMedian(roundedFlow, rollup);
+				historicContext = {
+					pct: cls.pct,
+					word: cls.word,
+					percentileApprox: cls.percentileApprox,
+					median: rollup.median,
+					min: rollup.min,
+					max: rollup.max,
+					p10: rollup.p10,
+					p90: rollup.p90,
+					years: rollup.years,
+					current: roundedFlow,
+				};
+			}
+		}
 
 		const breadcrumb = [
 			{ slug: 'colorado', name: 'Colorado', href: '/' },
@@ -340,9 +491,19 @@ export class RiverDetail extends Resource {
 			snowpack,
 			weatherForecast,
 			forecast,
+			weatherCurrent,
+			weatherHourly,
+			historicContext,
 			myLogs: myLogsData.myLogs,
 			myLogTotalCount: myLogsData.myLogTotalCount,
 			rapids,
+			gradient: (section as any).gradientFtPerMile ?? null,
+			velocity: (section as any).velocityFps ?? null,
+			elevationDrop: (section as any).elevationDropFt ?? null,
+			outfitters,
+			shuttleBusinesses,
+			sectionAccess,
+			siblingSections,
 		};
 		return new Response(JSON.stringify(result), {
 			headers: {

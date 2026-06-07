@@ -3,6 +3,7 @@ import { getCorridorById } from '../lib/corridors.ts';
 import { getWatershedById } from '../lib/watersheds.ts';
 import { loadAllBands, resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
 import { getFlowStatus } from '../lib/utils.ts';
+import { getSnowpackData, getDamReleases, splitIds } from './RiverDetail.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -21,7 +22,7 @@ export class CorridorView extends Resource {
 
 		const watershed = corridor.watershedId ? await getWatershedById(corridor.watershedId) : null;
 
-		const [allSections, allSnapshots, allBands, allAps, allDams, allGauges, allShuttleBusinesses, allOutfitters] = await Promise.all([
+		const [allSections, allSnapshots, allBands, allAps, allDams, allGauges, allShuttleBusinesses, allOutfitters, allPermits, allWaterTemps, allWeatherCurrent, allWeatherHourly] = await Promise.all([
 			collect(tables.RiverSection.search({ conditions: [] })),
 			collect(tables.GaugeSnapshot.search({ conditions: [] })),
 			loadAllBands(),
@@ -30,6 +31,10 @@ export class CorridorView extends Resource {
 			collect(tables.Gauge.search({ conditions: [] })),
 			collect((tables as any).ShuttleBusiness.search({ conditions: [] })),
 			collect((tables as any).Outfitter.search({ conditions: [] })),
+			collect((tables as any).Permit.search({ conditions: [] })),
+			collect((tables as any).WaterTempReading.search({ conditions: [] })),
+			collect((tables as any).WeatherCurrent.search({ conditions: [] })),
+			collect((tables as any).WeatherHourly.search({ conditions: [] })),
 		]);
 		const snapshotMap = new Map<string, any>();
 		for (const s of allSnapshots) snapshotMap.set(s.id, s);
@@ -222,6 +227,56 @@ export class CorridorView extends Resource {
 				};
 			});
 
+		const corridorPermits = allPermits.filter((p: any) => p.corridorId === id).map((p: any) => ({
+			id: p.id,
+			name: p.name,
+			agency: p.agency,
+			required: p.required ?? null,
+			feeUsd: p.feeUsd ?? null,
+			feeNote: p.feeNote ?? null,
+			season: p.season ?? null,
+			seasonStartMonth: p.seasonStartMonth ?? null,
+			seasonEndMonth: p.seasonEndMonth ?? null,
+			detail: p.detail ?? null,
+			url: p.url ?? null,
+			lastVerifiedAt: p.lastVerifiedAt ?? null,
+			verifiedBy: p.verifiedBy ?? null,
+			currentContributionId: p.currentContributionId ?? null,
+		}));
+
+		const corridorSectionRows = allSections.filter((s: any) => s.corridorId === id);
+		const basinIds = [...new Set(corridorSectionRows.flatMap((s: any) => splitIds(s.snowpackBasinIds)))];
+		const reservoirIds = [...new Set(corridorSectionRows.flatMap((s: any) => splitIds(s.reservoirIds)))];
+		const [snowpack, reservoirs] = await Promise.all([
+			getSnowpackData(basinIds),
+			getDamReleases(reservoirIds),
+		]);
+
+		// Water temperature: latest reading per corridor gauge
+		const waterTemps = corridorGauges
+			.map((g: any) => {
+				const readings = (allWaterTemps as any[])
+					.filter((r: any) => r.gaugeId === g.id)
+					.sort((a: any, b: any) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+				if (!readings.length) return null;
+				const latest = readings[0];
+				return { gaugeId: g.id, label: g.name, tempF: latest.tempF, timestamp: latest.timestamp };
+			})
+			.filter(Boolean);
+
+		// Weather current + hourly: use the first corridor section that has coordinates
+		const repSection = sections.find((s: any) => s.latitude != null && s.longitude != null) ?? sections[0] ?? null;
+		const repSectionId = repSection?.id ?? null;
+		const weatherCurrent = repSectionId
+			? ((allWeatherCurrent as any[]).find((w: any) => w.sectionId === repSectionId) ?? null)
+			: null;
+		const weatherHourly = repSectionId
+			? (allWeatherHourly as any[])
+				.filter((w: any) => w.sectionId === repSectionId)
+				.sort((a: any, b: any) => (a.timestamp || '').localeCompare(b.timestamp || ''))
+				.slice(0, 12)
+			: [];
+
 		const breadcrumb = [
 			{ slug: 'colorado', name: 'Colorado', href: '/' },
 			...(watershed ? [{ slug: watershed.id, name: watershed.name, href: `/watershed/${watershed.id}` }] : []),
@@ -237,7 +292,13 @@ export class CorridorView extends Resource {
 			gauges: corridorGauges,
 			shuttleBusinesses: corridorShuttleBusinesses,
 			outfitters: corridorOutfitters,
+			permits: corridorPermits,
+			snowpack,
+			reservoirs,
 			weatherSummary: null,
+			waterTemps,
+			weatherCurrent,
+			weatherHourly,
 			breadcrumb,
 		};
 		return new Response(JSON.stringify(result), {

@@ -1,10 +1,12 @@
 import { Resource, tables } from 'harper';
 import { compositeId, isoNow } from '../lib/utils.ts';
-import { fetchInstantaneous } from '../lib/adapters/usgs.ts';
+import { fetchInstantaneous, fetchUsgsWaterTemp } from '../lib/adapters/usgs.ts';
 import { fetchTelemetryTimeSeries } from '../lib/adapters/cdss.ts';
 import { fetchBasinSnowData, COLORADO_BASINS } from '../lib/adapters/snotel.ts';
 import { fetchReservoirData, BOR_CATALOG } from '../lib/adapters/bor.ts';
 import { runWeatherIngestion } from '../lib/agents/weather-agent.ts';
+import { fetchOpenMeteoHourlyCurrent } from '../lib/adapters/open-meteo.ts';
+import { computeDailyRollups } from '../lib/gauge-rollup-pure.ts';
 import { runBackfill, type BackfillSource } from '../lib/jobs/backfill.ts';
 import { invalidateDashboardCache } from './Dashboard.ts';
 
@@ -13,12 +15,16 @@ const GAUGE_INTERVAL_MS = 15 * 60_000;
 const SNOW_INTERVAL_MS = 6 * 3600_000;
 const RESERVOIR_INTERVAL_MS = 6 * 3600_000;
 const WEATHER_INTERVAL_MS = 6 * 3600_000;
+const WATER_TEMP_INTERVAL_MS = 15 * 60_000;
+const WEATHER_HOURLY_INTERVAL_MS = 6 * 3600_000;
 const WORKER_FLAG = '__flowStateIngestionStarted';
 
 let lastGaugeFetch = 0;
 let lastSnowFetch = 0;
 let lastReservoirFetch = 0;
 let lastWeatherFetch = 0;
+let lastWaterTempFetch = 0;
+let lastWeatherHourlyFetch = 0;
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -213,6 +219,139 @@ async function ingestWeather(): Promise<void> {
 	}
 }
 
+async function ingestWaterTemp(): Promise<void> {
+	const start = Date.now();
+	let totalRecords = 0;
+	const errors: string[] = [];
+
+	try {
+		const gauges = await collect(tables.Gauge.search({ conditions: [{ attribute: 'source', value: 'usgs', comparator: 'equals' }] }));
+		const siteIds = gauges.map((g: any) => g.sourceId).filter(Boolean);
+		if (siteIds.length === 0) {
+			await logIngestion('usgs-wt', 'success', 0, '', Date.now() - start);
+			return;
+		}
+		// Batch in groups of 20 (same as ingestGauges)
+		for (let i = 0; i < siteIds.length; i += 20) {
+			const batch = siteIds.slice(i, i + 20);
+			try {
+				const readings = await fetchUsgsWaterTemp(batch);
+				for (const r of readings) await tables.WaterTempReading.put(r.id, r);
+				totalRecords += readings.length;
+			} catch (err) {
+				errors.push(`USGS-wt batch ${i}: ${(err as Error).message}`);
+			}
+		}
+		await logIngestion('usgs-wt', errors.length ? 'partial' : 'success', totalRecords, errors.join('; '), Date.now() - start);
+		console.log(`[ingestion] water-temp: ${totalRecords} readings stored`);
+	} catch (err) {
+		await logIngestion('usgs-wt', 'error', 0, (err as Error).message, Date.now() - start);
+	}
+}
+
+async function ingestWeatherHourlyCurrent(): Promise<void> {
+	const start = Date.now();
+	let totalRecords = 0;
+	const errors: string[] = [];
+
+	try {
+		const sections = await collect(tables.RiverSection.search({ conditions: [] }));
+		// Dedupe by ~0.1-degree rounded lat/lng to avoid hammering Open-Meteo
+		// (sections within ~11 km share a fetch). Cap at 25 fetches total.
+		const seen = new Set<string>();
+		const toFetch: any[] = [];
+		for (const s of sections) {
+			const lat = (s as any).latitude;
+			const lng = (s as any).longitude;
+			if (lat == null || lng == null) continue;
+			const key = `${Math.round(lat * 10)}_${Math.round(lng * 10)}`;
+			if (seen.has(key)) continue;
+			seen.add(key);
+			toFetch.push(s);
+			if (toFetch.length >= 25) break;
+		}
+
+		for (const section of toFetch) {
+			const sectionId = (section as any).id;
+			const lat: number = (section as any).latitude;
+			const lng: number = (section as any).longitude;
+			try {
+				const result = await fetchOpenMeteoHourlyCurrent(lat, lng);
+				// WeatherCurrent: id = sectionId (one row per section, upserted)
+				await (tables as any).WeatherCurrent.put(sectionId, {
+					id: sectionId,
+					sectionId,
+					timestamp: result.current.timestamp,
+					tempF: result.current.tempF,
+					condition: result.current.condition,
+					weatherCode: result.current.weatherCode,
+					humidityPct: result.current.humidityPct,
+					windMph: result.current.windMph,
+					uvIndex: result.current.uvIndex,
+					tempHighF: result.current.tempHighF,
+					tempLowF: result.current.tempLowF,
+				});
+				// WeatherHourly rows: id = sectionId:timestamp
+				for (const h of result.hourly) {
+					const id = `${sectionId}:${h.timestamp}`;
+					await (tables as any).WeatherHourly.put(id, {
+						id,
+						sectionId,
+						timestamp: h.timestamp,
+						tempF: h.tempF,
+						condition: h.condition,
+						weatherCode: h.weatherCode,
+					});
+				}
+				totalRecords += 1 + result.hourly.length;
+			} catch (err) {
+				errors.push(`${sectionId}: ${(err as Error).message}`);
+			}
+		}
+
+		await logIngestion('open-meteo-hourly', errors.length ? 'partial' : 'success', totalRecords, errors.join('; '), Date.now() - start);
+		console.log(`[ingestion] weather-hourly: ${totalRecords} rows stored across ${toFetch.length} sections`);
+	} catch (err) {
+		await logIngestion('open-meteo-hourly', 'error', 0, (err as Error).message, Date.now() - start);
+	}
+}
+
+async function reconcileGaugeRollups(): Promise<number> {
+	const start = Date.now();
+	let totalRows = 0;
+	const errors: string[] = [];
+
+	try {
+		const gauges = await collect(tables.Gauge.search({ conditions: [{ attribute: 'active', value: true, comparator: 'equals' }] }));
+		for (const gauge of gauges) {
+			const gaugeId = (gauge as any).id;
+			try {
+				// L004-safe: single-attribute search by gaugeId
+				const raw = await collect(
+					tables.GaugeReading.search({
+						conditions: [{ attribute: 'gaugeId', value: gaugeId, comparator: 'equals' as const }],
+					})
+				);
+				if (!raw.length) continue;
+				const inputs = raw.map((r: any) => ({ gaugeId: r.gaugeId, timestamp: r.timestamp, value: r.value }));
+				const rollups = computeDailyRollups(inputs);
+				for (const row of rollups) {
+					const id = compositeId([row.gaugeId, String(row.dayOfYear)]);
+					await tables.DailyGaugeRollup.put(id, { ...row, id, updatedAt: isoNow() });
+					totalRows++;
+				}
+			} catch (err) {
+				errors.push(`${gaugeId}: ${(err as Error).message}`);
+			}
+		}
+		await logIngestion('rollups', errors.length ? 'partial' : 'success', totalRows, errors.join('; '), Date.now() - start);
+		console.log(`[ingestion] rollups: ${totalRows} rows written`);
+	} catch (err) {
+		await logIngestion('rollups', 'error', 0, (err as Error).message, Date.now() - start);
+	}
+	return totalRows;
+}
+
 const VALID_BACKFILL_SOURCES: BackfillSource[] = ['usgs', 'snotel', 'bor', 'weather-obs'];
 
 async function tick(): Promise<void> {
@@ -233,6 +372,14 @@ async function tick(): Promise<void> {
 		if (now - lastWeatherFetch >= WEATHER_INTERVAL_MS) {
 			lastWeatherFetch = now;
 			await ingestWeather();
+		}
+		if (now - lastWaterTempFetch >= WATER_TEMP_INTERVAL_MS) {
+			lastWaterTempFetch = now;
+			await ingestWaterTemp();
+		}
+		if (now - lastWeatherHourlyFetch >= WEATHER_HOURLY_INTERVAL_MS) {
+			lastWeatherHourlyFetch = now;
+			await ingestWeatherHourlyCurrent();
 		}
 	} catch (err) {
 		console.warn('[ingestion] tick error:', (err as Error).message);
@@ -263,10 +410,14 @@ export class Ingestion extends Resource {
 			snow_interval_ms: SNOW_INTERVAL_MS,
 			reservoir_interval_ms: RESERVOIR_INTERVAL_MS,
 			weather_interval_ms: WEATHER_INTERVAL_MS,
+			water_temp_interval_ms: WATER_TEMP_INTERVAL_MS,
+			weather_hourly_interval_ms: WEATHER_HOURLY_INTERVAL_MS,
 			last_gauge_fetch: lastGaugeFetch ? new Date(lastGaugeFetch).toISOString() : null,
 			last_snow_fetch: lastSnowFetch ? new Date(lastSnowFetch).toISOString() : null,
 			last_reservoir_fetch: lastReservoirFetch ? new Date(lastReservoirFetch).toISOString() : null,
 			last_weather_fetch: lastWeatherFetch ? new Date(lastWeatherFetch).toISOString() : null,
+			last_water_temp_fetch: lastWaterTempFetch ? new Date(lastWaterTempFetch).toISOString() : null,
+			last_weather_hourly_fetch: lastWeatherHourlyFetch ? new Date(lastWeatherHourlyFetch).toISOString() : null,
 			now: isoNow(),
 		};
 	}
@@ -278,6 +429,8 @@ export class Ingestion extends Resource {
 			if (source === 'snotel' || !source) await ingestSnowpack();
 			if (source === 'bor' || !source) await ingestReservoirs();
 			if (source === 'noaa' || source === 'weather' || !source) await ingestWeather();
+			if (source === 'water-temp' || !source) await ingestWaterTemp();
+			if (source === 'weather-hourly' || !source) await ingestWeatherHourlyCurrent();
 			return { ok: true, action: 'run', source: source || 'all' };
 		}
 		if (data?.action === 'rebuild-snapshots') {
@@ -296,6 +449,18 @@ export class Ingestion extends Resource {
 			invalidateDashboardCache();
 			return { ok: true, action: 'backfill', ...result };
 		}
+		if (data?.action === 'water-temp') {
+			await ingestWaterTemp();
+			return { ok: true, action: 'water-temp' };
+		}
+		if (data?.action === 'weather-hourly') {
+			await ingestWeatherHourlyCurrent();
+			return { ok: true, action: 'weather-hourly' };
+		}
+		if (data?.action === 'rollups') {
+			const count = await reconcileGaugeRollups();
+			return { ok: true, action: 'rollups', rowsWritten: count };
+		}
 		if (data?.action === 'cleanup-bor-stale-rows') {
 			// One-shot: deletes any DamRelease rows whose reservoirId is no longer in BOR_CATALOG.
 			// Used after fixing the BOR catalog to wipe rows written under wrong reservoir keys
@@ -311,6 +476,6 @@ export class Ingestion extends Resource {
 			}
 			return { ok: true, action: 'cleanup-bor-stale-rows', deleted, kept: all.length - deleted };
 		}
-		return new Response('unknown action — supported: "run", "backfill", "cleanup-bor-stale-rows"', { status: 400 });
+		return new Response('unknown action — supported: "run", "backfill", "water-temp", "weather-hourly", "rollups", "cleanup-bor-stale-rows"', { status: 400 });
 	}
 }

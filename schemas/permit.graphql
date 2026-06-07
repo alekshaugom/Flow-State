@@ -1,0 +1,17 @@
+type Permit @table @export {
+	id: ID @primaryKey
+	corridorId: ID @indexed
+	name: String
+	agency: String
+	required: Boolean
+	feeUsd: Float
+	feeNote: String                      # e.g. "$8/day per boat"
+	seasonStartMonth: Int
+	seasonEndMonth: Int
+	season: String                       # human label, e.g. "May–Sep"
+	detail: String
+	url: String
+	lastVerifiedAt: String
+	verifiedBy: ID
+	currentContributionId: ID
+}

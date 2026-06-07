@@ -107,3 +107,97 @@ export function parseOpenMeteoDaily(data: any): OpenMeteoDailyForecast[] {
 function pickNum(v: any): number | null {
 	return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
+
+// ---------------------------------------------------------------------------
+// Current-conditions + hourly weather
+// ---------------------------------------------------------------------------
+
+export interface OpenMeteoCurrentResult {
+	current: {
+		timestamp: string;
+		tempF: number | null;
+		humidityPct: number | null;
+		windMph: number | null;
+		weatherCode: number | null;
+		condition: string | null;
+		uvIndex: number | null;
+		tempHighF: number | null;
+		tempLowF: number | null;
+	};
+	hourly: Array<{
+		timestamp: string;
+		tempF: number | null;
+		weatherCode: number | null;
+		condition: string | null;
+	}>;
+}
+
+/**
+ * Pure parser — unit-testable without network.
+ * Accepts the raw Open-Meteo JSON from a request that includes
+ * current, hourly, and daily blocks.
+ * Returns current conditions plus the next ~12 hourly rows.
+ */
+export function parseOpenMeteoHourlyCurrent(data: any): OpenMeteoCurrentResult {
+	const cur = data?.current ?? {};
+	const hourly = data?.hourly ?? {};
+	const daily = data?.daily ?? {};
+
+	const currentTs: string = cur.time ?? '';
+	const curCode = typeof cur.weather_code === 'number' ? cur.weather_code : null;
+
+	// Today's high/low from the first daily entry
+	const tempHighF = pickNum(daily.temperature_2m_max?.[0]);
+	const tempLowF  = pickNum(daily.temperature_2m_min?.[0]);
+	const uvIndex   = pickNum(daily.uv_index_max?.[0]);
+
+	const current = {
+		timestamp:   currentTs,
+		tempF:       pickNum(cur.temperature_2m),
+		humidityPct: pickNum(cur.relative_humidity_2m),
+		windMph:     pickNum(cur.wind_speed_10m),
+		weatherCode: curCode,
+		condition:   wmoToCondition(curCode),
+		uvIndex,
+		tempHighF,
+		tempLowF,
+	};
+
+	// Build hourly rows, capped at 12 entries starting from the first entry
+	const hourlyTimes: string[] = Array.isArray(hourly.time) ? hourly.time : [];
+	const hourlyTemps: any[]    = Array.isArray(hourly.temperature_2m) ? hourly.temperature_2m : [];
+	const hourlyCodes: any[]    = Array.isArray(hourly.weather_code) ? hourly.weather_code : [];
+
+	const hourlyRows = hourlyTimes.slice(0, 12).map((ts, i) => {
+		const code = typeof hourlyCodes[i] === 'number' ? hourlyCodes[i] : null;
+		return {
+			timestamp:   ts,
+			tempF:       pickNum(hourlyTemps[i]),
+			weatherCode: code,
+			condition:   wmoToCondition(code),
+		};
+	});
+
+	return { current, hourly: hourlyRows };
+}
+
+/**
+ * Fetches current conditions + hourly + daily data for the given coordinates.
+ * Does NOT affect the existing fetchOpenMeteoDaily function.
+ */
+export async function fetchOpenMeteoHourlyCurrent(lat: number, lng: number): Promise<OpenMeteoCurrentResult> {
+	const params = new URLSearchParams({
+		latitude:          String(lat),
+		longitude:         String(lng),
+		current:           'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m',
+		hourly:            'temperature_2m,weather_code',
+		daily:             'temperature_2m_max,temperature_2m_min,uv_index_max',
+		temperature_unit:  'fahrenheit',
+		wind_speed_unit:   'mph',
+		timezone:          'America/Denver',
+		forecast_days:     '2',
+	});
+	const url = `${OPEN_METEO_BASE}?${params.toString()}`;
+	const data = await fetchWithRetry(url);
+	return parseOpenMeteoHourlyCurrent(data);
+}

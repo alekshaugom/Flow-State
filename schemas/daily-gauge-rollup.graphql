@@ -1,0 +1,13 @@
+type DailyGaugeRollup @table @export {
+	id: ID @primaryKey
+	gaugeId: ID @indexed
+	dayOfYear: Int @indexed
+	median: Float
+	p10: Float
+	p90: Float
+	min: Float
+	max: Float
+	sampleCount: Int
+	years: Int
+	updatedAt: String
+}

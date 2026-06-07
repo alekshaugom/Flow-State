@@ -19,9 +19,15 @@ import { FlowGauge } from '../components/FlowGauge';
 import {
   Icon,
   Module,
+  MetricTile,
   SkyBg,
   FlowChart,
   statusColor,
+  WeatherModule,
+  SnowpackModule,
+  DamReleaseModule,
+  ShuttleModule,
+  GuidesModule,
 } from '../ds';
 import { GeoMap } from '../components/GeoMap';
 import { STATUS_COLORS } from '../constants';
@@ -110,7 +116,25 @@ function TrendBadge({ trend, pct }: { trend: 'up' | 'down' | 'stable'; pct: numb
   );
 }
 
-// ── AccessRow (accordion) ─────────────────────────────────────────────────
+// ── arrowBtn (for section nav) ────────────────────────────────────────────────
+
+const arrowBtn: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.16)',
+  border: 'none',
+  borderRadius: 99,
+  width: 32,
+  height: 32,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: '#fff',
+  cursor: 'pointer',
+  backdropFilter: 'blur(8px)',
+  flexShrink: 0,
+  WebkitTapHighlightColor: 'transparent',
+};
+
+// ── AccessRow (accordion) — string-based fallback ─────────────────────────────
 
 interface AccessRowProps {
   icon: string;
@@ -186,6 +210,163 @@ function AccessRow({ icon, roleLabel, name, mapsUrl, isFirst }: AccessRowProps) 
         }}
       >
         <div style={{ paddingLeft: 46, paddingBottom: 13 }}>
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 7,
+              textDecoration: 'none',
+              background: 'rgba(255,255,255,0.92)',
+              color: 'var(--flow-700)',
+              fontWeight: 700,
+              fontSize: 13.5,
+              borderRadius: 'var(--r-pill)',
+              padding: '8px 14px',
+            }}
+          >
+            <Icon name="navigation" size={14} />Get directions
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── AccessPointRow (accordion) — rich AP object ───────────────────────────────
+// Used when detail.sectionAccess is present (preferred path).
+
+interface AccessPointRowProps {
+  ap: any;
+  isFirst: boolean;
+}
+
+function AccessPointRow({ ap, isFirst }: AccessPointRowProps) {
+  const [open, setOpen] = useState(false);
+  const hasDetails = !!(ap.notes || ap.directions);
+
+  const mapsUrl =
+    ap.latitude != null && ap.longitude != null
+      ? `https://www.google.com/maps/dir/?api=1&destination=${ap.latitude},${ap.longitude}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ap.name ?? 'river access')}`;
+
+  const icon =
+    ap.kind === 'put-in' ? 'navigation'
+    : ap.kind === 'take-out' ? 'flag'
+    : 'map-pin';
+
+  const roleLabel =
+    ap.kind === 'put-in' ? 'Put-in'
+    : ap.kind === 'take-out' ? 'Take-out'
+    : ap.kind === 'alternative' ? 'Alternative access'
+    : 'Access point';
+
+  return (
+    <div style={{ borderTop: isFirst ? 'none' : '1px solid rgba(255,255,255,0.12)' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: '11px 0',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          color: '#fff',
+          textAlign: 'left',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <div
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 9,
+            flexShrink: 0,
+            background: 'rgba(255,255,255,0.16)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Icon name={icon} size={17} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10.5,
+              color: 'var(--fg-on-sky-2)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {roleLabel}
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 700, marginTop: 1 }}>{ap.name}</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {ap.fee != null && (
+            <span
+              style={{
+                fontSize: 10.5,
+                fontWeight: 700,
+                background: 'rgba(255,255,255,0.16)',
+                borderRadius: 'var(--r-pill)',
+                padding: '3px 8px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ${ap.fee}
+            </span>
+          )}
+          <Icon
+            name="chevron-down"
+            size={18}
+            color="var(--fg-on-sky-2)"
+            style={{
+              transition: 'transform 0.2s',
+              transform: open ? 'rotate(180deg)' : undefined,
+            }}
+          />
+        </div>
+      </button>
+      <div
+        style={{
+          maxHeight: open ? 320 : 0,
+          overflow: 'hidden',
+          transition: 'max-height 0.26s ease',
+        }}
+      >
+        <div style={{ paddingLeft: 46, paddingBottom: 13 }}>
+          {ap.notes && (
+            <div
+              style={{
+                fontSize: 13.5,
+                color: 'var(--fg-on-sky-1)',
+                lineHeight: 1.5,
+                marginBottom: 8,
+              }}
+            >
+              {ap.notes}
+            </div>
+          )}
+          {ap.directions && (
+            <div
+              style={{
+                fontSize: 13,
+                color: 'var(--fg-on-sky-2)',
+                lineHeight: 1.45,
+                marginBottom: 8,
+              }}
+            >
+              {ap.directions}
+            </div>
+          )}
           <a
             href={mapsUrl}
             target="_blank"
@@ -352,341 +533,196 @@ function RapidRow({ rapid, isFirst }: { rapid: any; isFirst: boolean }) {
   );
 }
 
-// ── WeatherModule ─────────────────────────────────────────────────────────
+// WeatherModule, SnowpackModule, DamReleaseModule are imported from '../ds'
 
-const conditionToIcon: Record<string, string> = {
-  'clear': 'sun',
-  'partly-cloudy': 'cloud-sun',
-  'cloudy': 'cloud',
-  'fog': 'cloud-fog',
-  'rain': 'cloud-rain',
-  'snow': 'cloud-snow',
-  'thunderstorm': 'cloud-bolt',
-};
+// ── GradientVelocityModule ────────────────────────────────────────────────
+// Renders a 2-up (or 3-up) MetricTile grid for gradient, velocity, and optionally
+// elevation drop. Returns null when all values are null.
 
-function dayShort(iso: string, idx: number): string {
-  if (idx === 0) return 'Today';
-  const [y, m, d] = iso.split('-').map(Number);
-  const date = new Date(y, (m || 1) - 1, d || 1);
-  return date.toLocaleDateString(undefined, { weekday: 'short' });
+interface GradientVelocityProps {
+  gradient: number | null;
+  velocity: number | null;
+  elevationDrop: number | null;
 }
 
-function WeatherModule({ forecast }: { forecast: any[] }) {
-  if (!forecast?.length) return null;
-  const today = forecast[0];
-  const todayCond = today?.condition ?? null;
-  const todayIcon = conditionToIcon[todayCond] ?? 'cloud';
-  const todayHigh = today?.tempHighF != null ? Math.round(today.tempHighF) : null;
-  const todayLow = today?.tempLowF != null ? Math.round(today.tempLowF) : null;
+function GradientVelocityModule({ gradient, velocity, elevationDrop }: GradientVelocityProps) {
+  const hasAny = gradient != null || velocity != null || elevationDrop != null;
+  if (!hasAny) return null;
+
+  const cols = [gradient, velocity, elevationDrop].filter(v => v != null).length;
 
   return (
-    <Module label="Weather" icon="cloud" style={{ marginTop: 14 }}>
-      {/* current day summary */}
-      {today && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            marginBottom: 14,
-            paddingBottom: 14,
-            borderBottom: '1px solid rgba(255,255,255,0.14)',
-          }}
-        >
-          <Icon name={todayIcon} size={36} color="#fff" />
-          <div>
-            <div
-              style={{
-                fontSize: 28,
-                fontWeight: 300,
-                lineHeight: 1,
-                fontVariantNumeric: 'tabular-nums',
-                color: '#fff',
-              }}
-            >
-              {todayHigh != null ? `${todayHigh}°` : '—'}
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                color: 'var(--fg-on-sky-2)',
-                marginTop: 3,
-              }}
-            >
-              {todayCond ?? 'Unknown'} · Low {todayLow != null ? `${todayLow}°` : '—'}
-              {today.precipProb > 0 ? ` · ${Math.round(today.precipProb)}% precip` : ''}
-            </div>
-          </div>
-        </div>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gap: 12,
+        marginTop: 14,
+      }}
+    >
+      {gradient != null && (
+        <Module>
+          <MetricTile icon="trending-down" label="Gradient" value={gradient} unit="ft/mi" />
+        </Module>
       )}
-
-      {/* multi-day strip */}
-      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
-        {forecast.slice(0, 10).map((w: any, idx: number) => {
-          const cond = w.condition ?? null;
-          const ic = conditionToIcon[cond] ?? 'cloud';
-          const hi = w.tempHighF != null ? Math.round(w.tempHighF) : null;
-          const lo = w.tempLowF != null ? Math.round(w.tempLowF) : null;
-          const precip = w.precipProb != null && w.precipProb > 0 ? Math.round(w.precipProb) : null;
-          return (
-            <div
-              key={w.date ?? idx}
-              style={{
-                flex: '0 0 auto',
-                width: 54,
-                padding: '8px 4px',
-                borderRadius: 'var(--r-md)',
-                background: idx === 0 ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.10)',
-                border: idx === 0 ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.14)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 9.5,
-                  fontWeight: 700,
-                  color: 'rgba(255,255,255,0.75)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {dayShort(w.date, idx)}
-              </div>
-              <Icon name={ic} size={18} color="#fff" strokeWidth={1.6} />
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: '#fff',
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {hi != null ? `${hi}°` : '—'}
-              </div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  color: 'var(--fg-on-sky-3)',
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {lo != null ? `${lo}°` : '—'}
-              </div>
-              {precip != null && (
-                <div
-                  style={{
-                    fontSize: 9,
-                    color: 'rgba(126,186,228,0.85)',
-                    fontWeight: 600,
-                    fontFamily: 'var(--font-mono)',
-                  }}
-                >
-                  {precip}%
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <div
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          color: 'var(--fg-on-sky-3)',
-          marginTop: 8,
-        }}
-      >
-        Open-Meteo · {forecast.length}-day forecast
-      </div>
-    </Module>
+      {velocity != null && (
+        <Module>
+          <MetricTile icon="wind" label="Velocity" value={velocity} unit="ft/s" />
+        </Module>
+      )}
+      {elevationDrop != null && (
+        <Module>
+          <MetricTile icon="arrow-down" label="Elev. drop" value={elevationDrop} unit="ft" />
+        </Module>
+      )}
+    </div>
   );
 }
 
-// ── SnowpackModule ────────────────────────────────────────────────────────
+// ── HistoricContextModule ─────────────────────────────────────────────────
+// Shows the current flow vs the long-term record for this date:
+//   • big pct-of-median headline
+//   • cfs line: today vs n-yr median
+//   • range bar with median tick + today marker
+//   • footer percentile note
 
-function SnowpackModule({ snowpack }: { snowpack: any[] }) {
-  if (!snowpack?.length) return null;
-  const s = snowpack[0];
-  const pct = s?.latest?.swePercentMedian ?? null;
-  const swe = s?.latest?.sweInches ?? null;
-  const depth = s?.latest?.snowDepthInches ?? null;
-  const basin = s?.basin ?? null;
-  if (pct == null && swe == null) return null;
+interface HistoricCtx {
+  pct: number;
+  word: string;
+  percentileApprox: number;
+  median: number;
+  min: number;
+  max: number;
+  p10: number;
+  p90: number;
+  years: number;
+  current: number;
+}
 
-  const statusWord =
-    pct == null ? null
-    : pct >= 130 ? 'Above normal'
-    : pct >= 90 ? 'Near normal'
-    : pct >= 70 ? 'Below normal'
-    : 'Well below normal';
+function HistoricContextModule({ ctx }: { ctx: HistoricCtx | null }) {
+  if (!ctx) return null;
+
+  const today = new Date();
+  const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  const range = ctx.max - ctx.min;
+  const fr = (v: number) => range > 0 ? Math.max(0, Math.min(1, (v - ctx.min) / range)) : 0;
+
+  const medianFr = fr(ctx.median);
+  const currentFr = fr(ctx.current);
 
   return (
-    <Module label="Basin snowpack" icon="snowflake" style={{ marginTop: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-        {pct != null && (
-          <>
-            <span
-              style={{
-                fontWeight: 300,
-                fontSize: 44,
-                lineHeight: 1,
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              {Math.round(pct)}%
-            </span>
-            <span style={{ fontSize: 14, color: 'var(--fg-on-sky-2)' }}>of normal</span>
-            {statusWord && (
-              <span
-                style={{
-                  marginLeft: 'auto',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: '#fff',
-                }}
-              >
-                {statusWord}
-              </span>
-            )}
-          </>
-        )}
-      </div>
-      {basin && (
-        <div
+    <Module label="Historic context" icon="clock" style={{ marginTop: 14 }}>
+      {/* headline row */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+        <span
           style={{
+            fontWeight: 300,
+            fontSize: 38,
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            color: '#fff',
+          }}
+        >
+          {ctx.pct}%
+        </span>
+        <span style={{ fontSize: 14, color: 'var(--fg-on-sky-2)' }}>
+          of median for {dateLabel}
+        </span>
+        <span
+          style={{
+            marginLeft: 'auto',
             fontSize: 14.5,
             fontWeight: 700,
             color: '#fff',
-            marginTop: 10,
+            whiteSpace: 'nowrap',
           }}
         >
-          {basin}
-        </div>
-      )}
+          {ctx.word}
+        </span>
+      </div>
+
+      {/* cfs summary line */}
       <div
         style={{
-          display: 'flex',
-          marginTop: 14,
-          paddingTop: 12,
-          borderTop: '1px solid rgba(255,255,255,0.14)',
-          gap: 0,
+          fontSize: 13,
+          color: 'var(--fg-on-sky-1)',
+          marginTop: 5,
         }}
       >
-        {[
-          ['SWE', swe != null ? `${swe.toFixed(1)} in` : null],
-          ['Depth', depth != null ? `${Math.round(depth)} in` : null],
-        ]
-          .filter(([, v]) => v != null)
-          .map(([l, v], k) => (
-            <div
-              key={l as string}
-              style={{
-                flex: 1,
-                borderLeft: k ? '1px solid rgba(255,255,255,0.12)' : 'none',
-                paddingLeft: k ? 12 : 0,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: '0.09em',
-                  textTransform: 'uppercase',
-                  color: 'var(--fg-on-sky-3)',
-                }}
-              >
-                {l}
-              </div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 13,
-                  marginTop: 6,
-                }}
-              >
-                {v}
-              </div>
-            </div>
-          ))}
+        Today{' '}
+        <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+          {ctx.current.toLocaleString()}
+        </span>{' '}
+        cfs · {ctx.years}-yr median{' '}
+        <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+          {ctx.median.toLocaleString()}
+        </span>{' '}
+        cfs
       </div>
-    </Module>
-  );
-}
 
-// ── DamReleaseModule ──────────────────────────────────────────────────────
-
-function DamReleaseModule({
-  reservoirs,
-  damControlled,
-  riverName,
-}: {
-  reservoirs: any[];
-  damControlled: boolean;
-  riverName: string;
-}) {
-  const res = reservoirs?.[0];
-  const outflow = res?.latest?.outflowCfs ?? null;
-  const resName = res?.reservoir ?? null;
-
-  if (!res && !damControlled) return null;
-
-  if (!res) {
-    // damControlled but no reservoir data yet
-    return (
-      <Module label="Dam release" icon="droplet" style={{ marginTop: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, color: 'var(--fg-on-sky-1)' }}>
-          <Icon name="triangle-alert" size={22} color="var(--status-high, var(--high-fg))" />
-          <div style={{ fontSize: 14.5, lineHeight: 1.4 }}>
-            Dam-controlled — release data unavailable.
-          </div>
-        </div>
-      </Module>
-    );
-  }
-
-  return (
-    <Module label="Dam release" icon="droplet" style={{ marginTop: 14 }}>
-      {outflow != null && (
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span
-            style={{
-              fontWeight: 300,
-              fontSize: 40,
-              lineHeight: 1,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {outflow.toLocaleString()}
-          </span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--fg-on-sky-2)' }}>
-            cfs outflow
-          </span>
-        </div>
-      )}
-      {resName && (
+      {/* range bar */}
+      <div style={{ marginTop: 18, marginBottom: 4 }}>
         <div
           style={{
+            position: 'relative',
+            height: 6,
+            borderRadius: 3,
+            background: 'rgba(255,255,255,0.16)',
+          }}
+        >
+          {/* median tick */}
+          <div
+            style={{
+              position: 'absolute',
+              top: -4,
+              left: `calc(${medianFr * 100}% - 1px)`,
+              width: 2,
+              height: 14,
+              background: 'rgba(255,255,255,0.55)',
+              borderRadius: 1,
+            }}
+          />
+          {/* today marker */}
+          <div
+            style={{
+              position: 'absolute',
+              top: -4,
+              left: `calc(${currentFr * 100}% - 7px)`,
+              width: 14,
+              height: 14,
+              borderRadius: 99,
+              background: '#fff',
+              boxShadow: '0 0 0 2px var(--flow-600), 0 1px 3px rgba(6,19,33,0.4)',
+            }}
+          />
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
             fontFamily: 'var(--font-mono)',
-            fontSize: 11,
+            fontSize: 10,
             color: 'var(--fg-on-sky-3)',
             marginTop: 8,
           }}
         >
-          {resName}
+          <span>Low {ctx.min.toLocaleString()}</span>
+          <span>High {ctx.max.toLocaleString()}</span>
         </div>
-      )}
-      {!outflow && !resName && (
-        <div style={{ fontSize: 14.5, color: 'var(--fg-on-sky-1)' }}>
-          Release data unavailable for {riverName}.
-        </div>
-      )}
+      </div>
+
+      {/* footer */}
+      <div
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 11,
+          color: 'var(--fg-on-sky-3)',
+          marginTop: 8,
+        }}
+      >
+        {ctx.percentileApprox}th percentile · {ctx.years}-yr record
+      </div>
     </Module>
   );
 }
@@ -772,6 +808,12 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
     }
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name ?? 'river access')}`;
   };
+
+  // Section nav from siblingSections
+  const siblings = detail.siblingSections ?? [];
+  const sibIdx = siblings.findIndex(s => s.id === detail.id);
+  const prevSib = sibIdx > 0 ? siblings[sibIdx - 1] : null;
+  const nextSib = sibIdx >= 0 && sibIdx < siblings.length - 1 ? siblings[sibIdx + 1] : null;
 
   const hasRapids = detail.rapids?.length > 0;
   const hasWeather = detail.weatherForecast?.length > 0;
@@ -1065,6 +1107,16 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
         </div>
       </div>
 
+      {/* ── historic context ── */}
+      <HistoricContextModule ctx={detail.historicContext ?? null} />
+
+      {/* ── gradient + velocity ── */}
+      <GradientVelocityModule
+        gradient={detail.gradient ?? null}
+        velocity={detail.velocity ?? null}
+        elevationDrop={detail.elevationDrop ?? null}
+      />
+
       {/* ── section map ── */}
       <Module label="Section map" icon="map" style={{ marginTop: 14 }}>
         <GeoMap
@@ -1084,28 +1136,119 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
       </Module>
 
       {/* ── access accordion ── */}
-      {(putInName || takeOutName) && (
-        <Module label="Access" icon="navigation" style={{ marginTop: 14, paddingBottom: 6 }}>
-          {putInName && (
-            <AccessRow
-              icon="navigation"
-              roleLabel="Put-in"
-              name={putInName}
-              mapsUrl={makeMapsUrl(putInName)}
-              isFirst={true}
-            />
-          )}
-          {takeOutName && (
-            <AccessRow
-              icon="flag"
-              roleLabel="Take-out"
-              name={takeOutName}
-              mapsUrl={makeMapsUrl(takeOutName)}
-              isFirst={!putInName}
-            />
-          )}
-        </Module>
-      )}
+      {(() => {
+        const sa = detail.sectionAccess;
+        if (sa) {
+          // Rich AP path: drive from sectionAccess object
+          const apRows: Array<{ ap: any; isFirst: boolean }> = [];
+          if (sa.putIn) apRows.push({ ap: { ...sa.putIn, kind: 'put-in' }, isFirst: apRows.length === 0 });
+          for (const alt of (sa.alternatives ?? [])) {
+            apRows.push({ ap: { ...alt, kind: 'alternative' }, isFirst: apRows.length === 0 });
+          }
+          if (sa.takeOut) apRows.push({ ap: { ...sa.takeOut, kind: 'take-out' }, isFirst: apRows.length === 0 });
+          if (!apRows.length) return null;
+
+          // Section nav header content
+          const navHeader = (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
+              {prevSib ? (
+                <button onClick={() => navigate(`/section/${prevSib.id}`)} style={arrowBtn}>
+                  <Icon name="chevron-left" size={17} />
+                </button>
+              ) : (
+                <span style={{ width: 32, height: 32, flexShrink: 0 }} />
+              )}
+              <div style={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    color: 'var(--fg-on-sky-3)',
+                    letterSpacing: '0.13em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Access
+                </div>
+                <div
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 800,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {detail.section}
+                </div>
+              </div>
+              {nextSib ? (
+                <button onClick={() => navigate(`/section/${nextSib.id}`)} style={arrowBtn}>
+                  <Icon name="chevron-right" size={17} />
+                </button>
+              ) : (
+                <span style={{ width: 32, height: 32, flexShrink: 0 }} />
+              )}
+            </div>
+          );
+
+          return (
+            <Module label="" icon="navigation" style={{ marginTop: 14, paddingBottom: 6 }}>
+              <div style={{ marginBottom: 6, color: '#fff' }}>{navHeader}</div>
+              {apRows.map(({ ap, isFirst }) => (
+                <AccessPointRow key={ap.id ?? ap.name} ap={ap} isFirst={isFirst} />
+              ))}
+            </Module>
+          );
+        }
+
+        // Fallback: string-based put-in/take-out
+        if (!putInName && !takeOutName) return null;
+        return (
+          <Module label="Access" icon="navigation" style={{ marginTop: 14, paddingBottom: 6 }}>
+            {siblings.length > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginBottom: 6, color: '#fff' }}>
+                {prevSib ? (
+                  <button onClick={() => navigate(`/section/${prevSib.id}`)} style={arrowBtn}>
+                    <Icon name="chevron-left" size={17} />
+                  </button>
+                ) : (
+                  <span style={{ width: 32, height: 32, flexShrink: 0 }} />
+                )}
+                <div style={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--fg-on-sky-3)', letterSpacing: '0.13em', textTransform: 'uppercase' }}>Access</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{detail.section}</div>
+                </div>
+                {nextSib ? (
+                  <button onClick={() => navigate(`/section/${nextSib.id}`)} style={arrowBtn}>
+                    <Icon name="chevron-right" size={17} />
+                  </button>
+                ) : (
+                  <span style={{ width: 32, height: 32, flexShrink: 0 }} />
+                )}
+              </div>
+            )}
+            {putInName && (
+              <AccessRow
+                icon="navigation"
+                roleLabel="Put-in"
+                name={putInName}
+                mapsUrl={makeMapsUrl(putInName)}
+                isFirst={true}
+              />
+            )}
+            {takeOutName && (
+              <AccessRow
+                icon="flag"
+                roleLabel="Take-out"
+                name={takeOutName}
+                mapsUrl={makeMapsUrl(takeOutName)}
+                isFirst={!putInName}
+              />
+            )}
+          </Module>
+        );
+      })()}
 
       {/* ── rapids ── */}
       {hasRapids && (
@@ -1130,6 +1273,10 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
           riverName={detail.river}
         />
       )}
+
+      {/* ── guides + shuttle ── */}
+      <GuidesModule outfitters={detail.outfitters ?? []} />
+      <ShuttleModule businesses={detail.shuttleBusinesses ?? []} />
 
       {/* ── log CTA ── */}
       <button
@@ -1239,8 +1386,18 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
   const putInName = detail.putIn;
   const takeOutName = detail.takeOut;
 
-  const makeMapsUrl = (name: string | null) =>
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name ?? 'river access')}`;
+  const makeMapsUrl = (name: string | null, lat?: number | null, lng?: number | null) => {
+    if (lat != null && lng != null) {
+      return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name ?? 'river access')}`;
+  };
+
+  // Section nav from siblingSections
+  const siblings = detail.siblingSections ?? [];
+  const sibIdx = siblings.findIndex(s => s.id === detail.id);
+  const prevSib = sibIdx > 0 ? siblings[sibIdx - 1] : null;
+  const nextSib = sibIdx >= 0 && sibIdx < siblings.length - 1 ? siblings[sibIdx + 1] : null;
 
   const hasRapids = detail.rapids?.length > 0;
   const hasWeather = detail.weatherForecast?.length > 0;
@@ -1511,29 +1668,107 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
               </div>
             </div>
 
+            {/* historic context */}
+            <HistoricContextModule ctx={detail.historicContext ?? null} />
+
+            {/* gradient + velocity */}
+            <GradientVelocityModule
+              gradient={detail.gradient ?? null}
+              velocity={detail.velocity ?? null}
+              elevationDrop={detail.elevationDrop ?? null}
+            />
+
             {/* access accordion */}
-            {(putInName || takeOutName) && (
-              <Module label="Access" icon="navigation" style={{ paddingBottom: 6 }}>
-                {putInName && (
-                  <AccessRow
-                    icon="navigation"
-                    roleLabel="Put-in"
-                    name={putInName}
-                    mapsUrl={makeMapsUrl(putInName)}
-                    isFirst={true}
-                  />
-                )}
-                {takeOutName && (
-                  <AccessRow
-                    icon="flag"
-                    roleLabel="Take-out"
-                    name={takeOutName}
-                    mapsUrl={makeMapsUrl(takeOutName)}
-                    isFirst={!putInName}
-                  />
-                )}
-              </Module>
-            )}
+            {(() => {
+              const sa = detail.sectionAccess;
+              if (sa) {
+                const apRows: Array<{ ap: any; isFirst: boolean }> = [];
+                if (sa.putIn) apRows.push({ ap: { ...sa.putIn, kind: 'put-in' }, isFirst: apRows.length === 0 });
+                for (const alt of (sa.alternatives ?? [])) {
+                  apRows.push({ ap: { ...alt, kind: 'alternative' }, isFirst: apRows.length === 0 });
+                }
+                if (sa.takeOut) apRows.push({ ap: { ...sa.takeOut, kind: 'take-out' }, isFirst: apRows.length === 0 });
+                if (!apRows.length) return null;
+
+                const navHeader = (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
+                    {prevSib ? (
+                      <button onClick={() => navigate(`/section/${prevSib.id}`)} style={arrowBtn}>
+                        <Icon name="chevron-left" size={17} />
+                      </button>
+                    ) : (
+                      <span style={{ width: 32, height: 32, flexShrink: 0 }} />
+                    )}
+                    <div style={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--fg-on-sky-3)', letterSpacing: '0.13em', textTransform: 'uppercase' }}>Access</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{detail.section}</div>
+                    </div>
+                    {nextSib ? (
+                      <button onClick={() => navigate(`/section/${nextSib.id}`)} style={arrowBtn}>
+                        <Icon name="chevron-right" size={17} />
+                      </button>
+                    ) : (
+                      <span style={{ width: 32, height: 32, flexShrink: 0 }} />
+                    )}
+                  </div>
+                );
+
+                return (
+                  <Module label="" icon="navigation" style={{ paddingBottom: 6 }}>
+                    <div style={{ marginBottom: 6, color: '#fff' }}>{navHeader}</div>
+                    {apRows.map(({ ap, isFirst }) => (
+                      <AccessPointRow key={ap.id ?? ap.name} ap={ap} isFirst={isFirst} />
+                    ))}
+                  </Module>
+                );
+              }
+
+              if (!putInName && !takeOutName) return null;
+              return (
+                <Module label="Access" icon="navigation" style={{ paddingBottom: 6 }}>
+                  {siblings.length > 1 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginBottom: 6, color: '#fff' }}>
+                      {prevSib ? (
+                        <button onClick={() => navigate(`/section/${prevSib.id}`)} style={arrowBtn}>
+                          <Icon name="chevron-left" size={17} />
+                        </button>
+                      ) : (
+                        <span style={{ width: 32, height: 32, flexShrink: 0 }} />
+                      )}
+                      <div style={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--fg-on-sky-3)', letterSpacing: '0.13em', textTransform: 'uppercase' }}>Access</div>
+                        <div style={{ fontSize: 15, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{detail.section}</div>
+                      </div>
+                      {nextSib ? (
+                        <button onClick={() => navigate(`/section/${nextSib.id}`)} style={arrowBtn}>
+                          <Icon name="chevron-right" size={17} />
+                        </button>
+                      ) : (
+                        <span style={{ width: 32, height: 32, flexShrink: 0 }} />
+                      )}
+                    </div>
+                  )}
+                  {putInName && (
+                    <AccessRow
+                      icon="navigation"
+                      roleLabel="Put-in"
+                      name={putInName}
+                      mapsUrl={makeMapsUrl(putInName)}
+                      isFirst={true}
+                    />
+                  )}
+                  {takeOutName && (
+                    <AccessRow
+                      icon="flag"
+                      roleLabel="Take-out"
+                      name={takeOutName}
+                      mapsUrl={makeMapsUrl(takeOutName)}
+                      isFirst={!putInName}
+                    />
+                  )}
+                </Module>
+              );
+            })()}
 
             {/* rapids */}
             {hasRapids && (
@@ -1546,9 +1781,12 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
 
             {/* weather */}
             {hasWeather && <WeatherModule forecast={detail.weatherForecast} />}
+
+            {/* shuttle */}
+            <ShuttleModule businesses={detail.shuttleBusinesses ?? []} />
           </div>
 
-          {/* right column — map, snowpack, dam */}
+          {/* right column — map, snowpack, dam, guides */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Module label="Section map" icon="map">
               <GeoMap
@@ -1575,6 +1813,9 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
                 riverName={detail.river}
               />
             )}
+
+            {/* guides */}
+            <GuidesModule outfitters={detail.outfitters ?? []} />
           </div>
         </div>
 

@@ -2,6 +2,7 @@ import { fetchWithRetry, compositeId, isoDate, daysAgo, tomorrow } from '../util
 
 const API_BASE = 'https://api.waterdata.usgs.gov/ogcapi/v0/collections';
 const DISCHARGE = '00060';
+const WATER_TEMP = '00010';
 
 interface OGCFeature {
 	properties: {
@@ -103,4 +104,70 @@ export async function fetchContinuousRange(siteIds: string[], start: Date, end: 
 
 export function buildSiteUrl(siteId: string): string {
 	return `https://waterdata.usgs.gov/monitoring-location/${siteId}/`;
+}
+
+// ---------------------------------------------------------------------------
+// Water temperature (parameter 00010)
+// ---------------------------------------------------------------------------
+
+export interface WaterTempRecord {
+	id: string;
+	gaugeId: string;
+	timestamp: string;
+	tempC: number;
+	tempF: number;
+	source: string;
+}
+
+/** Pure parser — accepts a raw OGC Features JSON response and returns water-temp records.
+ *  No-data sentinel values (≤ -999999) and NaN are skipped.
+ *  Exported so it can be unit-tested without network I/O.
+ */
+export function parseUsgsWaterTempResponse(data: OGCResponse, source = 'usgs-iv'): WaterTempRecord[] {
+	if (!data?.features) return [];
+	const records: WaterTempRecord[] = [];
+
+	for (const f of data.features) {
+		const p = f.properties;
+		if (p.parameter_code !== WATER_TEMP) continue;
+
+		const tempC = parseFloat(p.value);
+		if (isNaN(tempC) || tempC <= -999999) continue;
+
+		const locId = p.monitoring_location_id;
+		const siteCode = locId.startsWith('USGS-') ? locId.slice(5) : locId;
+		const gaugeId = `usgs-${siteCode}`;
+		const timestamp = new Date(p.time).toISOString();
+
+		records.push({
+			id: compositeId([gaugeId, timestamp, 'wt']),
+			gaugeId,
+			timestamp,
+			tempC,
+			tempF: parseFloat((tempC * 9 / 5 + 32).toFixed(4)),
+			source,
+		});
+	}
+	return records;
+}
+
+async function fetchAllTempPages(url: string, source: string, maxPages = 10): Promise<WaterTempRecord[]> {
+	const records: WaterTempRecord[] = [];
+	let currentUrl: string | null = url;
+
+	for (let page = 0; page < maxPages && currentUrl; page++) {
+		const data: OGCResponse = await fetchWithRetry(currentUrl);
+		records.push(...parseUsgsWaterTempResponse(data, source));
+		const next = data.links?.find(l => l.rel === 'next');
+		currentUrl = next?.href || null;
+	}
+	return records;
+}
+
+/** Fetch recent water temperature readings for the given USGS site IDs. */
+export async function fetchUsgsWaterTemp(siteIds: string[], periodHours = 24): Promise<WaterTempRecord[]> {
+	const now = new Date();
+	const start = new Date(now.getTime() - periodHours * 3600_000);
+	const url = `${API_BASE}/continuous/items?monitoring_location_id=${siteParam(siteIds)}&parameter_code=${WATER_TEMP}&datetime=${isoDate(start)}/${isoDate(tomorrow())}&f=json&limit=10000`;
+	return fetchAllTempPages(url, 'usgs-iv');
 }

@@ -21,6 +21,10 @@ import {
   Sparkline,
   statusColor,
   statusLabel,
+  SnowpackModule,
+  DamReleaseModule,
+  ShuttleModule,
+  GuidesModule,
 } from '../ds';
 import { GeoMap } from '../components/GeoMap';
 import type { DesignStatus } from '../constants';
@@ -509,6 +513,395 @@ function AccessPointRow({ ap, isFirst }: AccessPointRowProps) {
   );
 }
 
+// ── PermitModule ──────────────────────────────────────────────────────────────
+
+interface PermitModuleProps {
+  permits: Array<{
+    id: string;
+    name: string;
+    agency: string;
+    required: boolean | null;
+    feeUsd: number | null;
+    feeNote: string | null;
+    season: string | null;
+    detail: string | null;
+    url: string | null;
+  }>;
+}
+
+function PermitModule({ permits }: PermitModuleProps) {
+  if (!permits?.length) return null;
+  const p = permits[0];
+  const feeDisplay = p.feeNote ?? (p.feeUsd != null ? `$${p.feeUsd}` : '—');
+  const seasonDisplay = p.season ?? '—';
+  const requiredLabel = p.required === true ? 'Required' : p.required === false ? 'Not required' : 'Check locally';
+
+  return (
+    <Module label="Permits & regulations" icon="shield-check" style={{ marginTop: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>{p.name}</div>
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11.5,
+              color: 'var(--fg-on-sky-2)',
+              marginTop: 2,
+            }}
+          >
+            {p.agency}
+          </div>
+        </div>
+        <span
+          style={{
+            flexShrink: 0,
+            fontSize: 11.5,
+            fontWeight: 700,
+            color: '#fff',
+            background: 'rgba(255,255,255,0.16)',
+            borderRadius: 'var(--r-pill)',
+            padding: '5px 11px',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {requiredLabel}
+        </span>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          gap: 0,
+          marginTop: 14,
+          paddingTop: 12,
+          borderTop: '1px solid rgba(255,255,255,0.14)',
+        }}
+      >
+        {[['Fee', feeDisplay], ['Season', seasonDisplay]].map(([l, v], k) => (
+          <div
+            key={l as string}
+            style={{
+              flex: 1,
+              borderLeft: k ? '1px solid rgba(255,255,255,0.12)' : 'none',
+              paddingLeft: k ? 12 : 0,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 10.5,
+                fontWeight: 700,
+                letterSpacing: '0.09em',
+                textTransform: 'uppercase',
+                color: 'var(--fg-on-sky-3)',
+              }}
+            >
+              {l}
+            </div>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: '#fff',
+                marginTop: 5,
+              }}
+            >
+              {v}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {p.detail && (
+        <div
+          style={{
+            fontSize: 13.5,
+            color: 'var(--fg-on-sky-1)',
+            lineHeight: 1.45,
+            marginTop: 12,
+          }}
+        >
+          {p.detail}
+        </div>
+      )}
+    </Module>
+  );
+}
+
+// ── WaterTempModule ───────────────────────────────────────────────────────────
+
+interface WaterTempModuleProps {
+  temps: Array<{
+    gaugeId: string;
+    label: string;
+    tempF: number;
+    timestamp: string;
+  }>;
+}
+
+function WaterTempModule({ temps }: WaterTempModuleProps) {
+  if (!temps?.length) return null;
+  const coldest = Math.min(...temps.map(t => t.tempF));
+  const guideText =
+    coldest < 50
+      ? 'Cold — drysuit advised; cold-water immersion is a real risk.'
+      : coldest < 60
+      ? 'Cool — a wetsuit is recommended.'
+      : 'Mild — splashwear is fine for most boaters.';
+  const guideIcon = coldest < 50 ? 'triangle-alert' : 'droplet';
+  const guideColor = coldest < 50 ? 'var(--status-low, #e05a2b)' : 'var(--flow-300)';
+
+  return (
+    <Module label="Water temperature" icon="thermometer" style={{ marginTop: 14 }}>
+      <div style={{ display: 'flex', gap: 10 }}>
+        {temps.map((t, i) => (
+          <div
+            key={t.gaugeId ?? i}
+            style={{
+              flex: 1,
+              background: 'rgba(7,22,40,0.18)',
+              borderRadius: 'var(--r-md)',
+              padding: '11px 13px',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10.5,
+                color: 'var(--fg-on-sky-2)',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {t.label}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 5 }}>
+              <span
+                style={{
+                  fontWeight: 300,
+                  fontSize: 34,
+                  lineHeight: 1,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {Math.round(t.tempF)}°
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12,
+                  color: 'var(--fg-on-sky-3)',
+                }}
+              >
+                F
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 9,
+          marginTop: 12,
+          color: 'var(--fg-on-sky-1)',
+        }}
+      >
+        <Icon name={guideIcon} size={16} color={guideColor} />
+        <span style={{ fontSize: 13.5, lineHeight: 1.4 }}>{guideText}</span>
+      </div>
+    </Module>
+  );
+}
+
+// ── CorridorWeatherTile ───────────────────────────────────────────────────────
+
+const _conditionIconMap: Record<string, string> = {
+  clear: 'sun',
+  cloudy: 'cloud',
+  fog: 'cloud-fog',
+  rain: 'cloud-rain',
+  snow: 'cloud-snow',
+  thunderstorm: 'cloud-bolt',
+};
+
+function _condIcon(condition: string | null | undefined): string {
+  if (!condition) return 'cloud';
+  return _conditionIconMap[condition] ?? 'cloud';
+}
+
+function _hourLabel(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString(undefined, { hour: 'numeric', hour12: true });
+  } catch {
+    return iso;
+  }
+}
+
+interface CorridorWeatherTileProps {
+  current: {
+    tempF: number;
+    condition: string;
+    weatherCode: number;
+    humidityPct: number;
+    windMph: number;
+    uvIndex: number;
+    tempHighF: number;
+    tempLowF: number;
+  } | null;
+  hourly: Array<{
+    timestamp: string;
+    tempF: number;
+    condition: string;
+    weatherCode: number;
+  }>;
+}
+
+function CorridorWeatherTile({ current, hourly }: CorridorWeatherTileProps) {
+  if (!current) return null;
+
+  const condIcon = _condIcon(current.condition);
+
+  return (
+    <Module label="Weather" icon="cloud" style={{ marginTop: 14 }}>
+      {/* current conditions */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 12,
+          marginTop: 4,
+        }}
+      >
+        <Icon name={condIcon} size={42} color="#fff" />
+        <span
+          style={{
+            fontWeight: 200,
+            fontSize: 62,
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {Math.round(current.tempF)}°
+        </span>
+      </div>
+
+      <div
+        style={{
+          textAlign: 'center',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 13,
+          color: 'var(--fg-on-sky-1)',
+          marginTop: 6,
+        }}
+      >
+        {current.condition} · H {Math.round(current.tempHighF)}° · L {Math.round(current.tempLowF)}°
+      </div>
+
+      {/* stat row */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          marginTop: 16,
+          paddingTop: 14,
+          borderTop: '1px solid rgba(255,255,255,0.14)',
+        }}
+      >
+        {(
+          [
+            ['wind', 'Wind', `${current.windMph} mph`],
+            ['droplet', 'Humidity', `${current.humidityPct}%`],
+            ['sun', 'UV index', String(current.uvIndex)],
+          ] as [string, string, string][]
+        ).map(([ic, label, val]) => (
+          <div key={label} style={{ textAlign: 'center' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                justifyContent: 'center',
+                color: 'var(--fg-on-sky-2)',
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.09em',
+                textTransform: 'uppercase',
+              }}
+            >
+              <Icon name={ic} size={13} />
+              {label}
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 13.5,
+                marginTop: 6,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {val}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* hourly strip */}
+      {hourly?.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            overflowX: 'auto',
+            marginTop: 16,
+            paddingTop: 14,
+            borderTop: '1px solid rgba(255,255,255,0.14)',
+            gap: 4,
+          }}
+        >
+          {hourly.map((h, k) => (
+            <div
+              key={k}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 7,
+                flexShrink: 0,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11,
+                  color: 'var(--fg-on-sky-2)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {_hourLabel(h.timestamp)}
+              </span>
+              <Icon name={_condIcon(h.condition)} size={17} color="#fff" />
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {Math.round(h.tempF)}°
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </Module>
+  );
+}
+
 // ── DamNote ───────────────────────────────────────────────────────────────────
 
 function DamNote({ dams, corridorName }: { dams: any[]; corridorName: string }) {
@@ -526,215 +919,6 @@ function DamNote({ dams, corridorName }: { dams: any[]; corridorName: string }) 
             ? `Dam-controlled — ${upstreamDam.name} upstream`
             : `Free-flowing — the ${corridorName} tracks snowmelt directly`}
         </div>
-      </div>
-    </Module>
-  );
-}
-
-// ── ShuttleModule ─────────────────────────────────────────────────────────────
-
-function ShuttleModule({ businesses }: { businesses: any[] }) {
-  if (!businesses.length) return null;
-  return (
-    <Module label="Shuttle services" icon="bus" style={{ marginTop: 14 }}>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {businesses.map((s: any, i: number) => {
-          const rates = tryParseJson(s.ratesJson);
-          const rateLines = safeArr(rates);
-          return (
-            <div
-              key={s.id}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 12,
-                padding: '12px 0',
-                borderTop: i ? '1px solid rgba(255,255,255,0.12)' : 'none',
-              }}
-            >
-              <div
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 11,
-                  flexShrink: 0,
-                  background: 'rgba(255,255,255,0.16)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Icon name="bus" size={19} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>{s.name}</div>
-                {s.notes && (
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 11.5,
-                      color: 'var(--fg-on-sky-2)',
-                      marginTop: 2,
-                    }}
-                  >
-                    {s.notes}
-                  </div>
-                )}
-                {rateLines.length > 0 && (
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 11,
-                      color: 'var(--fg-on-sky-3)',
-                      marginTop: 4,
-                    }}
-                  >
-                    {rateLines.join(' · ')}
-                  </div>
-                )}
-              </div>
-              {s.phone && (
-                <a
-                  href={`tel:${s.phone}`}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    fontSize: 11.5,
-                    fontWeight: 700,
-                    color: 'var(--flow-700)',
-                    background: 'rgba(255,255,255,0.9)',
-                    borderRadius: 'var(--r-pill)',
-                    padding: '5px 11px',
-                    textDecoration: 'none',
-                    flexShrink: 0,
-                  }}
-                >
-                  <Icon name="phone" size={12} />Call
-                </a>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </Module>
-  );
-}
-
-// ── GuidesModule ──────────────────────────────────────────────────────────────
-
-function GuidesModule({ outfitters }: { outfitters: any[] }) {
-  if (!outfitters.length) return null;
-  return (
-    <Module label="Guides on this corridor" icon="users" style={{ marginTop: 14 }}>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {outfitters.map((o: any, i: number) => {
-          const trips = tryParseJson(o.tripTypesJson);
-          const tripList = safeArr(trips);
-          return (
-            <div
-              key={o.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '12px 0',
-                borderTop: i ? '1px solid rgba(255,255,255,0.12)' : 'none',
-              }}
-            >
-              <div
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 11,
-                  flexShrink: 0,
-                  background: 'rgba(255,255,255,0.16)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 800,
-                  fontSize: 15,
-                }}
-              >
-                {o.name?.[0] ?? 'G'}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {o.name}
-                </div>
-                {tripList.length > 0 && (
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 11.5,
-                      color: 'var(--fg-on-sky-2)',
-                      marginTop: 2,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {tripList.join(' · ')}
-                  </div>
-                )}
-                {o.notes && !tripList.length && (
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 11.5,
-                      color: 'var(--fg-on-sky-2)',
-                      marginTop: 2,
-                    }}
-                  >
-                    {o.notes}
-                  </div>
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                {o.phone && (
-                  <a
-                    href={`tel:${o.phone}`}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      fontSize: 11.5,
-                      fontWeight: 700,
-                      color: 'var(--flow-700)',
-                      background: 'rgba(255,255,255,0.9)',
-                      borderRadius: 'var(--r-pill)',
-                      padding: '5px 11px',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    <Icon name="phone" size={12} />Call
-                  </a>
-                )}
-                {o.website && (
-                  <a
-                    href={o.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      fontSize: 11.5,
-                      fontWeight: 700,
-                      color: 'var(--flow-700)',
-                      background: 'rgba(255,255,255,0.9)',
-                      borderRadius: 'var(--r-pill)',
-                      padding: '5px 11px',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    <Icon name="external-link" size={12} />Web
-                  </a>
-                )}
-              </div>
-            </div>
-          );
-        })}
       </div>
     </Module>
   );
@@ -892,6 +1076,23 @@ function MobileCorridorContent({ data, corridorSlug }: CorridorContentProps) {
             {locationLabel}
           </div>
         )}
+        {(() => {
+          const prose = (corridor?.summaryMd || corridor?.description || '').trim();
+          return prose ? (
+            <p
+              style={{
+                margin: '8px 0 0',
+                fontSize: 14.5,
+                color: 'var(--fg-on-sky-1)',
+                lineHeight: 1.45,
+                textWrap: 'pretty' as any,
+                textShadow: '0 1px 4px rgba(6,19,33,0.45)',
+              }}
+            >
+              {prose}
+            </p>
+          ) : null;
+        })()}
       </div>
 
       {/* ── gauge flow tile ── */}
@@ -991,14 +1192,38 @@ function MobileCorridorContent({ data, corridorSlug }: CorridorContentProps) {
         </Module>
       )}
 
+      {/* Basin snowpack */}
+      <SnowpackModule snowpack={data.snowpack ?? []} />
+
       {/* Dam / free-flowing note */}
       <DamNote dams={dams} corridorName={corridor?.name ?? 'river'} />
+
+      {/* Dam release — only when we have real reservoir data */}
+      {(data.reservoirs?.length ?? 0) > 0 && (
+        <DamReleaseModule
+          reservoirs={data.reservoirs}
+          damControlled={true}
+          riverName={corridor?.name ?? 'this river'}
+        />
+      )}
 
       {/* Shuttle services — omit if empty */}
       <ShuttleModule businesses={shuttles} />
 
       {/* Guides — omit if empty */}
       <GuidesModule outfitters={outfitters} />
+
+      {/* Permits & regulations */}
+      <PermitModule permits={data.permits ?? []} />
+
+      {/* Water temperature */}
+      <WaterTempModule temps={data.waterTemps ?? []} />
+
+      {/* Weather (current + hourly) */}
+      <CorridorWeatherTile
+        current={data.weatherCurrent ?? null}
+        hourly={data.weatherHourly ?? []}
+      />
 
       {/* Attribution footer */}
       <div
@@ -1126,6 +1351,27 @@ function DesktopCorridorContent({ data, corridorSlug }: CorridorContentProps) {
         {logBtn}
       </div>
 
+      {/* ── river summary prose ── */}
+      {(() => {
+        const prose = (corridor?.summaryMd || corridor?.description || '').trim();
+        return prose ? (
+          <div style={{ padding: '16px 36px 0', maxWidth: 1320, margin: '0 auto' }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 16,
+                color: 'var(--fg-on-sky-1)',
+                lineHeight: 1.5,
+                maxWidth: 760,
+                textWrap: 'pretty' as any,
+              }}
+            >
+              {prose}
+            </p>
+          </div>
+        ) : null;
+      })()}
+
       <div style={{ padding: '24px 36px 60px', maxWidth: 1320, margin: '0 auto' }}>
         {/* sections grid */}
         {sections.length > 0 && (
@@ -1175,7 +1421,15 @@ function DesktopCorridorContent({ data, corridorSlug }: CorridorContentProps) {
           {/* left column — flow + modules */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {gauges.length > 0 && <GaugeFlowTile gauges={gauges} />}
+            <SnowpackModule snowpack={data.snowpack ?? []} />
             <DamNote dams={dams} corridorName={corridor?.name ?? 'river'} />
+            {(data.reservoirs?.length ?? 0) > 0 && (
+              <DamReleaseModule
+                reservoirs={data.reservoirs}
+                damControlled={true}
+                riverName={corridor?.name ?? 'this river'}
+              />
+            )}
             {orderedAPs.length > 0 && (
               <Module label="Access points" icon="map-pin">
                 {orderedAPs.map((ap, i) => (
@@ -1186,7 +1440,7 @@ function DesktopCorridorContent({ data, corridorSlug }: CorridorContentProps) {
             <ShuttleModule businesses={shuttles} />
           </div>
 
-          {/* right column — schematic + guides */}
+          {/* right column — schematic + guides + new tiles */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {sections.length > 0 && (
               <Module label="Corridor map" icon="map">
@@ -1216,6 +1470,12 @@ function DesktopCorridorContent({ data, corridorSlug }: CorridorContentProps) {
               </Module>
             )}
             <GuidesModule outfitters={outfitters} />
+            <PermitModule permits={data.permits ?? []} />
+            <WaterTempModule temps={data.waterTemps ?? []} />
+            <CorridorWeatherTile
+              current={data.weatherCurrent ?? null}
+              hourly={data.weatherHourly ?? []}
+            />
           </div>
         </div>
 

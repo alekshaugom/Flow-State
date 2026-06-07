@@ -1,6 +1,8 @@
 import { Resource, tables } from 'harper';
 import { RIVERS, SECTIONS, GAUGES, RESERVOIRS, SNOWPACK_BASINS, DATA_SOURCES, FLOW_BANDS, WATERSHEDS, CORRIDORS, ACCESS_POINTS, IMPASSABLE_POINTS, RAPIDS, SHUTTLE_BUSINESSES, OUTFITTERS } from '../lib/seed-data.ts';
 import { SECTION_LEG_MAPPING, CURATED_ACCESS_POINTS } from '../lib/curated-river-data.ts';
+import { PERMITS } from '../lib/seed-permits.ts';
+import { SECTION_GEOMETRY } from '../lib/seed-section-geometry.ts';
 import { invalidateFlowBandsCache } from '../lib/flow-bands.ts';
 import { invalidateWatershedsCache } from '../lib/watersheds.ts';
 import { invalidateCorridorsCache } from '../lib/corridors.ts';
@@ -18,6 +20,19 @@ async function count(table: any): Promise<number> {
 	return n;
 }
 
+// L004-safe section-geometry patch: a keyed RiverSection.get() can return null
+// transiently right after a restart (silently patching 0 rows), so resolve the
+// set of existing section ids via a full-conditions scan first, then patch.
+async function patchSectionGeometry(): Promise<number> {
+	const ids = new Set<string>();
+	for await (const s of tables.RiverSection.search({ conditions: [] })) ids.add((s as any).id);
+	let n = 0;
+	for (const [sid, geo] of Object.entries(SECTION_GEOMETRY)) {
+		if (ids.has(sid)) { await tables.RiverSection.patch(sid, geo); n++; }
+	}
+	return n;
+}
+
 async function fullSeed(): Promise<Record<string, number>> {
 	for (const w of WATERSHEDS) await tables.Watershed.put(w.id, w);
 	for (const c of CORRIDORS) await tables.RiverCorridor.put(c.id, c);
@@ -30,6 +45,8 @@ async function fullSeed(): Promise<Record<string, number>> {
 	for (const b of SNOWPACK_BASINS) await tables.SnowpackBasin.put(b.id, b);
 	for (const d of DATA_SOURCES) await tables.DataSource.put(d.id, d);
 	for (const b of FLOW_BANDS) await tables.FlowBand.put(b.id, b);
+	for (const p of PERMITS) await (tables as any).Permit.put(p.id, p);
+	await patchSectionGeometry();
 	return {
 		watersheds: WATERSHEDS.length,
 		corridors: CORRIDORS.length,
@@ -42,6 +59,7 @@ async function fullSeed(): Promise<Record<string, number>> {
 		basins: SNOWPACK_BASINS.length,
 		sources: DATA_SOURCES.length,
 		flowBands: FLOW_BANDS.length,
+		permits: PERMITS.length,
 	};
 }
 
@@ -452,6 +470,34 @@ export class Seed extends Resource {
 			// Idempotent upsert of outfitters into the Outfitter table.
 			for (const o of OUTFITTERS) await (tables as any).Outfitter.put(o.id, o);
 			return { ok: true, action, outfitters: OUTFITTERS.length };
+		}
+
+		if (action === 'permits') {
+			// Idempotent upsert of permits into the Permit table.
+			for (const p of PERMITS) await (tables as any).Permit.put(p.id, p);
+			return { ok: true, action, permits: PERMITS.length };
+		}
+
+		if (action === 'section-geometry') {
+			// Idempotent patch of gradient/elevation/velocity onto existing RiverSection rows.
+			const n = await patchSectionGeometry();
+			return { ok: true, action, patched: n };
+		}
+
+		if (action === 'phase2') {
+			// Convenience: seed permits + section-geometry + shuttle-businesses + outfitters.
+			for (const p of PERMITS) await (tables as any).Permit.put(p.id, p);
+			const sectionGeometryPatched = await patchSectionGeometry();
+			for (const s of SHUTTLE_BUSINESSES) await (tables as any).ShuttleBusiness.put(s.id, s);
+			for (const o of OUTFITTERS) await (tables as any).Outfitter.put(o.id, o);
+			return {
+				ok: true,
+				action,
+				permits: PERMITS.length,
+				sectionGeometryPatched,
+				shuttleBusinesses: SHUTTLE_BUSINESSES.length,
+				outfitters: OUTFITTERS.length,
+			};
 		}
 
 		if (action === 'hierarchy') {

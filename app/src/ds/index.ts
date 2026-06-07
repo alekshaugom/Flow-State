@@ -23,3 +23,7 @@ export { statusColor, statusLabel } from './status';
 
 export { CorridorMap, SectionMap } from './CorridorSchematic';
 export type { CorridorMapProps, SectionMapProps, SchematicSection, SchematicAccessPoint, SchematicGauge } from './CorridorSchematic';
+
+export { WeatherModule, SnowpackModule, DamReleaseModule } from './ConditionModules';
+
+export { ShuttleModule, GuidesModule } from './CommerceModules';

@@ -1,0 +1,8 @@
+type WaterTempReading @table @export {
+	id: ID @primaryKey
+	gaugeId: ID @indexed
+	timestamp: String @indexed
+	tempC: Float
+	tempF: Float
+	source: String
+}

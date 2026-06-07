@@ -120,6 +120,48 @@ export interface DetailViewModel {
 	rapids: any[];
 	bounties: BountyListItem[];
 
+	outfitters?: any[];
+	shuttleBusinesses?: any[];
+	sectionAccess?: { putIn: any | null; takeOut: any | null; alternatives: any[] } | null;
+	siblingSections?: { id: string; name: string; sortIndex: number }[];
+	gradient?: number | null;
+	velocity?: number | null;
+	elevationDrop?: number | null;
+
+	weatherCurrent: {
+		id: string;
+		sectionId: string;
+		timestamp: string;
+		tempF: number | null;
+		condition: string | null;
+		weatherCode: number | null;
+		humidityPct: number | null;
+		windMph: number | null;
+		uvIndex: number | null;
+		tempHighF: number | null;
+		tempLowF: number | null;
+	} | null;
+	weatherHourly: Array<{
+		id: string;
+		sectionId: string;
+		timestamp: string;
+		tempF: number | null;
+		condition: string | null;
+		weatherCode: number | null;
+	}>;
+	historicContext: {
+		pct: number;
+		word: string;
+		percentileApprox: number;
+		median: number;
+		min: number;
+		max: number;
+		p10: number;
+		p90: number;
+		years: number;
+		current: number;
+	} | null;
+
 	flowThresholds: {
 		flowLow: number; flowRunnable: number;
 		flowIdealMin: number; flowIdealMax: number;

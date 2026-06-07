@@ -1,3 +1,26 @@
+type WeatherCurrent @table @export {
+	id: ID @primaryKey
+	sectionId: ID @indexed
+	timestamp: String
+	tempF: Float
+	condition: String
+	weatherCode: Int
+	humidityPct: Float
+	windMph: Float
+	uvIndex: Float
+	tempHighF: Float
+	tempLowF: Float
+}
+
+type WeatherHourly @table @export {
+	id: ID @primaryKey
+	sectionId: ID @indexed
+	timestamp: String @indexed
+	tempF: Float
+	condition: String
+	weatherCode: Int
+}
+
 type WeatherForecast @table @export {
 	id: ID @primaryKey
 	sectionId: ID @indexed
