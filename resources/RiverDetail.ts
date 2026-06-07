@@ -55,15 +55,20 @@ async function getFlowData(gaugeIds: string[], days = 360) {
 		const gauge = await tables.Gauge.get(gid);
 		if (gauge) gaugeList.push(gauge);
 
-		const readings = await collect(
+		// L004 workaround: a COMPOUND filtered search (gaugeId + timestamp range) against
+		// GaugeReading intermittently returns 0 / a stale partial subset after a write batch
+		// (backfill) or restart — which empties the discharge chart and corrupts flow.current.
+		// A single-attribute (gaugeId) search is reliable, so fetch the gauge's rows that way
+		// and filter the time window + sort in memory (~150 rows/gauge — cheap). Mirrors the
+		// loadAllCached() approach already used for dam/snow/weather below.
+		const raw = await collect(
 			tables.GaugeReading.search({
-				conditions: [
-					{ attribute: 'gaugeId', value: gid, comparator: 'equals' as const },
-					{ attribute: 'timestamp', value: cutoff, comparator: 'gte' as const },
-				],
-				sort: { attribute: 'timestamp', descending: false },
+				conditions: [{ attribute: 'gaugeId', value: gid, comparator: 'equals' as const }],
 			})
 		);
+		const readings = raw
+			.filter((r: any) => (r.timestamp || '') >= cutoff)
+			.sort((a: any, b: any) => (a.timestamp || '').localeCompare(b.timestamp || ''));
 		series[gid] = readings.map((r: any) => ({
 			timestamp: r.timestamp,
 			value: r.value,
