@@ -3,7 +3,11 @@ import react from '@vitejs/plugin-react';
 import { mockCorridorPlugin } from './scripts/mock-corridor-server.ts';
 
 const harperTarget = process.env.HARPER_TARGET ?? 'http://localhost:9926';
-const harperAuth = 'Basic ' + Buffer.from('HDB_ADMIN:password').toString('base64');
+// Proxy Basic-auth creds are env-overridable so a local dev instance installed with
+// different admin creds can authenticate without editing the committed default.
+const harperUser = process.env.HARPER_USER ?? 'HDB_ADMIN';
+const harperPass = process.env.HARPER_PASS ?? 'password';
+const harperAuth = 'Basic ' + Buffer.from(`${harperUser}:${harperPass}`).toString('base64');
 const useMock = process.env.MOCK_CORRIDOR_VIEW === '1';
 
 const proxyEntry = (path: string) => ({
