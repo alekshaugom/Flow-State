@@ -83,3 +83,21 @@ The user reported the bug as "current flow no longer showing on section pages" �
 ## Vision implications
 
 Worth adding a one-paragraph principle to [vision/data-model-philosophy.md](../../vision/data-model-philosophy.md): *small reference tables (FlowBand, future Watershed, CraftType) should be loaded once, cached in module scope, and filtered in memory; large time-series tables should be accessed by primary key when possible and use GaugeSnapshot-style denormalized caches for "current value" lookups.* Will fold this in during the next slice if it remains true.
+
+## Extension (2026-06-07, slice 30): keyed `.get()` on metadata tables, not just searches
+
+The same post-restart staleness affects a **keyed `tables.X.get(id)`** against small metadata
+tables (`SnowpackBasin`, `Reservoir`, `RiverSection`) from inside a custom resource — it returns
+`null` transiently right after a fresh `harper run`, even though the row exists (direct REST
+`/X/{id}` returns it, and an empty-conditions full scan sees it).
+
+**How it manifested:** `getSnowpackData`/`getDamReleases` returned empty arrays for a corridor that
+clearly had basins/reservoirs (snowpack/dam tiles silently blank); a `section-geometry` migration
+patched **0 rows cold but 70 warm** (keyed `RiverSection.get(sid)` returned null in the post-restart
+window). Burned multiple debugging rounds because RiverDetail's own `RiverSection.get` worked once warm.
+
+**Fix:** resolve metadata via a cached full-scan + in-memory `.find(r => r.id === id)` (the existing
+`loadAllCached` pattern), or build an id `Set` from a full `search({conditions:[]})` scan before
+patching — never keyed `.get()` for these post-restart-sensitive lookups. Applied in
+`resources/RiverDetail.ts` (`getSnowpackData`/`getDamReleases` now scan `SnowpackBasin`/`Reservoir`)
+and `resources/Seed.ts` (`patchSectionGeometry` builds a scanned id-set).

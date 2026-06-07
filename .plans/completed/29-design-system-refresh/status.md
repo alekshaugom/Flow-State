@@ -83,3 +83,7 @@
 - Immersive `--sky-river` gradient hero band on the standalone section-detail (stretch item; home stays dense).
 - FlowGauge on the corridor spine panes (needs thresholds plumbed into `SpineSection`).
 - Visual confirm of FlowGauge in the corridor view under `vite-mock`.
+
+## 2026-06-07 — Closed (superseded)
+- Frontmatter → `status: done`. The token/font/OKLCH foundation built here shipped and was folded
+  into slice 30's full IA rebuild (already noted in the banner above). Moving to `completed/`.

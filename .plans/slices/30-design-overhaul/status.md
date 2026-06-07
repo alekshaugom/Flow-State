@@ -73,6 +73,36 @@ Animas 898=898), all surfaces render, sparklines/charts/maps/gauges work.
 - Branch `redesign-v2` (15 commits, clean tree). Original preserved on `pre-redesign-archive`.
 - To run: see the install+run commands above (or `npm start` once `.harper-home` exists). After any `ui:build`,
   restart Harper. Backfill if `.harper-home` is wiped.
-- Not yet done / optional: merge `redesign-v2`→`main`; deploy to Fabric (not just localhost); fix the
-  `npm run ui:dev` proxy 401 (stale `HDB_ADMIN:password` Basic-auth header in `vite.config.ts`); optionally
+- Not yet done / optional: merge `redesign-v2`→`main`; deploy to Fabric (not just localhost); optionally
   delete the now-unused `ds/CorridorSchematic.tsx`.
+- **RESOLVED:** `npm run ui:dev` proxy 401 — vite proxy Basic-auth is now env-overridable (`HARPER_USER`/
+  `HARPER_PASS`, default `admin`/`harperadmin`) + a `vite-local` launch config so the dev server no longer
+  401s against the local `.harper-home` instance.
+
+## 2026-06-07 — Corridor/section tile completion (on main; Sonnet-delegated, diffs reviewed, API + live-screenshot verified)
+A user audit (design kit vs app) found the corridor/section pages were missing many tiles the kit
+specifies. Filled them in — completing items this slice's plan had deferred:
+- **Corridor** (completes the phase-4 "weather/snow deferred to Section" note): river summary prose;
+  Basin snowpack + Dam release (CorridorView aggregates each corridor's section basin/reservoir ids →
+  `snowpack`/`reservoirs`, reusing RiverDetail's loaders); **Permits & regulations** (new `Permit`
+  schema + `lib/seed-permits.ts`, 8 corridors); **Water temperature** (new `WaterTempReading` + USGS
+  `00010` adapter `fetchUsgsWaterTemp` + ingestion); **Weather** current+hourly (new `WeatherCurrent`/
+  `WeatherHourly` + Open-Meteo hourly adapter + ingestion).
+- **Section** (completes the phase-5 "historic context, gradient/velocity" items): alternative access
+  points + up/down section nav (RiverDetail returns `sectionAccess{putIn,takeOut,alternatives}` +
+  `siblingSections`); guides + shuttle on section; **gradient/velocity** (new RiverSection fields +
+  `lib/seed-section-geometry.ts` for 70 sections); **Historic context** (new `DailyGaugeRollup` +
+  `lib/gauge-rollup-pure.ts` percentile logic + on-demand `rollups` reconcile action — wrote 3,053 rows).
+- Shared ds modules extracted: `ds/ConditionModules.tsx` (Weather/Snowpack/DamRelease), `ds/CommerceModules.tsx` (Shuttle/Guides).
+- Outfitters/shuttles populated via `POST /Seed` migration (data existed; tables were empty locally).
+- New POST actions: `Seed {permits|section-geometry|phase2}`, `Ingestion {water-temp|weather-hourly|rollups}`.
+- **L004 hardening**: keyed `.get()` on metadata tables (snowpack basin/reservoir, section-geometry
+  patch) → cached full-scan / id-set. See lesson L004 extension.
+- **Env fix (resolves a resume-note item)**: vite proxy Basic-auth is now env-overridable
+  (`HARPER_USER`/`HARPER_PASS`, default unchanged) + a `vite-local` launch config (admin/harperadmin),
+  so `npm run ui:dev` no longer 401s against the local `.harper-home` instance.
+- **Verify**: `npm run ui:build` clean; `npm test` **353/353** (+68 unit tests); live screenshots on the
+  real `.harper-home` backend confirm every new tile renders with real data (permits CPW pass; water
+  temp 49/65°F; weather 64° UV 8.9; historic context 104% of median; gradient 55 ft/mi; alternative
+  access "Frog Rock"; populated guides + shuttle), zero console errors.
+- **Caveat**: Historic context reads "1-yr" median/record until deeper gauge history is backfilled.

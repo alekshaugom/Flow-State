@@ -2,8 +2,8 @@
 
 Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies and explicit user priority. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
-**Last updated:** 2026-06-05
-**Active slice:** **29-design-system-refresh** — adopt the new Apple Weather × AllTrails visual system in the app (Manrope + Inter numerals + Spline mono, flow/alpine/ink/status palettes, sky gradients, frosted modules, FlowGauge). User-prioritized; see `/design`.
+**Last updated:** 2026-06-07
+**Active slice:** **30-design-overhaul** — full 4-tab IA redesign on the new design system; corridor/section tile-completion delivered 2026-06-07 (permits, water temp, weather, snowpack, dam, gradient/velocity, historic context, access alternatives + section nav).
 **Next up:** **24-trust-reputation-governance** (paused mid-flight — governance backend already landed; resume from the frontend/UX phase), then **25-zero-layers-deep-ia**.
 
 ---
@@ -34,7 +34,9 @@ The slices below reflect this pivot. The v2 strategic spine (20 → 21 → 22 �
 
 | # | Slice | Value | Effort | Goal |
 |---|---|---|---|---|
-| 29 | [design-system-refresh](slices/29-design-system-refresh/plan.md) | 8 | M | Adopt the new Apple Weather × AllTrails system in the app: Manrope + Inter numerals + Spline mono, flow/alpine/ink/status OKLCH palettes, sky gradients, frosted modules, dot-less status, FlowGauge. Token-swap-with-aliases + targeted re-skins. |
+| 30 | [design-overhaul](slices/30-design-overhaul/plan.md) | 13 | XL | Full 4-tab IA redesign on the new design system; corridor/section tiles completed (permits, water temp, weather, snowpack, dam, gradient/velocity, historic context, access alternatives + section nav). |
+
+> **Partial overlap note (2026-06-07):** the tile-completion work in slice 30 delivered partial coverage of two queued slices — `DailyGaugeRollup` (gauge percentile/historic-context infra) overlaps **03b** (forecast-snapshot-infra), and corridor-level snowpack surfacing overlaps **03d** (snowpack-confidence-and-audit). Those slices are NOT done — they have broader scope — but a future session should check what work can be skipped.
 
 ### Paused
 
@@ -105,6 +107,7 @@ These slices are paused, not killed. Reasons are noted; frontmatter is set to `s
 
 | # | Slice | Closed | Notes |
 |---|---|---|---|
+| 29 | [design-system-refresh](completed/29-design-system-refresh/plan.md) | 2026-06-07 | Superseded by 30-design-overhaul; the Manrope/Inter/Spline + OKLCH token foundation shipped and was folded into 30's IA rebuild. |
 | 23b | [karma-economy](completed/23b-karma-economy/plan.md) | 2026-06-03 | Relabeled the slice-22 credit economy as karma (✦, whole points, no $, "Not money" framing); ledger backbone untouched + real-money-grade. App launch-ready without real money; slice 23 (real Stripe payments) parked as a two-way code+compliance street. Display-only reframe, 451 tests green. |
 | 22 | [bounty-system](completed/22-bounty-system/plan.md) | 2026-06-03 | Bounty lifecycle + internal credit economy in credits (no real money). Append-only LedgerEntry spine (balance=signed sum, no-overdraft, escrow conservation), multi-funder pots, self-fulfillment (reviewer≠submitter), award verifies the linked contribution + credits the awardee, re-spendable balance, profile WalletPanel + admin grants. 451 tests, browser-verified. Unlocks 23/24/28. |
 | 21 | [contribution-content-model](completed/21-contribution-content-model/plan.md) | 2026-06-03 | Versioned Contribution provenance spine + 4 contributable entity types (AccessPoint, Rapid, ShuttleBusiness, Outfitter) via one generic entity registry. Verification state machine, canContribute capability, inline surfacing on section tiles (no routes, per IA vision), provenance badges. 390 tests green, browser-verified. Media/photos deferred. Unlocks bounties (22), trust (24), IA (25). |

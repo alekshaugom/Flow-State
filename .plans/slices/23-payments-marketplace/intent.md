@@ -1,6 +1,6 @@
 ---
 slice: 23-payments-marketplace
-status: active
+status: deferred
 value: 8
 confidence: 4
 effort: XL

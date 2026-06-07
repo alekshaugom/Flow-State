@@ -1,6 +1,7 @@
 ---
 slice: 29-design-system-refresh
-status: active
+status: done
+closed: 2026-06-07
 value: 8
 depends_on: []
 opened: 2026-06-05
