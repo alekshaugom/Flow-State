@@ -43,3 +43,36 @@
   USGS). For full live-data verification run the project's normal `npm run dev` in an interactive terminal.
 - During diagnosis `~/hdb` was moved aside and restored; global `harperdb` was bumped 4.7.28→4.7.33 (both v4,
   immaterial since the app uses the local v5 `harper`).
+
+## 2026-06-07 — Real backend running + post-launch fixes (all committed on redesign-v2)
+Cracked the v5 run: non-interactive install via `ROOTPATH=$PWD/.harper-home HDB_ADMIN_USERNAME=admin
+HDB_ADMIN_PASSWORD=harperadmin DEFAULTS_MODE=dev TC_AGREEMENT=yes node node_modules/harper/dist/bin/harper.js install`
+then `node node_modules/harper/dist/bin/harper.js run .` — serves the built `web/` + API on **http://localhost:9926**
+(dev mode, HTTP, authorizeLocal). A fresh DB has no history → `POST /Ingestion {action:'backfill',days:60}` +
+`{action:'rebuild-snapshots'}` populates real readings (data lives in `.harper-home`, gitignored).
+**Gotcha: restart Harper after every `ui:build`** (it caches the `web/` manifest at startup → else serves the
+old, now-deleted bundle hash → blank page). See memory `flow_state_harper_v5_runtime`.
+
+Fixes since the build (each its own commit):
+- **96ce817** run-readiness: `config.yaml` static glob `web/*`→`web/**` (nested fonts/brand were 404),
+  `index.html` font preloads → Manrope (dropped Ubuntu/Fira), proxy `/FollowResource`+`/Outfitter`.
+- **6b65b6a** RiverDetail discharge chart empty/wrong on real backend — L004 (compound GaugeReading search
+  returns 0/partial after a write batch). Switched `getFlowData` to gaugeId-only + in-memory time filter.
+- **2d3ea81** corridor page blank — `statusColor()` threw on raw non-ramp statuses (`too-low`/`unknown` from a
+  null-reading gauge). `ds/status.ts` now routes through `mapStatusToDesign`.
+- **6f86c64** corridor + section maps were a fake `sin()` SVG schematic → replaced with real `GeoMap` (Leaflet)
+  driven by the SAME `RIVER_GEOMETRIES` + colors as the home map; verified all 21 corridors / 70 sections match.
+- **ea8c3eb** desktop: hovering a river tile lights up its line on the map — two-layer halo (wide rounded
+  +10px under the thin line, `riverHalo` pane zIndex 390).
+- **f9e8818** + light-blue glowing outline on the hovered tile (`.fs-river-tile:hover`).
+
+Verification done live on the real backend: 22/22 data points incl. exact live-USGS cross-checks (e.g.
+Animas 898=898), all surfaces render, sparklines/charts/maps/gauges work.
+
+### Resume notes (next window)
+- Branch `redesign-v2` (15 commits, clean tree). Original preserved on `pre-redesign-archive`.
+- To run: see the install+run commands above (or `npm start` once `.harper-home` exists). After any `ui:build`,
+  restart Harper. Backfill if `.harper-home` is wiped.
+- Not yet done / optional: merge `redesign-v2`→`main`; deploy to Fabric (not just localhost); fix the
+  `npm run ui:dev` proxy 401 (stale `HDB_ADMIN:password` Basic-auth header in `vite.config.ts`); optionally
+  delete the now-unused `ds/CorridorSchematic.tsx`.
