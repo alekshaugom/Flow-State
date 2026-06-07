@@ -52,6 +52,8 @@ export default defineConfig({
 			...proxyEntry('/DataSource'),
 			...proxyEntry('/IngestionLog'),
 			...proxyEntry('/Me'),
+			...proxyEntry('/FollowResource'),
+			...proxyEntry('/Outfitter'),
 			...proxyEntry('/AdminWaitlist'),
 			...proxyEntry('/EmailLoginResource'),
 			...proxyEntry('/AdminAuthResource'),

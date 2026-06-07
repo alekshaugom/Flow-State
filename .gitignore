@@ -157,3 +157,7 @@ data/cache/
 
 # Isolated dev Harper root (slice 13c verification)
 .harper-dev/
+
+# local Harper v5 install/data dirs (machine-specific)
+.harper-home/
+.harper-local/

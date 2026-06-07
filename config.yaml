@@ -15,7 +15,7 @@ jsResource:
   files: 'resources/*.ts'
 
 static:
-  files: 'web/*'
+  files: 'web/**'
 
 '@harperfast/oauth':
   package: '@harperfast/oauth'
