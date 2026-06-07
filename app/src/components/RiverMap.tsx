@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -95,18 +95,66 @@ function FitBounds({ geojson }: { geojson: any }) {
 	return null;
 }
 
-interface RiverMapProps {
-	style?: React.CSSProperties;
+// Creates a dedicated map pane for the wide "halo" highlight layer, sitting
+// ABOVE the basemap tiles (pane zIndex 200) but BELOW the thin section lines
+// in the default overlayPane (400). pointerEvents:none so the halo never
+// intercepts hover/click meant for the thin lines.
+function HaloPane() {
+	const map = useMap();
+	useEffect(() => {
+		let pane = map.getPane('riverHalo');
+		if (!pane) {
+			pane = map.createPane('riverHalo');
+			pane.style.zIndex = '390';
+			pane.style.pointerEvents = 'none';
+		}
+	}, [map]);
+	return null;
 }
 
-export function RiverMap({ style }: RiverMapProps) {
+interface RiverMapProps {
+	style?: React.CSSProperties;
+	/** Section ids to "light up" with a wide halo under the thin line (desktop tile hover). */
+	highlightedSectionIds?: Set<string> | null;
+}
+
+export function RiverMap({ style, highlightedSectionIds }: RiverMapProps) {
 	const navigate = useNavigate();
 	const { data, isLoading } = useDashboard();
 	const sections = data?.sections || [];
 	const geoRef = useRef<L.GeoJSON | null>(null);
+	const haloRef = useRef<L.GeoJSON | null>(null);
 	const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-	const geojson = buildGeoJSON(sections);
+	const geojson = useMemo(() => buildGeoJSON(sections), [sections]);
+
+	// Wide halo under the thin lines: same geometry, +10px weight, rounded, in the
+	// riverHalo pane. Hidden (opacity 0) until the matching river tile is hovered.
+	const haloStyle = (feature: any) => {
+		const status = feature?.properties?.status as DesignStatus;
+		const on = highlightedSectionIds?.has(feature?.properties?.id) ?? false;
+		return {
+			pane: 'riverHalo',
+			color: STATUS_HEX[status] || '#93a0ad',
+			weight: 14,
+			opacity: on ? 0.55 : 0,
+			lineCap: 'round' as const,
+			lineJoin: 'round' as const,
+			interactive: false,
+		};
+	};
+
+	// Live-update halo opacity per section as the hovered tile changes (no remount,
+	// so the layer stays under the thin lines).
+	useEffect(() => {
+		const layer = haloRef.current;
+		if (!layer) return;
+		layer.eachLayer((l: any) => {
+			const id = l.feature?.properties?.id;
+			const on = highlightedSectionIds?.has(id) ?? false;
+			l.setStyle({ opacity: on ? 0.55 : 0 });
+		});
+	}, [highlightedSectionIds, geojson]);
 
 	const onEachFeature = (feature: any, layer: L.Layer) => {
 		const p = feature.properties;
@@ -200,8 +248,19 @@ export function RiverMap({ style }: RiverMapProps) {
 					maxZoom={19}
 				/>
 				<InvalidateSize />
+				<HaloPane />
 				{geojson.features.length > 0 && (
 					<>
+						{/* Wide halo layer — under the thin lines (riverHalo pane), lights up on tile hover */}
+						<GeoJSON
+							key={'halo-' + JSON.stringify(geojson)}
+							data={geojson as any}
+							style={haloStyle as any}
+							pane="riverHalo"
+							interactive={false}
+							ref={haloRef as any}
+						/>
+						{/* Thin interactive section lines — on top */}
 						<GeoJSON
 							key={JSON.stringify(geojson)}
 							data={geojson as any}

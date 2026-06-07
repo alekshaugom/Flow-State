@@ -2,13 +2,15 @@ import { RiverMap } from '../components/RiverMap';
 
 interface MapRailProps {
   corridorCount: number;
+  /** Section ids to highlight on the map (desktop river-tile hover). */
+  highlightedSectionIds?: Set<string> | null;
 }
 
 /**
  * Desktop sticky right rail embedding the existing RiverMap with frosted chrome.
  * The RiverMap fetches its own data via useDashboard internally.
  */
-export function MapRail({ corridorCount }: MapRailProps) {
+export function MapRail({ corridorCount, highlightedSectionIds }: MapRailProps) {
   return (
     <aside
       style={{
@@ -35,7 +37,7 @@ export function MapRail({ corridorCount }: MapRailProps) {
           border: '1px solid rgba(255,255,255,0.16)',
         }}
       >
-        <RiverMap style={{ width: '100%', height: '100%' }} />
+        <RiverMap style={{ width: '100%', height: '100%' }} highlightedSectionIds={highlightedSectionIds} />
 
         {/* Frosted label overlay */}
         <div

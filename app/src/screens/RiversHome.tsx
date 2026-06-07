@@ -143,9 +143,10 @@ interface CorridorCardLgProps {
   bookmarkedSectionIds: Set<string>;
   onOpenCorridor: () => void;
   onOpenSection: (sectionId: string) => void;
+  onHoverChange?: (ids: Set<string> | null) => void;
 }
 
-function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSection }: CorridorCardLgProps) {
+function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSection, onHoverChange }: CorridorCardLgProps) {
   const sc = statusColor(group.worstStatus);
   const sl = statusLabel(group.worstStatus);
 
@@ -163,6 +164,8 @@ function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSec
   return (
     <div
       onClick={onOpenCorridor}
+      onMouseEnter={() => onHoverChange?.(new Set(group.sections.map(s => s.id)))}
+      onMouseLeave={() => onHoverChange?.(null)}
       style={{
         cursor: 'pointer',
         borderRadius: 26,
@@ -251,9 +254,10 @@ function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSec
 interface OtherRiverRowProps {
   group: CorridorGroup;
   onClick: () => void;
+  onHoverChange?: (ids: Set<string> | null) => void;
 }
 
-function OtherRiverRowLg({ group, onClick }: OtherRiverRowProps) {
+function OtherRiverRowLg({ group, onClick, onHoverChange }: OtherRiverRowProps) {
   const sc = statusColor(group.worstStatus);
   const sl = statusLabel(group.worstStatus);
   const cfs = group.maxCfs > 0 ? group.maxCfs : group.minCfs;
@@ -261,6 +265,8 @@ function OtherRiverRowLg({ group, onClick }: OtherRiverRowProps) {
   return (
     <button
       onClick={onClick}
+      onMouseEnter={() => onHoverChange?.(new Set(group.sections.map(s => s.id)))}
+      onMouseLeave={() => onHoverChange?.(null)}
       style={{
         width: '100%',
         display: 'flex',
@@ -462,6 +468,7 @@ export function RiversHome() {
   const follows = useFollows();
   const [q, setQ] = useState('');
   const [mapOpen, setMapOpen] = useState(false);
+  const [hoveredSectionIds, setHoveredSectionIds] = useState<Set<string> | null>(null);
   const debouncedQ = useDebouncedValue(q, 180);
 
   const { yourGroups, otherGroups } = useMemo(() => {
@@ -547,6 +554,7 @@ export function RiversHome() {
                       bookmarkedSectionIds={follows.sectionIds}
                       onOpenCorridor={() => handleOpenCorridor(g.slug)}
                       onOpenSection={handleOpenSection}
+                      onHoverChange={setHoveredSectionIds}
                     />
                   ))}
                 </div>
@@ -583,6 +591,7 @@ export function RiversHome() {
                       key={g.slug}
                       group={g}
                       onClick={() => handleOpenCorridor(g.slug)}
+                      onHoverChange={setHoveredSectionIds}
                     />
                   ))}
                 </div>
@@ -602,7 +611,7 @@ export function RiversHome() {
           </div>
 
           {/* Right: persistent map rail */}
-          <MapRail corridorCount={totalCorridorCount} />
+          <MapRail corridorCount={totalCorridorCount} highlightedSectionIds={hoveredSectionIds} />
         </div>
       </Shell>
     );
