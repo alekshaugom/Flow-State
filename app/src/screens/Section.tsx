@@ -22,8 +22,8 @@ import {
   SkyBg,
   FlowChart,
   statusColor,
-  SectionMap,
 } from '../ds';
+import { GeoMap } from '../components/GeoMap';
 import { STATUS_COLORS } from '../constants';
 import type { DesignStatus } from '../constants';
 
@@ -1067,12 +1067,19 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
 
       {/* ── section map ── */}
       <Module label="Section map" icon="map" style={{ marginTop: 14 }}>
-        <SectionMap
-          section={{
-            status: detail.status as DesignStatus,
-            putIn: detail.putIn,
-            takeOut: detail.takeOut,
-          }}
+        <GeoMap
+          sections={[{
+            id: sectionId,
+            river: detail.river,
+            section: detail.section,
+            classification: detail.classification,
+            now: detail.now,
+            status: detail.status,
+            statusLabel: detail.statusLabel,
+            trend: detail.trend === 'up' ? 'up' : detail.trend === 'down' ? 'down' : 'stable',
+          }]}
+          height={200}
+          style={{ borderRadius: 8, overflow: 'hidden' }}
         />
       </Module>
 
@@ -1544,13 +1551,19 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
           {/* right column — map, snowpack, dam */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Module label="Section map" icon="map">
-              <SectionMap
-                section={{
-                  status: detail.status as DesignStatus,
-                  putIn: detail.putIn,
-                  takeOut: detail.takeOut,
-                }}
+              <GeoMap
+                sections={[{
+                  id: sectionId,
+                  river: detail.river,
+                  section: detail.section,
+                  classification: detail.classification,
+                  now: detail.now,
+                  status: detail.status,
+                  statusLabel: detail.statusLabel,
+                  trend: detail.trend === 'up' ? 'up' : detail.trend === 'down' ? 'down' : 'stable',
+                }]}
                 height={220}
+                style={{ borderRadius: 8, overflow: 'hidden' }}
               />
             </Module>
 

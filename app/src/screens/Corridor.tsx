@@ -21,8 +21,8 @@ import {
   Sparkline,
   statusColor,
   statusLabel,
-  CorridorMap,
 } from '../ds';
+import { GeoMap } from '../components/GeoMap';
 import type { DesignStatus } from '../constants';
 
 // ── helpers ────────────────────────────────────────────────────────────────────
@@ -934,31 +934,28 @@ function MobileCorridorContent({ data, corridorSlug }: CorridorContentProps) {
           }}
         >
           {sections.length > 0 && (
-            <CorridorMap
+            <GeoMap
               sections={sections.map(s => ({
                 id: s.id,
-                name: s.name,
-                status: s.status as DesignStatus,
-                difficulty: s.difficulty,
-                corridorMileSpan: s.corridorMileSpan,
+                river: data.corridor?.name,
+                section: s.name,
+                classification: s.difficulty,
+                now: s.currentFlow,
+                status: s.status,
+                statusLabel: s.statusLabel,
+                trend: s.trend,
               }))}
               accessPoints={sortedAPs.map(ap => ({
                 id: ap.id,
                 name: ap.name,
                 kind: ap.kind,
-                sortIndex: ap.sortIndex,
-                riverMile: ap.riverMile,
+                latitude: ap.latitude,
+                longitude: ap.longitude,
               }))}
               selectedSectionId={selId}
-              onSelectSection={setSelId}
-              gauges={gauges.map(g => ({
-                id: g.id,
-                name: g.name,
-                currentFlow: g.currentFlow,
-                unit: g.unit ?? 'cfs',
-                riverMile: g.riverMile,
-              }))}
+              onSectionClick={(id) => navigate('/section/' + id)}
               height={236}
+              style={{ borderRadius: 'var(--r-lg)', overflow: 'hidden' }}
             />
           )}
         </div>
@@ -1193,31 +1190,28 @@ function DesktopCorridorContent({ data, corridorSlug }: CorridorContentProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {sections.length > 0 && (
               <Module label="Corridor map" icon="map">
-                <CorridorMap
+                <GeoMap
                   sections={sections.map(s => ({
                     id: s.id,
-                    name: s.name,
-                    status: s.status as DesignStatus,
-                    difficulty: s.difficulty,
-                    corridorMileSpan: s.corridorMileSpan,
+                    river: data.corridor?.name,
+                    section: s.name,
+                    classification: s.difficulty,
+                    now: s.currentFlow,
+                    status: s.status,
+                    statusLabel: s.statusLabel,
+                    trend: s.trend,
                   }))}
                   accessPoints={sortedAPs.map(ap => ({
                     id: ap.id,
                     name: ap.name,
                     kind: ap.kind,
-                    sortIndex: ap.sortIndex,
-                    riverMile: ap.riverMile,
+                    latitude: ap.latitude,
+                    longitude: ap.longitude,
                   }))}
                   selectedSectionId={selId}
-                  onSelectSection={setSelId}
-                  gauges={gauges.map(g => ({
-                    id: g.id,
-                    name: g.name,
-                    currentFlow: g.currentFlow,
-                    unit: g.unit ?? 'cfs',
-                    riverMile: g.riverMile,
-                  }))}
+                  onSectionClick={(id) => navigate('/section/' + id)}
                   height={300}
+                  style={{ borderRadius: 8, overflow: 'hidden' }}
                 />
               </Module>
             )}
