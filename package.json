@@ -2,6 +2,7 @@
 	"name": "flow-state",
 	"version": "1.0.0",
 	"description": "Colorado river-flow forecasting app for rafters, built on Harper",
+	"license": "Elastic-2.0",
 	"type": "module",
 	"scripts": {
 		"agent:run": "npx -y @harperfast/agent@latest",
