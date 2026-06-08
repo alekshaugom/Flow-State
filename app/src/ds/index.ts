@@ -16,8 +16,8 @@ export type { StatusBadgeProps } from './StatusBadge';
 export { MetricTile } from './MetricTile';
 export type { MetricTileProps } from './MetricTile';
 
-export { FlowChart, Sparkline, CorridorSpark, classRangeLabel, skillWord, statusFromCfs } from './charts';
-export type { FlowChartProps, FlowChartDatum, FlowChartLabel, SparklineProps, SparklineDatum, CorridorSparkProps, SectionLike } from './charts';
+export { FlowChart, Sparkline, CorridorSpark, PeriodFlowChart, classRangeLabel, skillWord, statusFromCfs } from './charts';
+export type { FlowChartProps, FlowChartDatum, FlowChartLabel, SparklineProps, SparklineDatum, CorridorSparkProps, SectionLike, PeriodFlowChartProps } from './charts';
 
 export { statusColor, statusLabel } from './status';
 

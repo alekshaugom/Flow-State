@@ -19,7 +19,7 @@ export function MapPage() {
 				<header style={{
 					height: headerH, padding: '0 16px',
 					borderBottom: '1px solid var(--rule)',
-					background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
+					background: 'var(--rail-surface-bg)', backdropFilter: 'blur(12px)',
 					display: 'flex', alignItems: 'center', gap: 12,
 					position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1100,
 				}}>

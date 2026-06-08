@@ -161,17 +161,17 @@ export function RiverMap({ style, highlightedSectionIds }: RiverMapProps) {
 
 		const tooltipHtml = `
 			<div style="font-family: var(--font-sans); min-width: 200px;">
-				<div style="font-size: 11px; color: #6b7886; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">
+				<div style="font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">
 					${p.river} · ${p.classification}
 				</div>
-				<div style="font-size: 15px; font-weight: 700; color: #0d1620; margin-bottom: 8px;">
+				<div style="font-size: 15px; font-weight: 700; color: var(--fg-1); margin-bottom: 8px;">
 					${p.section}
 				</div>
 				<div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;">
 					<span style="font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: ${STATUS_HEX[p.status as DesignStatus] || '#6b7886'};">
 						${p.now !== null ? p.now.toLocaleString() : '—'}
 					</span>
-					<span style="font-size: 13px; color: #6b7886;">cfs</span>
+					<span style="font-size: 13px; color: var(--fg-3);">cfs</span>
 				</div>
 				<div style="display: flex; align-items: center; gap: 8px;">
 					<span style="
@@ -180,11 +180,11 @@ export function RiverMap({ style, highlightedSectionIds }: RiverMapProps) {
 						background: ${STATUS_HEX[p.status as DesignStatus] || '#6b7886'}22;
 						color: ${STATUS_HEX[p.status as DesignStatus] || '#6b7886'};
 					">● ${p.statusLabel}</span>
-					<span style="font-size: 12px; color: #6b7886;">
+					<span style="font-size: 12px; color: var(--fg-3);">
 						${TREND_ARROW[p.trend] || ''} ${p.trendPct ? (p.trendPct > 0 ? '+' : '') + p.trendPct + '%' : ''}
 					</span>
 				</div>
-				${p.updatedAt ? `<div style="font-size: 11px; color: #93a0ad; margin-top: 6px;">Updated ${timeAgo(p.updatedAt)}</div>` : ''}
+				${p.updatedAt ? `<div style="font-size: 11px; color: var(--fg-3); margin-top: 6px;">Updated ${timeAgo(p.updatedAt)}</div>` : ''}
 			</div>
 		`;
 
@@ -276,18 +276,18 @@ export function RiverMap({ style, highlightedSectionIds }: RiverMapProps) {
 			{/* Legend */}
 			<div style={{
 				position: 'absolute', bottom: 24, left: 24, zIndex: 1000,
-				background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)',
+				background: 'var(--bg-card)', backdropFilter: 'blur(8px)',
 				borderRadius: 12, padding: '12px 16px',
 				boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
 				fontFamily: 'var(--font-sans)',
 			}}>
-				<div style={{ fontSize: 11, fontWeight: 700, color: '#6b7886', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+				<div style={{ fontSize: 11, fontWeight: 700, color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
 					Flow Status
 				</div>
 				{(['ideal', 'runnable', 'high', 'low', 'dangerous'] as DesignStatus[]).map(s => (
 					<div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0' }}>
 						<div style={{ width: 20, height: 3, borderRadius: 2, background: STATUS_HEX[s] }} />
-						<span style={{ fontSize: 12, color: '#45525f' }}>{STATUS_LABEL[s]}</span>
+						<span style={{ fontSize: 12, color: 'var(--fg-2)' }}>{STATUS_LABEL[s]}</span>
 					</div>
 				))}
 			</div>

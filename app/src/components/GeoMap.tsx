@@ -228,17 +228,17 @@ export function GeoMap({
 		if (showTooltips) {
 			const tooltipHtml = `
 				<div style="font-family: var(--font-sans); min-width: 180px;">
-					<div style="font-size: 11px; color: #6b7886; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">
+					<div style="font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">
 						${p.river}${p.river && p.classification ? ' · ' : ''}${p.classification}
 					</div>
-					<div style="font-size: 15px; font-weight: 700; color: #0d1620; margin-bottom: 8px;">
+					<div style="font-size: 15px; font-weight: 700; color: var(--fg-1); margin-bottom: 8px;">
 						${p.section}
 					</div>
 					<div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;">
 						<span style="font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: ${hex};">
 							${p.now !== null ? p.now.toLocaleString() : '—'}
 						</span>
-						<span style="font-size: 13px; color: #6b7886;">cfs</span>
+						<span style="font-size: 13px; color: var(--fg-3);">cfs</span>
 					</div>
 					<div style="display: flex; align-items: center; gap: 8px;">
 						<span style="
@@ -247,7 +247,7 @@ export function GeoMap({
 							background: ${hex}22;
 							color: ${hex};
 						">● ${p.statusLabel}</span>
-						<span style="font-size: 12px; color: #6b7886;">
+						<span style="font-size: 12px; color: var(--fg-3);">
 							${TREND_ARROW[p.trend] || ''}
 						</span>
 					</div>

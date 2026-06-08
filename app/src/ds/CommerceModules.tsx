@@ -38,7 +38,7 @@ export function ShuttleModule({ businesses }: { businesses: any[] }) {
                 alignItems: 'flex-start',
                 gap: 12,
                 padding: '12px 0',
-                borderTop: i ? '1px solid rgba(255,255,255,0.12)' : 'none',
+                borderTop: i ? '1px solid var(--module-stroke)' : 'none',
               }}
             >
               <div
@@ -47,7 +47,7 @@ export function ShuttleModule({ businesses }: { businesses: any[] }) {
                   height: 38,
                   borderRadius: 11,
                   flexShrink: 0,
-                  background: 'rgba(255,255,255,0.16)',
+                  background: 'var(--module-fill)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -92,7 +92,7 @@ export function ShuttleModule({ businesses }: { businesses: any[] }) {
                     fontSize: 11.5,
                     fontWeight: 700,
                     color: 'var(--flow-700)',
-                    background: 'rgba(255,255,255,0.9)',
+                    background: 'var(--bg-card)',
                     borderRadius: 'var(--r-pill)',
                     padding: '5px 11px',
                     textDecoration: 'none',
@@ -128,7 +128,7 @@ export function GuidesModule({ outfitters }: { outfitters: any[] }) {
                 alignItems: 'center',
                 gap: 12,
                 padding: '12px 0',
-                borderTop: i ? '1px solid rgba(255,255,255,0.12)' : 'none',
+                borderTop: i ? '1px solid var(--module-stroke)' : 'none',
               }}
             >
               <div
@@ -137,7 +137,7 @@ export function GuidesModule({ outfitters }: { outfitters: any[] }) {
                   height: 38,
                   borderRadius: 11,
                   flexShrink: 0,
-                  background: 'rgba(255,255,255,0.16)',
+                  background: 'var(--module-fill)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -190,7 +190,7 @@ export function GuidesModule({ outfitters }: { outfitters: any[] }) {
                       fontSize: 11.5,
                       fontWeight: 700,
                       color: 'var(--flow-700)',
-                      background: 'rgba(255,255,255,0.9)',
+                      background: 'var(--bg-card)',
                       borderRadius: 'var(--r-pill)',
                       padding: '5px 11px',
                       textDecoration: 'none',
@@ -211,7 +211,7 @@ export function GuidesModule({ outfitters }: { outfitters: any[] }) {
                       fontSize: 11.5,
                       fontWeight: 700,
                       color: 'var(--flow-700)',
-                      background: 'rgba(255,255,255,0.9)',
+                      background: 'var(--bg-card)',
                       borderRadius: 'var(--r-pill)',
                       padding: '5px 11px',
                       textDecoration: 'none',

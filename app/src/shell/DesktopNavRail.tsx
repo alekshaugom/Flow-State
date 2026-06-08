@@ -18,12 +18,12 @@ export function DesktopNavRail({ active, light = false }: DesktopNavRailProps) {
   const navigate = useNavigate();
 
   const railBg   = light
-    ? 'rgba(255,255,255,0.82)'
+    ? 'var(--rail-surface-bg)'
     : 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 100%)';
   const railBdr  = light
-    ? '1px solid var(--border, rgba(0,0,0,0.12))'
-    : '1px solid rgba(255,255,255,0.14)';
-  const idleClr  = light ? 'var(--fg-3, #6b7886)' : 'rgba(255,255,255,0.78)';
+    ? '1px solid var(--rail-surface-border)'
+    : '1px solid var(--module-stroke)';
+  const idleClr  = light ? 'var(--fg-3, #6b7886)' : 'var(--fg-on-sky-2)';
   const onBg     = light ? 'var(--flow-100, #e8f3fd)' : 'rgba(255,255,255,0.92)';
   const onClr    = 'var(--flow-700, #1a5ea6)';
 
@@ -99,8 +99,8 @@ export function DesktopNavRail({ active, light = false }: DesktopNavRailProps) {
           title="Settings"
           style={{
             width: 44, height: 44, borderRadius: 99, border: 'none', cursor: 'pointer',
-            background: light ? 'var(--bg-subtle, #f5f7f9)' : 'rgba(255,255,255,0.12)',
-            color: light ? 'var(--fg-2, #45525f)' : 'rgba(255,255,255,0.8)',
+            background: light ? 'var(--bg-subtle, #f5f7f9)' : 'var(--module-fill)',
+            color: light ? 'var(--fg-2, #45525f)' : 'var(--fg-on-sky-2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
@@ -113,7 +113,7 @@ export function DesktopNavRail({ active, light = false }: DesktopNavRailProps) {
             width: 44, height: 44, borderRadius: 99, border: 'none', cursor: 'pointer',
             background: 'linear-gradient(160deg, var(--flow-400, #4ea8e0), var(--flow-700, #1a5ea6))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 800, fontSize: 15, color: '#fff',
+            fontWeight: 800, fontSize: 15, color: 'var(--fg-on-brand)',
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 12px rgba(6,19,33,0.35)',
           }}
         >

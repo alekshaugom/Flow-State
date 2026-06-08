@@ -7,7 +7,7 @@ interface CDSSTimeSeriesRecord {
 	stationName: string;
 	measDateTime: string;
 	measDate: string;
-	value: number;
+	measValue: number;
 	measUnit: string;
 	flagA: string;
 	flagB: string;
@@ -78,14 +78,18 @@ export async function fetchDiversionRecords(wdid: string): Promise<any[]> {
 function parseTelemetry(records: CDSSTimeSeriesRecord[], abbrev: string): GaugeReadingRecord[] {
 	const results: GaugeReadingRecord[] = [];
 	for (const r of records) {
-		if (r.value == null || r.value < 0) continue;
+		// CDSS telemetrytimeseriesraw returns the reading in `measValue`
+		// (older code read `value`, which is always undefined → every record
+		// was silently skipped). Fall back to `value` just in case.
+		const val = (r.measValue ?? (r as any).value) as number;
+		if (val == null || val < 0) continue;
 		const ts = new Date(r.measDateTime || r.measDate).toISOString();
 		const gaugeId = `cdss-${abbrev}`;
 		results.push({
 			id: compositeId([gaugeId, ts]),
 			gaugeId,
 			timestamp: ts,
-			value: r.value,
+			value: val,
 			unit: r.measUnit || 'cfs',
 			qualityFlag: [r.flagA, r.flagB].filter(Boolean).join(','),
 			source: 'cdss-telemetry',

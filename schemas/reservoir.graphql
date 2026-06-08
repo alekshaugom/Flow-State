@@ -12,6 +12,10 @@ type Reservoir @table @export {
 	source: String
 	url: String
 	notes: String
+	diversionName: String
+	diversionGaugeId: String
+	plannedReleaseUrl: String
+	plannedReleaseNote: String
 	releases: [DamRelease] @relationship(to: "reservoirId")
 }
 

@@ -85,8 +85,8 @@ export function EmailLoginForm({ onSuccess }: EmailLoginFormProps) {
 				<div style={{
 					padding: '8px 12px',
 					borderRadius: 'var(--r-md)',
-					background: '#fdecea',
-					color: '#a02323',
+					background: 'var(--status-high-bg)',
+					color: 'var(--status-high)',
 					fontSize: 12,
 				}}>{error}</div>
 			)}
@@ -99,7 +99,7 @@ export function EmailLoginForm({ onSuccess }: EmailLoginFormProps) {
 					borderRadius: 'var(--r-md)',
 					border: '1px solid var(--river-700)',
 					background: 'var(--river-700)',
-					color: '#fff',
+					color: 'var(--fg-on-brand)',
 					fontSize: 14,
 					fontWeight: 600,
 					cursor: loginMutation.isPending ? 'wait' : 'pointer',

@@ -40,7 +40,7 @@ export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'logs
 		<header style={{
 			height: 64, padding: '0 28px',
 			borderBottom: '1px solid var(--rule)',
-			background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)',
+			background: 'var(--rail-surface-bg)', backdropFilter: 'blur(12px)',
 			WebkitBackdropFilter: 'blur(12px)',
 			display: 'flex', alignItems: 'center', justifyContent: 'space-between',
 			flexShrink: 0,
@@ -95,10 +95,10 @@ export function AppHeader({ activePage }: { activePage: 'rivers' | 'map' | 'logs
 					<button onClick={() => navigate('/login')} style={{
 						display: 'flex', alignItems: 'center', gap: 6,
 						padding: '8px 14px', borderRadius: 'var(--r-pill)',
-						background: 'var(--river-700)', color: 'white',
+						background: 'var(--river-700)', color: 'var(--fg-on-brand)',
 						fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer',
 					}}>
-						<Icon name="user" size={14} color="white" />
+						<Icon name="user" size={14} color="var(--fg-on-brand)" />
 						Sign in
 					</button>
 				)}

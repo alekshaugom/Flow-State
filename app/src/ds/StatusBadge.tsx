@@ -29,7 +29,7 @@ export function StatusBadge({
   if (bg) {
     bgColor = bg;
   } else if (dark) {
-    bgColor = 'rgba(255,255,255,0.16)';
+    bgColor = 'var(--module-fill)';
   } else {
     bgColor = `color-mix(in srgb, ${fgColor} 15%, transparent)`;
   }

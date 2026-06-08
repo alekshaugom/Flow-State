@@ -14,6 +14,8 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRiverDetail } from '../hooks/useRiverDetail';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { usePreferences } from '../hooks/usePreferences';
+import { flowValue, flowUnitLabel, formatTemp, formatLength } from '../lib/units';
 import { Shell } from '../shell/Shell';
 import { FlowGauge } from '../components/FlowGauge';
 import {
@@ -21,7 +23,7 @@ import {
   Module,
   MetricTile,
   SkyBg,
-  FlowChart,
+  PeriodFlowChart,
   statusColor,
   WeatherModule,
   SnowpackModule,
@@ -35,8 +37,10 @@ import type { DesignStatus } from '../constants';
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
+function gaugeSourceLabel(id?: string | null): string { return id?.startsWith('cdss-') ? 'CDSS' : 'USGS'; }
+
 const navBtn: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.16)',
+  background: 'var(--module-fill)',
   border: 'none',
   borderRadius: 99,
   width: 38,
@@ -44,19 +48,12 @@ const navBtn: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  color: '#fff',
+  color: 'var(--fg-on-sky-1)',
   cursor: 'pointer',
   backdropFilter: 'blur(8px)',
   flexShrink: 0,
   WebkitTapHighlightColor: 'transparent',
 };
-
-const PERIOD_OPTIONS: Array<{ label: string; days: number }> = [
-  { label: '7D', days: 7 },
-  { label: '30D', days: 30 },
-  { label: '90D', days: 90 },
-  { label: '1Y', days: 365 },
-];
 
 function tryParseJson(raw: string | null | undefined): unknown {
   if (!raw) return null;
@@ -77,7 +74,7 @@ function PulseSkeleton({ height = 80, radius = 16 }: { height?: number; radius?:
       style={{
         height,
         borderRadius: radius,
-        background: 'rgba(255,255,255,0.12)',
+        background: 'var(--module-fill)',
         animation: 'fsPulse 1.5s ease-in-out infinite',
       }}
     />
@@ -101,12 +98,12 @@ function TrendBadge({ trend, pct }: { trend: 'up' | 'down' | 'stable'; pct: numb
         display: 'inline-flex',
         alignItems: 'center',
         gap: 5,
-        background: 'rgba(255,255,255,0.16)',
+        background: 'var(--module-fill)',
         borderRadius: 'var(--r-pill)',
         padding: '5px 10px',
         fontSize: 12.5,
         fontWeight: 700,
-        color: '#fff',
+        color: 'var(--fg-on-sky-1)',
         whiteSpace: 'nowrap',
       }}
     >
@@ -119,7 +116,7 @@ function TrendBadge({ trend, pct }: { trend: 'up' | 'down' | 'stable'; pct: numb
 // ── arrowBtn (for section nav) ────────────────────────────────────────────────
 
 const arrowBtn: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.16)',
+  background: 'var(--module-fill)',
   border: 'none',
   borderRadius: 99,
   width: 32,
@@ -127,7 +124,7 @@ const arrowBtn: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  color: '#fff',
+  color: 'var(--fg-on-sky-1)',
   cursor: 'pointer',
   backdropFilter: 'blur(8px)',
   flexShrink: 0,
@@ -147,7 +144,7 @@ interface AccessRowProps {
 function AccessRow({ icon, roleLabel, name, mapsUrl, isFirst }: AccessRowProps) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ borderTop: isFirst ? 'none' : '1px solid rgba(255,255,255,0.12)' }}>
+    <div style={{ borderTop: isFirst ? 'none' : `1px solid var(--module-stroke)` }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{
@@ -159,7 +156,7 @@ function AccessRow({ icon, roleLabel, name, mapsUrl, isFirst }: AccessRowProps) 
           background: 'none',
           border: 'none',
           cursor: 'pointer',
-          color: '#fff',
+          color: 'var(--fg-on-sky-1)',
           textAlign: 'left',
           WebkitTapHighlightColor: 'transparent',
         }}
@@ -170,7 +167,7 @@ function AccessRow({ icon, roleLabel, name, mapsUrl, isFirst }: AccessRowProps) 
             height: 34,
             borderRadius: 9,
             flexShrink: 0,
-            background: 'rgba(255,255,255,0.16)',
+            background: 'var(--module-fill)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -264,7 +261,7 @@ function AccessPointRow({ ap, isFirst }: AccessPointRowProps) {
     : 'Access point';
 
   return (
-    <div style={{ borderTop: isFirst ? 'none' : '1px solid rgba(255,255,255,0.12)' }}>
+    <div style={{ borderTop: isFirst ? 'none' : `1px solid var(--module-stroke)` }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{
@@ -276,7 +273,7 @@ function AccessPointRow({ ap, isFirst }: AccessPointRowProps) {
           background: 'none',
           border: 'none',
           cursor: 'pointer',
-          color: '#fff',
+          color: 'var(--fg-on-sky-1)',
           textAlign: 'left',
           WebkitTapHighlightColor: 'transparent',
         }}
@@ -287,7 +284,7 @@ function AccessPointRow({ ap, isFirst }: AccessPointRowProps) {
             height: 34,
             borderRadius: 9,
             flexShrink: 0,
-            background: 'rgba(255,255,255,0.16)',
+            background: 'var(--module-fill)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -315,7 +312,7 @@ function AccessPointRow({ ap, isFirst }: AccessPointRowProps) {
               style={{
                 fontSize: 10.5,
                 fontWeight: 700,
-                background: 'rgba(255,255,255,0.16)',
+                background: 'var(--module-fill)',
                 borderRadius: 'var(--r-pill)',
                 padding: '3px 8px',
                 whiteSpace: 'nowrap',
@@ -401,7 +398,7 @@ function RapidRow({ rapid, isFirst }: { rapid: any; isFirst: boolean }) {
   const hasDetails = hazards.length > 0 || lines.length > 0 || rapid.scoutPortageNotes;
 
   return (
-    <div style={{ borderTop: isFirst ? 'none' : '1px solid rgba(255,255,255,0.14)' }}>
+    <div style={{ borderTop: isFirst ? 'none' : `1px solid var(--module-stroke)` }}>
       <button
         onClick={() => hasDetails ? setOpen(o => !o) : undefined}
         style={{
@@ -413,7 +410,7 @@ function RapidRow({ rapid, isFirst }: { rapid: any; isFirst: boolean }) {
           background: 'none',
           border: 'none',
           cursor: hasDetails ? 'pointer' : 'default',
-          color: '#fff',
+          color: 'var(--fg-on-sky-1)',
           textAlign: 'left',
           WebkitTapHighlightColor: 'transparent',
         }}
@@ -424,7 +421,7 @@ function RapidRow({ rapid, isFirst }: { rapid: any; isFirst: boolean }) {
               fontFamily: 'var(--font-mono)',
               fontSize: 13,
               fontWeight: 700,
-              background: 'rgba(255,255,255,0.16)',
+              background: 'var(--module-fill)',
               borderRadius: 6,
               padding: '2px 9px',
               whiteSpace: 'nowrap',
@@ -601,6 +598,7 @@ interface HistoricCtx {
 
 function HistoricContextModule({ ctx }: { ctx: HistoricCtx | null }) {
   if (!ctx) return null;
+  const { units } = usePreferences();
 
   const today = new Date();
   const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -621,7 +619,7 @@ function HistoricContextModule({ ctx }: { ctx: HistoricCtx | null }) {
             fontSize: 38,
             lineHeight: 1,
             fontVariantNumeric: 'tabular-nums',
-            color: '#fff',
+            color: 'var(--fg-on-sky-1)',
           }}
         >
           {ctx.pct}%
@@ -634,7 +632,7 @@ function HistoricContextModule({ ctx }: { ctx: HistoricCtx | null }) {
             marginLeft: 'auto',
             fontSize: 14.5,
             fontWeight: 700,
-            color: '#fff',
+            color: 'var(--fg-on-sky-1)',
             whiteSpace: 'nowrap',
           }}
         >
@@ -642,7 +640,7 @@ function HistoricContextModule({ ctx }: { ctx: HistoricCtx | null }) {
         </span>
       </div>
 
-      {/* cfs summary line */}
+      {/* flow summary line */}
       <div
         style={{
           fontSize: 13,
@@ -652,13 +650,13 @@ function HistoricContextModule({ ctx }: { ctx: HistoricCtx | null }) {
       >
         Today{' '}
         <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-          {ctx.current.toLocaleString()}
+          {flowValue(ctx.current, units.flow)}
         </span>{' '}
-        cfs · {ctx.years}-yr median{' '}
+        {flowUnitLabel(units.flow)} · {ctx.years}-yr median{' '}
         <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-          {ctx.median.toLocaleString()}
+          {flowValue(ctx.median, units.flow)}
         </span>{' '}
-        cfs
+        {flowUnitLabel(units.flow)}
       </div>
 
       {/* range bar */}
@@ -668,7 +666,7 @@ function HistoricContextModule({ ctx }: { ctx: HistoricCtx | null }) {
             position: 'relative',
             height: 6,
             borderRadius: 3,
-            background: 'rgba(255,255,255,0.16)',
+            background: 'var(--module-fill)',
           }}
         >
           {/* median tick */}
@@ -679,7 +677,7 @@ function HistoricContextModule({ ctx }: { ctx: HistoricCtx | null }) {
               left: `calc(${medianFr * 100}% - 1px)`,
               width: 2,
               height: 14,
-              background: 'rgba(255,255,255,0.55)',
+              background: 'var(--fg-on-sky-3)',
               borderRadius: 1,
             }}
           />
@@ -692,7 +690,7 @@ function HistoricContextModule({ ctx }: { ctx: HistoricCtx | null }) {
               width: 14,
               height: 14,
               borderRadius: 99,
-              background: '#fff',
+              background: 'var(--fg-on-sky-1)',
               boxShadow: '0 0 0 2px var(--flow-600), 0 1px 3px rgba(6,19,33,0.4)',
             }}
           />
@@ -707,8 +705,8 @@ function HistoricContextModule({ ctx }: { ctx: HistoricCtx | null }) {
             marginTop: 8,
           }}
         >
-          <span>Low {ctx.min.toLocaleString()}</span>
-          <span>High {ctx.max.toLocaleString()}</span>
+          <span>Low {flowValue(ctx.min, units.flow)}</span>
+          <span>High {flowValue(ctx.max, units.flow)}</span>
         </div>
       </div>
 
@@ -736,13 +734,13 @@ interface SectionContentProps {
 function MobileSectionContent({ sectionId }: SectionContentProps) {
   const navigate = useNavigate();
   const { data: detail, isLoading, isError } = useRiverDetail(sectionId);
-  const [days, setDays] = useState(30);
+  const { units } = usePreferences();
 
   if (isLoading) {
     return (
       <div style={{ padding: '0 14px 60px' }}>
         {/* header placeholder */}
-        <div style={{ height: 110, background: 'rgba(255,255,255,0.10)', borderRadius: 22, marginTop: 0 }} />
+        <div style={{ height: 110, background: 'var(--module-fill)', borderRadius: 22, marginTop: 0 }} />
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <PulseSkeleton height={200} />
           <PulseSkeleton height={160} />
@@ -763,12 +761,12 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
           minHeight: '60vh',
           gap: 16,
           padding: 24,
-          color: '#fff',
+          color: 'var(--fg-on-sky-1)',
         }}
       >
         <Icon name="waves" size={42} color="rgba(255,255,255,0.35)" />
         <div style={{ fontSize: 18, fontWeight: 700 }}>Unable to load section</div>
-        <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
+        <div style={{ fontSize: 14, color: 'var(--fg-on-sky-3)', textAlign: 'center' }}>
           Check your connection and try again.
         </div>
         <button onClick={() => navigate(-1)} style={{ ...navBtn, width: 'auto', padding: '10px 20px', borderRadius: 'var(--r-pill)', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-sans)' }}>
@@ -781,13 +779,8 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
   const sc = STATUS_COLORS[detail.status as DesignStatus];
   const gaugeInfo = detail.gauges?.[0];
   const gaugeAttribution = gaugeInfo
-    ? `USGS ${gaugeInfo.id ?? ''} · ${gaugeInfo.name ?? 'gauge'}`
-    : 'USGS instantaneous values';
-
-  // Slice history for the selected period
-  const cutoff = Date.now() - days * 24 * 3600_000;
-  const histSlice = detail.history.filter(p => p.t >= cutoff);
-  const chartData = histSlice.map(p => ({ v: p.v }));
+    ? `${gaugeSourceLabel(gaugeInfo.id)} ${gaugeInfo.id ?? ''} · ${gaugeInfo.name ?? 'gauge'}`
+    : 'Live gauge readings';
 
   // Thresholds for FlowGauge: it uses `thresholds` directly (Thresholds type)
   const thresholds = detail.thresholds;
@@ -830,7 +823,7 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
           zIndex: 30,
           margin: '0 -14px',
           padding: '52px 14px 14px',
-          color: '#fff',
+          color: 'var(--fg-on-sky-1)',
           borderBottomLeftRadius: 22,
           borderBottomRightRadius: 22,
           boxShadow: '0 12px 28px rgba(6,19,33,0.42)',
@@ -880,7 +873,7 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
       </div>
 
       {/* ── hero ── */}
-      <div style={{ textAlign: 'center', color: '#fff', marginTop: 20 }}>
+      <div style={{ textAlign: 'center', color: 'var(--fg-on-sky-1)', marginTop: 20 }}>
         {detail.now != null ? (
           <div
             style={{
@@ -902,7 +895,7 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
               fontSize: 64,
               fontWeight: 200,
               lineHeight: 1,
-              color: '#fff',
+              color: 'var(--fg-on-sky-1)',
               fontVariantNumeric: 'tabular-nums',
             }}
           >
@@ -940,12 +933,12 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5,
-                background: 'rgba(255,255,255,0.16)',
+                background: 'var(--module-fill)',
                 borderRadius: 'var(--r-pill)',
                 padding: '5px 10px',
                 fontSize: 12.5,
                 fontWeight: 700,
-                color: '#fff',
+                color: 'var(--fg-on-sky-1)',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -959,15 +952,15 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5,
-                background: 'rgba(255,255,255,0.16)',
+                background: 'var(--module-fill)',
                 borderRadius: 'var(--r-pill)',
                 padding: '5px 10px',
                 fontSize: 12.5,
                 fontWeight: 700,
-                color: '#fff',
+                color: 'var(--fg-on-sky-1)',
               }}
             >
-              {detail.miles} mi
+              {formatLength(detail.miles, units.length)}
             </span>
           )}
         </div>
@@ -979,12 +972,12 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
           style={{
             borderRadius: 'var(--r-xl)',
             overflow: 'hidden',
-            color: '#fff',
+            color: 'var(--fg-on-sky-1)',
             background: 'linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.08) 60%, rgba(255,255,255,0.05) 100%)',
             backdropFilter: 'blur(20px) saturate(150%)',
             WebkitBackdropFilter: 'blur(20px) saturate(150%)',
             boxShadow: '0 18px 40px rgba(6,19,33,0.30), inset 0 1px 0 rgba(255,255,255,0.30)',
-            border: '1px solid rgba(255,255,255,0.18)',
+            border: `1px solid var(--module-stroke)`,
             padding: '15px 16px 14px',
           }}
         >
@@ -1015,10 +1008,10 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
                   color: statusColor(detail.status as DesignStatus),
                 }}
               >
-                {detail.now.toLocaleString()}
+                {flowValue(detail.now, units.flow)}
               </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
-                cfs
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--fg-on-sky-2)' }}>
+                {flowUnitLabel(units.flow)}
               </span>
               <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700 }}>
                 {detail.statusLabel}
@@ -1026,29 +1019,14 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
             </div>
           )}
 
-          {/* chart */}
-          {chartData.length > 1 ? (
-            <FlowChart
-              data={chartData}
-              optimal={optimal}
-              nowIndex={chartData.length - 1}
-              height={130}
-              onSky
-            />
-          ) : (
-            <div
-              style={{
-                height: 80,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--fg-on-sky-3)',
-                fontSize: 13,
-              }}
-            >
-              No history for this period
-            </div>
-          )}
+          {/* chart — full-width via bleedX offsetting the tile's 16px side padding */}
+          <PeriodFlowChart
+            history={detail.history}
+            optimal={optimal}
+            height={130}
+            onSky
+            bleedX={16}
+          />
 
           {/* optimal band note */}
           {optimal && (
@@ -1062,48 +1040,10 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
                 marginTop: 4,
               }}
             >
-              <span>Optimal {thresholds.idealLo.toLocaleString()}–{thresholds.idealHi.toLocaleString()} cfs</span>
-              <span>{gaugeInfo?.id ? `USGS ${gaugeInfo.id}` : ''}</span>
+              <span>Optimal {flowValue(thresholds.idealLo, units.flow)}–{flowValue(thresholds.idealHi, units.flow)} {flowUnitLabel(units.flow)}</span>
+              <span>{gaugeInfo?.id ? `${gaugeSourceLabel(gaugeInfo.id)} ${gaugeInfo.id}` : ''}</span>
             </div>
           )}
-
-          {/* period toggle */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 4,
-              marginTop: 12,
-              background: 'rgba(7,22,40,0.22)',
-              borderRadius: 'var(--r-pill)',
-              padding: 3,
-            }}
-          >
-            {PERIOD_OPTIONS.map(opt => {
-              const on = days === opt.days;
-              return (
-                <button
-                  key={opt.days}
-                  onClick={() => setDays(opt.days)}
-                  style={{
-                    flex: 1,
-                    border: 'none',
-                    cursor: 'pointer',
-                    borderRadius: 'var(--r-pill)',
-                    padding: '7px 0',
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    background: on ? 'rgba(255,255,255,0.92)' : 'transparent',
-                    color: on ? 'var(--flow-700)' : '#fff',
-                    transition: 'background 0.15s',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
 
@@ -1118,7 +1058,7 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
       />
 
       {/* ── section map ── */}
-      <Module label="Section map" icon="map" style={{ marginTop: 14 }}>
+      <Module label="Section map" icon="map" flush style={{ marginTop: 14 }}>
         <GeoMap
           sections={[{
             id: sectionId,
@@ -1131,7 +1071,7 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
             trend: detail.trend === 'up' ? 'up' : detail.trend === 'down' ? 'down' : 'stable',
           }]}
           height={200}
-          style={{ borderRadius: 8, overflow: 'hidden' }}
+          style={{ width: '100%', display: 'block' }}
         />
       </Module>
 
@@ -1194,7 +1134,7 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
 
           return (
             <Module label="" icon="navigation" style={{ marginTop: 14, paddingBottom: 6 }}>
-              <div style={{ marginBottom: 6, color: '#fff' }}>{navHeader}</div>
+              <div style={{ marginBottom: 6, color: 'var(--fg-on-sky-1)' }}>{navHeader}</div>
               {apRows.map(({ ap, isFirst }) => (
                 <AccessPointRow key={ap.id ?? ap.name} ap={ap} isFirst={isFirst} />
               ))}
@@ -1207,7 +1147,7 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
         return (
           <Module label="Access" icon="navigation" style={{ marginTop: 14, paddingBottom: 6 }}>
             {siblings.length > 1 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginBottom: 6, color: '#fff' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginBottom: 6, color: 'var(--fg-on-sky-1)' }}>
                 {prevSib ? (
                   <button onClick={() => navigate(`/section/${prevSib.id}`)} style={arrowBtn}>
                     <Icon name="chevron-left" size={17} />
@@ -1324,7 +1264,7 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
 function DesktopSectionContent({ sectionId }: SectionContentProps) {
   const navigate = useNavigate();
   const { data: detail, isLoading, isError } = useRiverDetail(sectionId);
-  const [days, setDays] = useState(30);
+  const { units } = usePreferences();
 
   if (isLoading) {
     return (
@@ -1355,7 +1295,7 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
           minHeight: '60vh',
           gap: 16,
           padding: 24,
-          color: '#fff',
+          color: 'var(--fg-on-sky-1)',
         }}
       >
         <Icon name="waves" size={42} color="rgba(255,255,255,0.35)" />
@@ -1370,12 +1310,8 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
   const sc = STATUS_COLORS[detail.status as DesignStatus];
   const gaugeInfo = detail.gauges?.[0];
   const gaugeAttribution = gaugeInfo
-    ? `USGS ${gaugeInfo.id ?? ''} · ${gaugeInfo.name ?? 'gauge'}`
-    : 'USGS instantaneous values';
-
-  const cutoff = Date.now() - days * 24 * 3600_000;
-  const histSlice = detail.history.filter(p => p.t >= cutoff);
-  const chartData = histSlice.map(p => ({ v: p.v }));
+    ? `${gaugeSourceLabel(gaugeInfo.id)} ${gaugeInfo.id ?? ''} · ${gaugeInfo.name ?? 'gauge'}`
+    : 'Live gauge readings';
 
   const thresholds = detail.thresholds;
   const optimal: [number, number] | undefined =
@@ -1419,7 +1355,7 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
           background: 'linear-gradient(180deg, rgba(6,19,33,0.5) 0%, rgba(6,19,33,0.12) 100%)',
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
-          color: '#fff',
+          color: 'var(--fg-on-sky-1)',
         }}
       >
         <button onClick={() => navigate(-1)} style={navBtn}>
@@ -1442,12 +1378,12 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 12,
-              color: 'rgba(255,255,255,0.66)',
+              color: 'var(--fg-on-sky-2)',
               marginTop: 2,
             }}
           >
             {detail.river} · {detail.classification}
-            {detail.miles ? ` · ${detail.miles} mi` : ''}
+            {detail.miles ? ` · ${formatLength(detail.miles, units.length)}` : ''}
           </div>
         </div>
         <button
@@ -1485,9 +1421,9 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
             background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 100%)',
             backdropFilter: 'blur(20px) saturate(150%)',
             WebkitBackdropFilter: 'blur(20px) saturate(150%)',
-            border: '1px solid rgba(255,255,255,0.18)',
+            border: `1px solid var(--module-stroke)`,
             boxShadow: '0 14px 32px rgba(6,19,33,0.28)',
-            color: '#fff',
+            color: 'var(--fg-on-sky-1)',
           }}
         >
           {detail.now != null ? (
@@ -1497,7 +1433,7 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
               size={130}
             />
           ) : (
-            <div style={{ fontSize: 56, fontWeight: 200, color: '#fff', lineHeight: 1 }}>—</div>
+            <div style={{ fontSize: 56, fontWeight: 200, color: 'var(--fg-on-sky-1)', lineHeight: 1 }}>—</div>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
@@ -1509,13 +1445,13 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
                 color: statusColor(detail.status as DesignStatus),
               }}
             >
-              {detail.now != null ? `${detail.now.toLocaleString()} cfs` : '—'}
+              {detail.now != null ? `${flowValue(detail.now, units.flow)} ${flowUnitLabel(units.flow)}` : '—'}
             </div>
             <div
               style={{
                 fontSize: 20,
                 fontWeight: 700,
-                color: '#fff',
+                color: 'var(--fg-on-sky-1)',
                 marginTop: 6,
               }}
             >
@@ -1529,12 +1465,12 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 5,
-                    background: 'rgba(255,255,255,0.16)',
+                    background: 'var(--module-fill)',
                     borderRadius: 'var(--r-pill)',
                     padding: '5px 10px',
                     fontSize: 12.5,
                     fontWeight: 700,
-                    color: '#fff',
+                    color: 'var(--fg-on-sky-1)',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -1561,12 +1497,12 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
             <div
               style={{
                 borderRadius: 'var(--r-xl)',
-                color: '#fff',
+                color: 'var(--fg-on-sky-1)',
                 background: 'linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.08) 60%, rgba(255,255,255,0.05) 100%)',
                 backdropFilter: 'blur(20px) saturate(150%)',
                 WebkitBackdropFilter: 'blur(20px) saturate(150%)',
                 boxShadow: '0 18px 40px rgba(6,19,33,0.30), inset 0 1px 0 rgba(255,255,255,0.30)',
-                border: '1px solid rgba(255,255,255,0.18)',
+                border: `1px solid var(--module-stroke)`,
                 padding: '18px 20px 16px',
               }}
             >
@@ -1584,77 +1520,28 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
                   <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em' }}>
                     {gaugeInfo?.name ?? 'Discharge'}
                   </div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 10.5,
-                      color: 'var(--fg-on-sky-3)',
-                      marginTop: 2,
-                    }}
-                  >
-                    {optimal
-                      ? `Optimal ${thresholds.idealLo.toLocaleString()}–${thresholds.idealHi.toLocaleString()} cfs`
-                      : gaugeInfo?.id ? `USGS ${gaugeInfo.id}` : ''}
-                  </div>
-                </div>
-                {/* period toggle */}
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 3,
-                    background: 'rgba(7,22,40,0.22)',
-                    borderRadius: 'var(--r-pill)',
-                    padding: 3,
-                  }}
-                >
-                  {PERIOD_OPTIONS.map(opt => {
-                    const on = days === opt.days;
-                    return (
-                      <button
-                        key={opt.days}
-                        onClick={() => setDays(opt.days)}
-                        style={{
-                          border: 'none',
-                          cursor: 'pointer',
-                          borderRadius: 'var(--r-pill)',
-                          padding: '6px 12px',
-                          fontFamily: 'var(--font-sans)',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          background: on ? 'rgba(255,255,255,0.92)' : 'transparent',
-                          color: on ? 'var(--flow-700)' : '#fff',
-                          transition: 'background 0.15s',
-                          WebkitTapHighlightColor: 'transparent',
-                        }}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
+                  {optimal && (
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 10.5,
+                        color: 'var(--fg-on-sky-3)',
+                        marginTop: 2,
+                      }}
+                    >
+                      {`Optimal ${flowValue(thresholds.idealLo, units.flow)}–${flowValue(thresholds.idealHi, units.flow)} ${flowUnitLabel(units.flow)}`}
+                    </div>
+                  )}
                 </div>
               </div>
-              {chartData.length > 1 ? (
-                <FlowChart
-                  data={chartData}
-                  optimal={optimal}
-                  nowIndex={chartData.length - 1}
-                  height={160}
-                  onSky
-                />
-              ) : (
-                <div
-                  style={{
-                    height: 100,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--fg-on-sky-3)',
-                    fontSize: 13,
-                  }}
-                >
-                  No history for this period
-                </div>
-              )}
+              {/* chart — full-width via bleedX offsetting the tile's 20px side padding */}
+              <PeriodFlowChart
+                history={detail.history}
+                optimal={optimal}
+                height={160}
+                onSky
+                bleedX={20}
+              />
               <div
                 style={{
                   fontFamily: 'var(--font-mono)',
@@ -1664,7 +1551,7 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
                   textAlign: 'right',
                 }}
               >
-                {gaugeInfo?.id ? `USGS ${gaugeInfo.id}` : ''}
+                {gaugeInfo?.id ? `${gaugeSourceLabel(gaugeInfo.id)} ${gaugeInfo.id}` : ''}
               </div>
             </div>
 
@@ -1715,7 +1602,7 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
 
                 return (
                   <Module label="" icon="navigation" style={{ paddingBottom: 6 }}>
-                    <div style={{ marginBottom: 6, color: '#fff' }}>{navHeader}</div>
+                    <div style={{ marginBottom: 6, color: 'var(--fg-on-sky-1)' }}>{navHeader}</div>
                     {apRows.map(({ ap, isFirst }) => (
                       <AccessPointRow key={ap.id ?? ap.name} ap={ap} isFirst={isFirst} />
                     ))}
@@ -1727,7 +1614,7 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
               return (
                 <Module label="Access" icon="navigation" style={{ paddingBottom: 6 }}>
                   {siblings.length > 1 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginBottom: 6, color: '#fff' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginBottom: 6, color: 'var(--fg-on-sky-1)' }}>
                       {prevSib ? (
                         <button onClick={() => navigate(`/section/${prevSib.id}`)} style={arrowBtn}>
                           <Icon name="chevron-left" size={17} />
@@ -1788,7 +1675,7 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
 
           {/* right column — map, snowpack, dam, guides */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <Module label="Section map" icon="map">
+            <Module label="Section map" icon="map" flush>
               <GeoMap
                 sections={[{
                   id: sectionId,
@@ -1801,7 +1688,7 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
                   trend: detail.trend === 'up' ? 'up' : detail.trend === 'down' ? 'down' : 'stable',
                 }]}
                 height={220}
-                style={{ borderRadius: 8, overflow: 'hidden' }}
+                style={{ width: '100%', display: 'block' }}
               />
             </Module>
 

@@ -108,8 +108,8 @@ export function LoginPage() {
 								marginBottom: 16,
 								padding: '8px 12px',
 								borderRadius: 'var(--r-md)',
-								background: '#fdecea',
-								color: '#a02323',
+								background: 'var(--status-high-bg)',
+								color: 'var(--status-high)',
 								fontSize: 13,
 							}}>{tokenError}</div>
 						)}
@@ -117,7 +117,7 @@ export function LoginPage() {
 						<button onClick={login} style={{
 							display: 'inline-flex', alignItems: 'center', gap: 10,
 							padding: '12px 28px', borderRadius: 'var(--r-md)',
-							background: 'var(--river-700)', color: 'white',
+							background: 'var(--river-700)', color: 'var(--fg-on-brand)',
 							fontSize: 15, fontWeight: 600,
 							border: 'none', cursor: 'pointer',
 						}}>
@@ -217,7 +217,7 @@ export function LoginPage() {
 						</p>
 						<button onClick={() => navigate('/')} style={{
 							padding: '10px 24px', borderRadius: 'var(--r-md)',
-							background: 'var(--river-700)', color: 'white',
+							background: 'var(--river-700)', color: 'var(--fg-on-brand)',
 							fontSize: 14, fontWeight: 600,
 							border: 'none', cursor: 'pointer',
 						}}>

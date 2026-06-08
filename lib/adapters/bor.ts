@@ -19,14 +19,22 @@ export interface DamReleaseRecord {
 // Method: paginated /rise/api/location?locationTypeName=Lake/Reservoir, then walked each
 // location's relationships.catalogRecords → catalogItems and matched by parameterName.
 //
-// Not in BOR RISE (need alternative sources):
-//   - Aspinall Unit (Blue Mesa, Morrow Point, Crystal Dam) — Western Area Power Admin / CDSS
-//   - Taylor Park Reservoir — CDSS
-//   - McPhee Reservoir (Dolores Water Conservancy / Dolores Project) — DWCD direct
-//   - Dillon Reservoir (Denver Water, not federal) — Denver Water "operations report"
-// The seed data references these by id; sections will simply have no DamRelease data for
-// them until a CDSS-reservoir adapter (or per-source adapter) lands. Slice 04 forecaster
-// can fall back to gauges-below-dam (USGS) for dam-fed sections without RISE coverage.
+// Aspinall Unit (Blue Mesa, Morrow Point, Crystal), Lemon, Lake Granby, and McPhee
+// were added in the Part 2 dam-data overhaul. Their RISE Release-Total (cfs) outflow
+// itemIds were verified against the live download endpoint on 2026-06-07 (real
+// 2025/2026 cfs data, correct Location.Name). Granby and McPhee were resolved by
+// walking /rise/api/location/{id} → catalog-record → catalog-item and matching the
+// daily "Lake/Reservoir Release - Total" / unit=cfs series (granby item 386,
+// mcphee item 4342 — McPhee also exposes a Release-Total in `af` (4420) which we
+// deliberately skip in favor of the cfs series).
+//
+// The parser (parseRiseDownloadResponse) tolerates missing storage/elevation/inflow
+// itemIds — fetchReservoirData only fetches the params present on the catalog entry,
+// so entries with outflow-only still produce DamRelease rows.
+//
+// Still routed via other sources (NOT in this catalog):
+//   - Taylor Park, Dillon, Williams Fork, Stagecoach, Cheesman, Clear Creek — USGS tailwater gauge
+//   - Wolford Mountain, Elkhead, Strontia Springs, Chatfield — CDSS DISCHRG
 export const BOR_CATALOG: Record<string, { name: string; locationId: string; timeseriesIds: Record<string, string> }> = {
 	'green-mountain': {
 		name: 'Green Mountain Reservoir',
@@ -52,6 +60,36 @@ export const BOR_CATALOG: Record<string, { name: string; locationId: string; tim
 		name: 'Twin Lakes Reservoir',
 		locationId: '499',
 		timeseriesIds: { storage: '818', elevation: '819', outflow: '823' },
+	},
+	'blue-mesa': {
+		name: 'Blue Mesa Reservoir',
+		locationId: '1533',
+		timeseriesIds: { outflow: '4310' },
+	},
+	'morrow-point': {
+		name: 'Morrow Point Reservoir',
+		locationId: '417',
+		timeseriesIds: { outflow: '4311' },
+	},
+	'crystal-dam': {
+		name: 'Crystal Reservoir',
+		locationId: '1534',
+		timeseriesIds: { outflow: '4312' },
+	},
+	'lemon': {
+		name: 'Lemon Reservoir',
+		locationId: '395',
+		timeseriesIds: { outflow: '4324' },
+	},
+	'granby': {
+		name: 'Lake Granby',
+		locationId: '351',
+		timeseriesIds: { storage: '383', elevation: '384', outflow: '386' },
+	},
+	'mcphee': {
+		name: 'McPhee Reservoir',
+		locationId: '410',
+		timeseriesIds: { storage: '569', elevation: '572', inflow: '570', outflow: '4342' },
 	},
 };
 

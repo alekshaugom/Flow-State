@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react';
+import { CSSProperties, useState } from 'react';
 
 // ── internal math helpers ────────────────────────────────────────────────────
 
@@ -48,6 +48,7 @@ export interface FlowChartProps {
   height?: number;
   accent?: string;
   onSky?: boolean;
+  markerIndex?: number;
   style?: CSSProperties;
 }
 
@@ -61,8 +62,9 @@ export function FlowChart({
   nowIndex,
   labels,
   height = 150,
-  accent = 'rgba(255,255,255,0.95)',
+  accent = 'var(--fg-on-sky-1)',
   onSky = true,
+  markerIndex,
   style,
 }: FlowChartProps) {
   const W = 320;
@@ -128,7 +130,7 @@ export function FlowChart({
             y1={padT}
             x2={xFn(nowIndex)}
             y2={H - padB}
-            stroke="#fff"
+            stroke="var(--fg-on-sky-1)"
             strokeOpacity="0.4"
             strokeWidth="1"
             strokeDasharray="2 3"
@@ -139,6 +141,28 @@ export function FlowChart({
             r="4.5"
             fill="#fff"
             stroke={accent}
+            strokeWidth="2"
+          />
+        </g>
+      )}
+
+      {markerIndex != null && data[markerIndex] && (
+        <g>
+          <line
+            x1={xFn(markerIndex)}
+            y1={padT}
+            x2={xFn(markerIndex)}
+            y2={H - padB}
+            stroke="var(--fg-on-sky-1)"
+            strokeOpacity="0.75"
+            strokeWidth="1.25"
+          />
+          <circle
+            cx={xFn(markerIndex)}
+            cy={yFn(data[markerIndex].v)}
+            r="5"
+            fill={accent}
+            stroke="#fff"
             strokeWidth="2"
           />
         </g>
@@ -323,6 +347,203 @@ export function CorridorSpark({
       />
       <circle cx={last[0]} cy={last[1]} r="3" fill={colorDown} />
     </svg>
+  );
+}
+
+// ── PeriodFlowChart ──────────────────────────────────────────────────────────
+
+const PERIOD_OPTS = [
+  { label: '7D', days: 7 },
+  { label: '30D', days: 30 },
+  { label: '90D', days: 90 },
+  { label: '1Y', days: 365 },
+];
+
+export interface PeriodFlowChartProps {
+  history: { t: number; v: number }[];   // ascending, epoch ms
+  optimal?: [number, number];
+  height?: number;
+  accent?: string;
+  onSky?: boolean;
+  defaultDays?: number;   // default 30
+  bleedX?: number;        // px of negative horizontal margin so the chart spans the tile edge-to-edge
+  valueOverlay?: {
+    format: (v: number) => string;   // formats a flow value (with unit conversion)
+    unit: string;                    // unit label, e.g. 'cfs'
+    trend?: string | null;           // 'rising' | 'falling' | 'steady'
+  };
+}
+
+/**
+ * Full-width period chart with a minimal period toggle.
+ * Slices history to the selected window and renders FlowChart edge-to-edge
+ * by applying a negative horizontal margin equal to the tile's padding.
+ */
+export function PeriodFlowChart({
+  history,
+  optimal,
+  height = 130,
+  accent = 'var(--fg-on-sky-1)',
+  onSky = true,
+  defaultDays = 30,
+  bleedX,
+  valueOverlay,
+}: PeriodFlowChartProps) {
+  const [days, setDays] = useState(defaultDays);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+
+  const slice = history.filter(p => p.t >= Date.now() - days * 86400000);
+  const lastIdx = slice.length - 1;
+  const activeIdx = hoverIdx != null ? Math.min(Math.max(hoverIdx, 0), lastIdx) : lastIdx;
+  const activePt = slice[activeIdx];
+
+  // x-fraction of the active point, matching FlowChart's xFn = (i/(n-1))*(W-8)+4, W=320
+  const frac = lastIdx > 0 ? activeIdx / lastIdx : 0;
+  const leftFrac = (frac * 312 + 4) / 320;
+  const tx = leftFrac <= 0.2 ? '0%' : leftFrac >= 0.8 ? '-100%' : '-50%';
+  const align = tx === '0%' ? 'flex-start' : tx === '-100%' ? 'flex-end' : 'center';
+
+  const onMove = (e: any) => {
+    if (lastIdx < 1) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const f = (e.clientX - rect.left) / rect.width;
+    setHoverIdx(Math.min(Math.max(Math.round(f * lastIdx), 0), lastIdx));
+  };
+
+  const stamp = (t: number) => {
+    const d = new Date(t);
+    return (
+      d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
+      ' · ' +
+      d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+    );
+  };
+
+  return (
+    <div>
+      {/* value label band — tracks the active point; only when valueOverlay is set */}
+      {valueOverlay && slice.length >= 2 && activePt && (
+        <div
+          style={{
+            position: 'relative',
+            height: 52,
+            margin: bleedX ? `0 -${bleedX}px` : undefined,
+            pointerEvents: 'none',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: `${leftFrac * 100}%`,
+              transform: `translateX(${tx})`,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: align,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+              <span
+                style={{
+                  fontWeight: 300,
+                  fontSize: 34,
+                  lineHeight: 1,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {valueOverlay.format(activePt.v)}
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12,
+                  color: 'var(--fg-on-sky-2)',
+                }}
+              >
+                {valueOverlay.unit}
+              </span>
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10.5,
+                color: 'var(--fg-on-sky-3)',
+                marginTop: 3,
+              }}
+            >
+              {stamp(activePt.t)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* chart — bleeds to tile edges via negative margin */}
+      <div
+        style={{ position: 'relative', margin: bleedX ? `0 -${bleedX}px` : undefined }}
+        onMouseMove={valueOverlay ? onMove : undefined}
+        onMouseLeave={valueOverlay ? () => setHoverIdx(null) : undefined}
+      >
+        {slice.length >= 2 ? (
+          <FlowChart
+            data={slice.map(p => ({ v: p.v }))}
+            optimal={optimal}
+            nowIndex={valueOverlay ? undefined : lastIdx}
+            markerIndex={valueOverlay && hoverIdx != null ? activeIdx : undefined}
+            height={height}
+            accent={accent}
+            onSky={onSky}
+          />
+        ) : (
+          <div
+            style={{
+              height,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--fg-on-sky-3)',
+              fontSize: 13,
+            }}
+          >
+            No history for this period
+          </div>
+        )}
+      </div>
+
+      {/* minimal period toggle — right-aligned, no filled pill bar */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: 2,
+          marginTop: 8,
+        }}
+      >
+        {PERIOD_OPTS.map(opt => {
+          const active = days === opt.days;
+          return (
+            <button
+              key={opt.days}
+              onClick={() => setDays(opt.days)}
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                padding: '2px 7px',
+                border: 'none',
+                background: active ? 'rgba(255,255,255,0.16)' : 'transparent',
+                borderRadius: active ? 'var(--r-pill)' : undefined,
+                color: active ? 'var(--fg-on-sky-1)' : 'var(--fg-on-sky-3)',
+                fontWeight: active ? 700 : 600,
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

@@ -184,21 +184,86 @@ async function ingestSnowpack(): Promise<void> {
 
 async function ingestReservoirs(): Promise<void> {
 	const start = Date.now();
-	let totalRecords = 0;
 	const errors: string[] = [];
 
-	for (const key of Object.keys(BOR_CATALOG)) {
+	// Load every reservoir and dispatch by its declared source. The BOR-RISE path
+	// keys by reservoir id (which equals the BOR_CATALOG key); usgs/cdss reservoirs
+	// have a tailwater release gauge as their sourceId.
+	const reservoirs = await collect(tables.Reservoir.search({ conditions: [] }));
+
+	let borRecords = 0;
+	let usgsRecords = 0;
+	let cdssRecords = 0;
+
+	// --- BOR-RISE (storage/elevation/inflow/outflow where available) ---
+	const borReservoirs = reservoirs.filter((r: any) => r.source === 'bor-rise');
+	for (const r of borReservoirs) {
+		const key = (r as any).id;
 		try {
 			const releases = await fetchReservoirData(key);
-			for (const r of releases) await tables.DamRelease.put(r.id, r);
-			totalRecords += releases.length;
+			for (const rec of releases) await tables.DamRelease.put(rec.id, rec);
+			borRecords += releases.length;
 		} catch (err) {
-			errors.push(`${key}: ${(err as Error).message}`);
+			errors.push(`bor:${key}: ${(err as Error).message}`);
 		}
 	}
 
+	// --- USGS tailwater gauges → outflow only. Batch site ids in groups of 20. ---
+	const usgsReservoirs = reservoirs.filter((r: any) => r.source === 'usgs' && r.sourceId);
+	// Map USGS site id → owning reservoir id (the gauge IS the dam's release gauge).
+	const usgsSiteToReservoir = new Map<string, string>();
+	for (const r of usgsReservoirs) usgsSiteToReservoir.set((r as any).sourceId, (r as any).id);
+	const usgsSiteIds = [...usgsSiteToReservoir.keys()];
+	for (let i = 0; i < usgsSiteIds.length; i += 20) {
+		const batch = usgsSiteIds.slice(i, i + 20);
+		try {
+			const readings = await fetchInstantaneous(batch);
+			for (const reading of readings) {
+				// reading.gaugeId is `usgs-<siteCode>`; recover the bare site id.
+				const siteCode = reading.gaugeId.startsWith('usgs-') ? reading.gaugeId.slice(5) : reading.gaugeId;
+				const reservoirId = usgsSiteToReservoir.get(siteCode);
+				if (!reservoirId) continue;
+				const rec = {
+					id: compositeId([reservoirId, reading.timestamp]),
+					reservoirId,
+					timestamp: reading.timestamp,
+					outflowCfs: reading.value,
+					source: 'usgs',
+				};
+				await tables.DamRelease.put(rec.id, rec);
+				usgsRecords++;
+			}
+		} catch (err) {
+			errors.push(`usgs batch ${i}: ${(err as Error).message}`);
+		}
+	}
+
+	// --- CDSS DISCHRG → outflow only. ---
+	const cdssReservoirs = reservoirs.filter((r: any) => r.source === 'cdss' && r.sourceId);
+	for (const r of cdssReservoirs) {
+		const reservoirId = (r as any).id;
+		const abbrev = (r as any).sourceId;
+		try {
+			const readings = await fetchTelemetryTimeSeries(abbrev, 'DISCHRG');
+			for (const reading of readings) {
+				const rec = {
+					id: compositeId([reservoirId, reading.timestamp]),
+					reservoirId,
+					timestamp: reading.timestamp,
+					outflowCfs: reading.value,
+					source: 'cdss',
+				};
+				await tables.DamRelease.put(rec.id, rec);
+				cdssRecords++;
+			}
+		} catch (err) {
+			errors.push(`cdss:${reservoirId}: ${(err as Error).message}`);
+		}
+	}
+
+	const totalRecords = borRecords + usgsRecords + cdssRecords;
 	await logIngestion('bor', errors.length ? 'partial' : 'success', totalRecords, errors.join('; '), Date.now() - start);
-	console.log(`[ingestion] reservoirs: ${totalRecords} records stored`);
+	console.log(`[ingestion] reservoirs: ${totalRecords} records stored (bor=${borRecords}, usgs=${usgsRecords}, cdss=${cdssRecords})`);
 	invalidateDashboardCache();
 }
 

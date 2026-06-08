@@ -149,7 +149,7 @@ export function CorridorMap({
             key={`u${i}`}
             d={seg(nodes[i], nodes[i + 1])}
             fill="none"
-            stroke="rgba(255,255,255,0.25)"
+            stroke="var(--module-stroke)"
             strokeWidth="9"
             strokeLinecap="round"
           />
@@ -181,7 +181,7 @@ export function CorridorMap({
               cx={p[0]}
               cy={p[1]}
               r="7"
-              fill="#fff"
+              fill="var(--bg-card)"
               stroke={
                 i === 0
                   ? 'var(--alpine-600, #2b6fa8)'
@@ -235,7 +235,7 @@ export function CorridorMap({
               textAlign: leftSide ? 'right' : 'left',
             }}
           >
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.45)' }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fg-on-sky-1)', textShadow: '0 1px 3px rgba(0,0,0,0.45)' }}>
               {ap.name}
             </div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, color: 'var(--fg-on-sky-3)' }}>
@@ -266,7 +266,7 @@ export function CorridorMap({
               cursor: onSelectSection ? 'pointer' : 'default',
               borderRadius: 'var(--r-pill)',
               padding: on ? '5px 11px' : '3px 9px',
-              background: on ? '#fff' : 'rgba(255,255,255,0.92)',
+              background: on ? 'var(--bg-card)' : 'rgba(255,255,255,0.92)',
               color: statusColor(s.status),
               fontWeight: 800,
               fontSize: on ? 13 : 11.5,
@@ -303,7 +303,7 @@ export function CorridorMap({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5,
-                background: '#fff',
+                background: 'var(--bg-card)',
                 color: 'var(--flow-700)',
                 borderRadius: 'var(--r-pill)',
                 padding: '4px 10px',
@@ -411,7 +411,7 @@ export function SectionMap({ section, accessPoints = [], height }: SectionMapPro
         style={{ display: 'block', overflow: 'visible' }}
       >
         {/* underlay */}
-        <path d={d} fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="10" strokeLinecap="round" />
+        <path d={d} fill="none" stroke="var(--module-stroke)" strokeWidth="10" strokeLinecap="round" />
         {/* colored section path */}
         <path
           d={d}
@@ -425,7 +425,7 @@ export function SectionMap({ section, accessPoints = [], height }: SectionMapPro
           <path
             d={arrowPath}
             fill="none"
-            stroke="#fff"
+            stroke="var(--fg-on-sky-1)"
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -434,7 +434,7 @@ export function SectionMap({ section, accessPoints = [], height }: SectionMapPro
         )}
         {/* nodes */}
         {nodes.map((p, i) => (
-          <circle key={i} cx={p[0]} cy={p[1]} r="7" fill="#fff" stroke={dotStroke(i)} strokeWidth="3" />
+          <circle key={i} cx={p[0]} cy={p[1]} r="7" fill="var(--bg-card)" stroke={dotStroke(i)} strokeWidth="3" />
         ))}
       </svg>
 
@@ -456,7 +456,7 @@ export function SectionMap({ section, accessPoints = [], height }: SectionMapPro
               textAlign: leftSide ? 'right' : 'left',
             }}
           >
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.45)' }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fg-on-sky-1)', textShadow: '0 1px 3px rgba(0,0,0,0.45)' }}>
               {p[2]}
             </div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, color: 'var(--fg-on-sky-3)' }}>

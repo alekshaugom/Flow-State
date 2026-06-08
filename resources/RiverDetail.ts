@@ -117,10 +117,37 @@ export async function getDamReleases(reservoirIds: string[]) {
 			.filter(r => r.reservoirId === rid && (r.timestamp || '') >= cutoff)
 			.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
 
+		// The newest daily reservoir row is often provisional with a null
+		// outflow (BOR RISE publishes the date before the release value lands),
+		// so surface the most recent row that actually has an outflow.
+		const latest = releases.find(r => r.outflowCfs != null) || releases[0] || null;
+
+		// When a major diversion sits between the dam and a reach (e.g. the
+		// Gunnison Tunnel below Crystal), the gross release never reaches the
+		// river — the gauge just below the diversion gives the dam-controlled
+		// mainstem that continues downstream. Expose the release → diverted →
+		// dam-controlled chain; the section caller adds the reach's own flow +
+		// tributary gains (below) to complete the water budget.
+		let diversion = null;
+		if (reservoir.diversionGaugeId && latest?.outflowCfs != null) {
+			const snap = await tables.GaugeSnapshot.get(reservoir.diversionGaugeId).catch(() => null);
+			const damControlled = snap?.currentFlow ?? null;
+			if (damControlled != null) {
+				diversion = {
+					name: reservoir.diversionName || 'diversion',
+					gaugeId: reservoir.diversionGaugeId,
+					grossCfs: Math.round(latest.outflowCfs),
+					damControlledCfs: Math.round(damControlled),
+					divertedCfs: Math.max(0, Math.round(latest.outflowCfs - damControlled)),
+				};
+			}
+		}
+
 		results.push({
 			reservoir,
-			latest: releases[0] || null,
+			latest,
 			history: releases.slice(0, 14),
+			diversion,
 		});
 	}
 	return results;
@@ -404,6 +431,20 @@ export class RiverDetail extends Resource {
 
 		const currentFlow = flowData.latest?.value ?? null;
 		const roundedFlow = currentFlow !== null ? Math.round(currentFlow) : null;
+
+		// Section water budget: the reach's own gauge gives its actual flow.
+		// Anything above the dam-controlled mainstem (the post-diversion gauge)
+		// is tributary/local inflow that rejoins below the diversion. Attach to
+		// the dam-release rows so the tile can show release → diverted →
+		// dam-controlled + tributary gains = reach total.
+		if (roundedFlow != null) {
+			for (const dr of damReleases) {
+				if (dr.diversion && dr.diversion.damControlledCfs != null) {
+					dr.diversion.reachFlowCfs = roundedFlow;
+					dr.diversion.tributaryGainCfs = Math.max(0, roundedFlow - dr.diversion.damControlledCfs);
+				}
+			}
+		}
 
 		// Resolve current band for the default selection (raft + intermediate).
 		// The frontend has all bands and re-resolves locally when the user toggles.

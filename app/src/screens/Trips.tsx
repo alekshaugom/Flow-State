@@ -228,7 +228,7 @@ function BookingControls() {
           onClick={() => undefined}
           style={{
             border: 'none', cursor: 'default',
-            background: 'var(--flow-600)', color: '#fff',
+            background: 'var(--flow-600)', color: 'var(--fg-on-brand)',
             fontFamily: 'var(--font-sans)', fontSize: 16, fontWeight: 700,
             padding: '14px 26px', borderRadius: 'var(--r-pill)',
             display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -256,7 +256,7 @@ function PhotoSlot({ tone, h }: { tone: string; h: number }) {
     <div style={{
       height: h, background: grad, overflow: 'hidden',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: 'rgba(255,255,255,0.55)',
+      color: 'var(--fg-on-sky-3)',
     }}>
       <Icon name="ship" size={34} />
     </div>
@@ -589,7 +589,7 @@ function TripDetailScreen() {
             onClick={() => navigate('/trips')}
             style={{
               padding: '10px 20px', borderRadius: 'var(--r-pill)',
-              background: 'var(--flow-600)', color: '#fff', border: 'none',
+              background: 'var(--flow-600)', color: 'var(--fg-on-brand)', border: 'none',
               fontWeight: 600, cursor: 'pointer',
             }}
           >

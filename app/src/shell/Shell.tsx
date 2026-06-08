@@ -7,8 +7,10 @@ import type { TabId } from './types';
 const homeBg =
   'radial-gradient(120% 60% at 50% -8%, rgba(126,186,228,0.42) 0%, rgba(126,186,228,0) 60%), linear-gradient(176deg, #08233f 0%, #103e6b 40%, #1c5e95 74%, #2f7cb4 100%)';
 
-const lightBg =
-  'radial-gradient(1200px 700px at 10% -10%, #e4eef6 0%, transparent 58%), radial-gradient(1100px 760px at 102% 108%, #e7f0ea 0%, transparent 52%), var(--ink-100, #f5f7f9)';
+// Theme-aware: --shell-surface-bg is a light gradient by default and a dark
+// gradient under [data-theme="dark"] (see tokens.css), so dark mode reskins
+// the shell backdrop too.
+const lightBg = 'var(--shell-surface-bg)';
 
 interface ShellProps {
   active: TabId;
@@ -36,7 +38,7 @@ export function Shell({ active, light = false, children }: ShellProps) {
           display: 'grid',
           gridTemplateColumns: '92px minmax(0,1fr)',
           fontFamily: 'var(--font-sans)',
-          color: light ? 'var(--fg-1, #0d1620)' : '#fff',
+          color: light ? 'var(--fg-1, #0d1620)' : 'var(--fg-on-sky-1)',
         }}
       >
         {/* Fixed backdrop */}
@@ -81,7 +83,7 @@ export function Shell({ active, light = false, children }: ShellProps) {
         position: 'relative',
         background: light ? lightBg : homeBg,
         fontFamily: 'var(--font-sans)',
-        color: light ? 'var(--fg-1, #0d1620)' : '#fff',
+        color: light ? 'var(--fg-1, #0d1620)' : 'var(--fg-on-sky-1)',
       }}
     >
       {children}

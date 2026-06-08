@@ -11,7 +11,7 @@ export interface BigStatProps {
 
 export function BigStat({ value, unit, statusColor, sub, style }: BigStatProps) {
   return (
-    <div style={{ textAlign: 'center', color: '#fff', ...style }}>
+    <div style={{ textAlign: 'center', color: 'var(--fg-on-sky-1)', ...style }}>
       <div style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 6 }}>
         <span
           style={{
@@ -43,7 +43,7 @@ export function BigStat({ value, unit, statusColor, sub, style }: BigStatProps) 
             marginTop: 4,
             fontSize: 18,
             fontWeight: 600,
-            color: statusColor || '#fff',
+            color: statusColor || 'var(--fg-on-sky-1)',
           }}
         >
           {sub}

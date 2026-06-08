@@ -162,6 +162,15 @@
   --bg-sunken:  var(--ink-100);
   --bg-tint:    var(--flow-100);
 
+  /* app chrome (Shell backdrop + nav rail + mobile tab bar) — theme-aware
+     so dark mode flows through the hardcoded-light frame too. */
+  --shell-surface-bg:
+    radial-gradient(1200px 700px at 10% -10%, #e4eef6 0%, transparent 58%),
+    radial-gradient(1100px 760px at 102% 108%, #e7f0ea 0%, transparent 52%),
+    var(--bg-app);
+  --rail-surface-bg: rgba(255,255,255,0.82);
+  --rail-surface-border: var(--rule);
+
   /* ink (legacy 0..5 = dark → light) */
   --ink-0: var(--ink-950);
   --ink-1: var(--ink-900);
@@ -220,6 +229,67 @@
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
   --sp-6: 24px; --sp-7: 32px; --sp-8: 40px; --sp-9: 48px; --sp-10: 64px;
 }
+
+/* ============================================================
+   DARK THEME — overrides the semantic surface/text/border tokens.
+   Activated by <html data-theme="dark"> (set by PreferencesProvider).
+   Components read these via var(--…) so the whole app reskins.
+   ============================================================ */
+:root[data-theme="dark"] {
+  --bg-app:     oklch(0.20 0.025 250);
+  --bg-base:    oklch(0.20 0.025 250);
+  --bg-canvas:  oklch(0.17 0.024 250);
+  --bg-card:    oklch(0.25 0.028 250);
+  --bg-surface: oklch(0.25 0.028 250);
+  --bg-raised:  oklch(0.28 0.030 250);
+  --bg-sunken:  oklch(0.16 0.022 250);
+  --bg-subtle:  oklch(0.30 0.030 250);
+  --bg-tint:    oklch(0.30 0.050 245);
+
+  --border:        oklch(0.34 0.020 245);
+  --border-strong: oklch(0.42 0.022 245);
+
+  --fg-1: oklch(0.96 0.010 240);
+  --fg-2: oklch(0.80 0.015 240);
+  --fg-3: oklch(0.64 0.020 245);
+  --fg-4: oklch(0.55 0.020 245);
+
+  /* legacy ink ramp (0 = primary text … 5 = faint) flipped for dark */
+  --ink-0: oklch(0.97 0.010 240);
+  --ink-1: oklch(0.92 0.012 240);
+  --ink-2: oklch(0.80 0.015 240);
+  --ink-3: oklch(0.64 0.020 245);
+  --ink-4: oklch(0.55 0.020 245);
+  --ink-5: oklch(0.45 0.020 245);
+
+  /* chip/tint backgrounds that were near-white in light mode */
+  --flow-100: oklch(0.30 0.05 242);
+  --flow-200: oklch(0.34 0.07 242);
+
+  /* status badge/banner backgrounds: pastel in light mode → dark tints here,
+     so status chips, banners and the difficulty/condition pills stay legible
+     (the matching --status-* text colors keep their hue). */
+  --status-low-bg:    oklch(0.32 0.060 88);
+  --status-good-bg:   oklch(0.30 0.055 150);
+  --status-high-bg:   oklch(0.30 0.070 30);
+  --status-danger-bg: oklch(0.28 0.080 25);
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.5);
+  --shadow-md: 0 2px 6px rgba(0,0,0,0.45), 0 8px 20px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5), 0 18px 48px rgba(0,0,0,0.55);
+  --shadow-card: var(--shadow-sm);
+
+  /* app chrome — dark frame */
+  --shell-surface-bg:
+    radial-gradient(1200px 700px at 10% -10%, rgba(40,72,112,0.40) 0%, transparent 58%),
+    radial-gradient(1100px 760px at 102% 108%, rgba(28,74,86,0.28) 0%, transparent 52%),
+    var(--bg-app);
+  --rail-surface-bg: rgba(20,29,44,0.82);
+  --rail-surface-border: var(--border);
+}
+
+/* Dark scrollbar */
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); }
 
 /* legacy helper classes (kept; restyled to the new system) */
 .eyebrow {

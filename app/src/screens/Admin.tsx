@@ -74,7 +74,7 @@ interface WaitlistUser {
 // ─── Style tokens (local, light surface) ───────────────────────────────────
 
 const card: React.CSSProperties = {
-  background: '#fff',
+  background: 'var(--bg-card)',
   border: '1px solid var(--border, #e2e8f0)',
   borderRadius: 12,
   padding: 20,
@@ -105,22 +105,22 @@ const tableHeaderCell: React.CSSProperties = {
 const btnPrimary: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 6,
   padding: '8px 14px', borderRadius: 8,
-  background: 'var(--flow-600, #2563eb)', color: '#fff',
+  background: 'var(--flow-600, #2563eb)', color: 'var(--fg-on-brand)',
   border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
 };
 
 const btnSecondary: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 6,
   padding: '7px 13px', borderRadius: 8,
-  background: '#fff', color: 'var(--fg-1, #0d1620)',
+  background: 'var(--bg-card)', color: 'var(--fg-1, #0d1620)',
   border: '1px solid var(--border, #e2e8f0)',
   fontSize: 12, fontWeight: 600, cursor: 'pointer',
 };
 
 const btnDanger: React.CSSProperties = {
   ...btnSecondary,
-  color: '#a02323',
-  border: '1px solid #fca5a5',
+  color: 'var(--status-high)',
+  border: '1px solid var(--status-high)',
 };
 
 const inputStyle: React.CSSProperties = {
@@ -128,7 +128,7 @@ const inputStyle: React.CSSProperties = {
   padding: '8px 10px',
   borderRadius: 8,
   border: '1px solid var(--border, #e2e8f0)',
-  background: '#fff',
+  background: 'var(--bg-card)',
   color: 'var(--fg-1, #0d1620)',
   fontSize: 13,
   fontFamily: 'inherit',
@@ -168,16 +168,16 @@ function timeAgo(ts: string | null | undefined): string {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  waitlist: { bg: '#fef9c3', color: '#854d0e' },
-  approved: { bg: '#dcfce7', color: '#166534' },
-  denied:   { bg: '#fee2e2', color: '#991b1b' },
+  waitlist: { bg: 'var(--status-low-bg)',  color: 'var(--status-low)' },
+  approved: { bg: 'var(--status-good-bg)', color: 'var(--status-good)' },
+  denied:   { bg: 'var(--danger-bg)',      color: 'var(--status-high)' },
 };
 
 // ─── Inline-message component ────────────────────────────────────────────────
 
 function Msg({ text, variant }: { text: string; variant?: 'success' | 'error' }) {
-  const bg = variant === 'error' ? '#fdecea' : '#eff6ff';
-  const color = variant === 'error' ? '#a02323' : '#1d4ed8';
+  const bg = variant === 'error' ? 'var(--status-high-bg)' : 'var(--flow-100)';
+  const color = variant === 'error' ? 'var(--status-high)' : 'var(--flow-600)';
   return (
     <div style={{
       padding: '8px 12px', borderRadius: 8,
@@ -277,12 +277,12 @@ function DataTab() {
                   {seedStatus.data.counts.gauges} gauges
                 </>
               ) : (
-                <span style={{ color: '#a02323' }}>Not seeded yet</span>
+                <span style={{ color: 'var(--status-high)' }}>Not seeded yet</span>
               )}
             </div>
           )}
           <button style={btnPrimary} disabled={busy} onClick={() => seedMutation.mutate()}>
-            <Icon name="refresh" size={13} color="#fff" />
+            <Icon name="refresh" size={13} color="var(--fg-on-brand)" />
             {seedMutation.isPending ? 'Seeding…' : 'Run seed'}
           </button>
         </div>
@@ -299,7 +299,7 @@ function DataTab() {
                 Worker:{' '}
                 <span style={{
                   fontFamily: 'var(--font-mono, monospace)',
-                  color: ingestion.data.worker_started ? '#166534' : '#a02323',
+                  color: ingestion.data.worker_started ? 'var(--status-good)' : 'var(--status-high)',
                 }}>
                   {ingestion.data.worker_started ? 'Running' : 'Stopped'}
                 </span>
@@ -396,7 +396,7 @@ function DataTab() {
               <tbody>
                 {(health.data.sources || []).map(s => {
                   const records = s.lastLog?.recordsProcessed;
-                  const recordColor = records === 0 || records == null ? 'var(--ink-3)' : '#166534';
+                  const recordColor = records === 0 || records == null ? 'var(--ink-3)' : 'var(--status-good)';
                   const totalRows = s.data?.totalRows ?? 0;
                   return (
                     <tr key={s.id} style={{ borderBottom: '1px solid var(--border, #e2e8f0)' }}>
@@ -411,7 +411,7 @@ function DataTab() {
                       <td style={{ padding: '8px 10px', fontSize: 11, color: 'var(--ink-2)' }}>
                         {s.data?.ageMin != null ? `${s.data.ageMin}m ago` : '—'}
                       </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)', color: totalRows === 0 ? '#a02323' : 'inherit' }}>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)', color: totalRows === 0 ? 'var(--status-high)' : 'inherit' }}>
                         {totalRows.toLocaleString()}
                       </td>
                     </tr>
@@ -430,7 +430,7 @@ function DataTab() {
                       border: '1px solid var(--border, #e2e8f0)',
                       fontFamily: 'var(--font-mono, monospace)',
                       fontSize: 11,
-                      color: info.totalRows > 0 ? 'var(--fg-1)' : '#a02323',
+                      color: info.totalRows > 0 ? 'var(--fg-1)' : 'var(--status-high)',
                     }}>
                       <span style={{ fontWeight: 600 }}>{name}</span>
                       <span style={{ color: 'var(--ink-3)', margin: '0 5px' }}>·</span>
@@ -478,7 +478,7 @@ function DataTab() {
                     <td style={{ padding: '8px 10px', fontFamily: 'var(--font-mono, monospace)' }}>{log.sourceId}</td>
                     <td style={{
                       padding: '8px 10px', fontWeight: 600,
-                      color: log.status === 'success' ? '#166534' : log.status === 'error' ? '#a02323' : 'var(--ink-3)',
+                      color: log.status === 'success' ? 'var(--status-good)' : log.status === 'error' ? 'var(--status-high)' : 'var(--ink-3)',
                     }}>{log.status}</td>
                     <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)' }}>
                       {log.recordsProcessed ?? '—'}
@@ -490,7 +490,7 @@ function DataTab() {
                       {log.timestamp ? new Date(log.timestamp).toLocaleString() : '—'}
                     </td>
                     <td style={{
-                      padding: '8px 10px', color: '#a02323',
+                      padding: '8px 10px', color: 'var(--status-high)',
                       maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {log.errors || '—'}
@@ -559,7 +559,7 @@ function UsersTab() {
 
   if (waitlist.isError) {
     return (
-      <div style={{ ...card, color: '#a02323', fontSize: 13 }}>
+      <div style={{ ...card, color: 'var(--status-high)', fontSize: 13 }}>
         Failed to load users.
       </div>
     );
@@ -571,8 +571,8 @@ function UsersTab() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
         {[
           { label: 'Total users',   value: allUsers.length, color: 'var(--fg-1)' },
-          { label: 'Approved',      value: approvedCount,   color: '#166534' },
-          { label: 'Waitlisted',    value: waitlistedCount, color: '#854d0e' },
+          { label: 'Approved',      value: approvedCount,   color: 'var(--status-good)' },
+          { label: 'Waitlisted',    value: waitlistedCount, color: 'var(--status-low)' },
         ].map(tile => (
           <div key={tile.label} style={card}>
             <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 28, fontWeight: 500, color: tile.color }}>
@@ -609,7 +609,7 @@ function UsersTab() {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 12px', borderRadius: 8,
-        background: '#fff', border: '1px solid var(--border, #e2e8f0)',
+        background: 'var(--bg-card)', border: '1px solid var(--border, #e2e8f0)',
       }}>
         <Icon name="search" size={14} color="var(--ink-3)" />
         <input
@@ -789,23 +789,23 @@ function InviteUserForm({ onClose, onCreated }: { onClose: () => void; onCreated
     return (
       <div style={{
         ...card,
-        background: '#eff6ff',
-        border: '1px solid #bfdbfe',
+        background: 'var(--flow-100)',
+        border: '1px solid var(--border)',
         display: 'flex', flexDirection: 'column', gap: 10,
       }}>
-        <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#1d4ed8' }}>
+        <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--flow-600)' }}>
           User invited
         </div>
         <div style={{ fontSize: 14, color: 'var(--fg-1)' }}>
           <strong>{result.user.name}</strong>{' '}
           <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: 'var(--ink-2)' }}>{result.user.email}</span>
         </div>
-        <div style={{ fontSize: 12, color: '#1d4ed8' }}>
+        <div style={{ fontSize: 12, color: 'var(--flow-600)' }}>
           Send this one-time login link to the user. Expires in 24h.
         </div>
         <div style={{
           padding: '8px 10px', borderRadius: 6,
-          background: '#fff', fontFamily: 'var(--font-mono, monospace)', fontSize: 11,
+          background: 'var(--bg-card)', fontFamily: 'var(--font-mono, monospace)', fontSize: 11,
           wordBreak: 'break-all', color: 'var(--fg-1)',
           border: '1px solid var(--border, #e2e8f0)',
         }}>
@@ -947,12 +947,12 @@ function UserCredentialControls({ userId, onChange }: { userId: string; onChange
         {linkResult ? (
           <div style={{
             padding: '10px 12px', borderRadius: 8,
-            background: '#eff6ff', border: '1px solid #bfdbfe',
+            background: 'var(--flow-100)', border: '1px solid var(--border)',
             display: 'flex', flexDirection: 'column', gap: 6,
           }}>
             <div style={{
               padding: '6px 8px', borderRadius: 6,
-              background: '#fff', fontFamily: 'var(--font-mono, monospace)',
+              background: 'var(--bg-card)', fontFamily: 'var(--font-mono, monospace)',
               fontSize: 11, wordBreak: 'break-all', color: 'var(--fg-1)',
               border: '1px solid var(--border, #e2e8f0)',
             }}>{linkResult.url}</div>
@@ -979,7 +979,7 @@ function UserCredentialControls({ userId, onChange }: { userId: string; onChange
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '6px 8px', borderRadius: 6,
                 border: '1px solid var(--border, #e2e8f0)',
-                background: '#fff', marginBottom: 4,
+                background: 'var(--bg-card)', marginBottom: 4,
               }}>
                 <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: 'var(--ink-2)' }}>
                   …{t.id.slice(-12)}
@@ -1033,7 +1033,7 @@ export function Admin() {
                   <button key={t} onClick={() => setTab(t)} style={{
                     padding: '7px 16px', borderRadius: 8,
                     fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    background: tab === t ? '#fff' : 'transparent',
+                    background: tab === t ? 'var(--bg-card)' : 'transparent',
                     color: tab === t ? 'var(--fg-1)' : 'var(--ink-3, #94a3b8)',
                     border: tab === t ? '1px solid var(--border, #e2e8f0)' : '1px solid transparent',
                     boxShadow: tab === t ? 'var(--shadow-sm, 0 1px 3px rgba(0,0,0,.06))' : 'none',

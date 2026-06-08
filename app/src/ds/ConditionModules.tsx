@@ -50,10 +50,10 @@ export function WeatherModule({ forecast }: { forecast: any[] }) {
             gap: 14,
             marginBottom: 14,
             paddingBottom: 14,
-            borderBottom: '1px solid rgba(255,255,255,0.14)',
+            borderBottom: `1px solid var(--module-stroke)`,
           }}
         >
-          <Icon name={todayIcon} size={36} color="#fff" />
+          <Icon name={todayIcon} size={36} color="var(--fg-on-sky-1)" />
           <div>
             <div
               style={{
@@ -61,7 +61,7 @@ export function WeatherModule({ forecast }: { forecast: any[] }) {
                 fontWeight: 300,
                 lineHeight: 1,
                 fontVariantNumeric: 'tabular-nums',
-                color: '#fff',
+                color: 'var(--fg-on-sky-1)',
               }}
             >
               {todayHigh != null ? `${todayHigh}°` : '—'}
@@ -97,8 +97,8 @@ export function WeatherModule({ forecast }: { forecast: any[] }) {
                 width: 54,
                 padding: '8px 4px',
                 borderRadius: 'var(--r-md)',
-                background: idx === 0 ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.10)',
-                border: idx === 0 ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.14)',
+                background: 'var(--module-fill)',
+                border: idx === 0 ? '1px solid rgba(255,255,255,0.35)' : `1px solid var(--module-stroke)`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -109,7 +109,7 @@ export function WeatherModule({ forecast }: { forecast: any[] }) {
                 style={{
                   fontSize: 9.5,
                   fontWeight: 700,
-                  color: 'rgba(255,255,255,0.75)',
+                  color: 'var(--fg-on-sky-2)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.04em',
                   whiteSpace: 'nowrap',
@@ -117,13 +117,13 @@ export function WeatherModule({ forecast }: { forecast: any[] }) {
               >
                 {dayShort(w.date, idx)}
               </div>
-              <Icon name={ic} size={18} color="#fff" strokeWidth={1.6} />
+              <Icon name={ic} size={18} color="var(--fg-on-sky-1)" strokeWidth={1.6} />
               <div
                 style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: 12,
                   fontWeight: 600,
-                  color: '#fff',
+                  color: 'var(--fg-on-sky-1)',
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
@@ -143,7 +143,7 @@ export function WeatherModule({ forecast }: { forecast: any[] }) {
                 <div
                   style={{
                     fontSize: 9,
-                    color: 'rgba(126,186,228,0.85)',
+                    color: 'var(--flow-300)',
                     fontWeight: 600,
                     fontFamily: 'var(--font-mono)',
                   }}
@@ -210,7 +210,7 @@ export function SnowpackModule({ snowpack }: { snowpack: any[] }) {
                   marginLeft: 'auto',
                   fontSize: 13,
                   fontWeight: 700,
-                  color: '#fff',
+                  color: 'var(--fg-on-sky-1)',
                 }}
               >
                 {statusWord}
@@ -224,7 +224,7 @@ export function SnowpackModule({ snowpack }: { snowpack: any[] }) {
           style={{
             fontSize: 14.5,
             fontWeight: 700,
-            color: '#fff',
+            color: 'var(--fg-on-sky-1)',
             marginTop: 10,
           }}
         >
@@ -236,7 +236,7 @@ export function SnowpackModule({ snowpack }: { snowpack: any[] }) {
           display: 'flex',
           marginTop: 14,
           paddingTop: 12,
-          borderTop: '1px solid rgba(255,255,255,0.14)',
+          borderTop: `1px solid var(--module-stroke)`,
           gap: 0,
         }}
       >
@@ -250,7 +250,7 @@ export function SnowpackModule({ snowpack }: { snowpack: any[] }) {
               key={l as string}
               style={{
                 flex: 1,
-                borderLeft: k ? '1px solid rgba(255,255,255,0.12)' : 'none',
+                borderLeft: k ? `1px solid var(--module-stroke)` : 'none',
                 paddingLeft: k ? 12 : 0,
               }}
             >
@@ -296,6 +296,19 @@ export function DamReleaseModule({
   const outflow = res?.latest?.outflowCfs ?? null;
   const resRaw = res?.reservoir ?? null;
   const resName = typeof resRaw === 'string' ? resRaw : (resRaw?.name ?? null);
+  const plannedUrl = typeof resRaw === 'string' ? null : (resRaw?.plannedReleaseUrl ?? null);
+  const plannedNote = typeof resRaw === 'string' ? null : (resRaw?.plannedReleaseNote ?? null);
+  const diversion = res?.diversion ?? null;
+  const damCtlCfs = diversion?.damControlledCfs ?? null;
+  const reachFlow = diversion?.reachFlowCfs ?? null;        // section context only
+  const tributaryGain = diversion?.tributaryGainCfs ?? null;
+  const hasDiversion = diversion != null && damCtlCfs != null && outflow != null;
+  const hasTributary = hasDiversion && reachFlow != null && tributaryGain != null && tributaryGain > Math.max(5, reachFlow * 0.03);
+  // Headline the dam-controlled portion (what the dam actually contributes to the
+  // reach), not the reach total — the reach total already shows as the page's
+  // main flow number, so echoing it here would be a redundant rehash.
+  const bigValue = hasDiversion ? damCtlCfs : outflow;
+  const bigLabel = hasDiversion ? 'cfs dam-controlled' : 'cfs outflow';
 
   if (!res && !damControlled) return null;
 
@@ -315,7 +328,7 @@ export function DamReleaseModule({
 
   return (
     <Module label="Dam release" icon="droplet" style={{ marginTop: 14 }}>
-      {outflow != null && (
+      {bigValue != null && (
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span
             style={{
@@ -325,10 +338,10 @@ export function DamReleaseModule({
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {outflow.toLocaleString()}
+            {Math.round(bigValue).toLocaleString()}
           </span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--fg-on-sky-2)' }}>
-            cfs outflow
+            {bigLabel}
           </span>
         </div>
       )}
@@ -344,7 +357,50 @@ export function DamReleaseModule({
           {resName}
         </div>
       )}
-      {!outflow && !resName && (
+      {hasDiversion && (
+        <div
+          style={{
+            marginTop: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11.5,
+            lineHeight: 1.5,
+            color: 'var(--fg-on-sky-3)',
+          }}
+        >
+          <span>Releases {Math.round(outflow).toLocaleString()} cfs</span>
+          <span>− {diversion.name} diverts ~{diversion.divertedCfs.toLocaleString()} cfs</span>
+          {hasTributary && (
+            <>
+              <span>+ ~{tributaryGain.toLocaleString()} cfs tributary gains</span>
+              <span style={{ color: 'var(--fg-on-sky-2)' }}>= {reachFlow.toLocaleString()} cfs total in this reach</span>
+            </>
+          )}
+        </div>
+      )}
+      {plannedUrl && (
+        <div
+          style={{
+            fontSize: 11.5,
+            color: 'var(--fg-on-sky-3)',
+            marginTop: 8,
+            lineHeight: 1.4,
+          }}
+        >
+          <a
+            href={plannedUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={plannedNote || undefined}
+            style={{ color: 'var(--fg-on-sky-2)', textDecoration: 'none' }}
+          >
+            Planned releases: announced by operator →
+          </a>
+        </div>
+      )}
+      {bigValue == null && !resName && (
         <div style={{ fontSize: 14.5, color: 'var(--fg-on-sky-1)' }}>
           Release data unavailable for {riverName}.
         </div>

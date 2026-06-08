@@ -4,6 +4,8 @@ import { useDashboard } from '../hooks/useDashboard';
 import { useFollows } from '../hooks/useFollows';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { usePreferences } from '../hooks/usePreferences';
+import { flowValue, flowUnitLabel } from '../lib/units';
 import { RiverMap } from '../components/RiverMap';
 import { Shell } from '../shell/Shell';
 import { MapRail } from '../shell/MapRail';
@@ -98,6 +100,7 @@ interface SectionRowProps {
 function SectionRow({ section: s, onClick }: SectionRowProps) {
   const sc = statusColor(s.status);
   const sl = statusLabel(s.status);
+  const { units } = usePreferences();
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
@@ -109,10 +112,10 @@ function SectionRow({ section: s, onClick }: SectionRowProps) {
         textAlign: 'left',
         border: 'none',
         cursor: 'pointer',
-        background: 'rgba(7,22,40,0.24)',
+        background: 'var(--module-fill-dark)',
         borderRadius: 15,
         padding: '12px 14px',
-        color: '#fff',
+        color: 'var(--fg-on-sky-1)',
       }}
     >
       <span style={{ width: 9, height: 9, borderRadius: 99, background: sc, flexShrink: 0 }} />
@@ -120,7 +123,7 @@ function SectionRow({ section: s, onClick }: SectionRowProps) {
         <div style={{ fontSize: 15.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {s.section}
         </div>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'rgba(255,255,255,0.62)', marginTop: 2 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--fg-on-sky-2)', marginTop: 2 }}>
           {s.classification ? `${s.classification} · ` : ''}{sl}
         </div>
       </div>
@@ -129,11 +132,11 @@ function SectionRow({ section: s, onClick }: SectionRowProps) {
       )}
       <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 64 }}>
         <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 17, fontWeight: 700 }}>
-          {s.now !== null ? s.now.toLocaleString() : '—'}
+          {s.now !== null ? flowValue(s.now, units.flow) : '—'}
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'rgba(255,255,255,0.5)' }}> cfs</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--fg-on-sky-3)' }}> {flowUnitLabel(units.flow)}</span>
       </div>
-      <Icon name="chevron-right" size={17} color="rgba(255,255,255,0.5)" style={{ flexShrink: 0 }} />
+      <Icon name="chevron-right" size={17} color="var(--fg-on-sky-3)" style={{ flexShrink: 0 }} />
     </button>
   );
 }
@@ -149,11 +152,12 @@ interface CorridorCardLgProps {
 function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSection, onHoverChange }: CorridorCardLgProps) {
   const sc = statusColor(group.worstStatus);
   const sl = statusLabel(group.worstStatus);
+  const { units } = usePreferences();
 
   const rangeLabel =
     group.minCfs === group.maxCfs
-      ? group.maxCfs.toLocaleString()
-      : `${group.minCfs.toLocaleString()}–${group.maxCfs.toLocaleString()}`;
+      ? flowValue(group.maxCfs, units.flow)
+      : `${flowValue(group.minCfs, units.flow)}–${flowValue(group.maxCfs, units.flow)}`;
 
   // Show bookmarked sections first, then the rest — but always show all in "Your rivers"
   const prioritized = [
@@ -171,7 +175,7 @@ function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSec
         cursor: 'pointer',
         borderRadius: 26,
         padding: 22,
-        color: '#fff',
+        color: 'var(--fg-on-sky-1)',
         position: 'relative',
         overflow: 'hidden',
         background:
@@ -179,7 +183,7 @@ function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSec
         backdropFilter: 'blur(22px) saturate(150%)',
         WebkitBackdropFilter: 'blur(22px) saturate(150%)',
         boxShadow: '0 16px 38px rgba(6,19,33,0.30), inset 0 1px 0 rgba(255,255,255,0.30)',
-        border: '1px solid rgba(255,255,255,0.18)',
+        border: '1px solid var(--module-stroke)',
         transition: 'transform 0.2s cubic-bezier(.32,.72,0,1), box-shadow 0.2s',
       }}
     >
@@ -190,27 +194,27 @@ function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSec
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 27, fontWeight: 800, letterSpacing: '-0.02em' }}>{group.name}</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'rgba(255,255,255,0.66)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--fg-on-sky-2)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {group.region}
           </div>
         </div>
-        <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,0.16)', borderRadius: 'var(--r-pill, 99px)', padding: '6px 12px', whiteSpace: 'nowrap' }}>
+        <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: 'var(--fg-on-sky-1)', background: 'var(--module-fill)', borderRadius: 'var(--r-pill, 99px)', padding: '6px 12px', whiteSpace: 'nowrap' }}>
           {group.sections.length} {group.sections.length === 1 ? 'section' : 'sections'}
         </span>
       </div>
 
       {/* cfs + sparkline row */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginTop: 16, paddingBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.14)' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginTop: 16, paddingBottom: 16, borderBottom: '1px solid var(--module-stroke)' }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
             <span style={{ fontWeight: 300, fontSize: 40, lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
               {rangeLabel}
             </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>cfs</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--fg-on-sky-2)' }}>{flowUnitLabel(units.flow)}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{sl}</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'rgba(255,255,255,0.55)' }}>· last 30 days</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--fg-on-sky-1)' }}>{sl}</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--fg-on-sky-3)' }}>· last 30 days</span>
           </div>
         </div>
         {group.spark.length > 1 && (
@@ -221,7 +225,7 @@ function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSec
               width={148}
               height={50}
             />
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, color: 'rgba(255,255,255,0.5)', textAlign: 'right', marginTop: 3 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, color: 'var(--fg-on-sky-3)', textAlign: 'right', marginTop: 3 }}>
               30 days
             </div>
           </div>
@@ -230,10 +234,10 @@ function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSec
 
       {/* Section rows header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 15, marginBottom: 10 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--fg-on-sky-2)' }}>
           {bookmarkedSectionIds.size > 0 ? 'Your sections' : 'Sections'}
         </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.82)' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700, color: 'var(--fg-on-sky-2)' }}>
           Open corridor <Icon name="chevron-right" size={15} />
         </span>
       </div>
@@ -262,6 +266,7 @@ function OtherRiverRowLg({ group, onClick, onHoverChange }: OtherRiverRowProps) 
   const sc = statusColor(group.worstStatus);
   const sl = statusLabel(group.worstStatus);
   const cfs = group.maxCfs > 0 ? group.maxCfs : group.minCfs;
+  const { units } = usePreferences();
 
   return (
     <button
@@ -277,10 +282,10 @@ function OtherRiverRowLg({ group, onClick, onHoverChange }: OtherRiverRowProps) 
         textAlign: 'left',
         border: 'none',
         cursor: 'pointer',
-        background: 'rgba(255,255,255,0.08)',
+        background: 'var(--module-fill)',
         borderRadius: 16,
         padding: '14px 16px',
-        color: '#fff',
+        color: 'var(--fg-on-sky-1)',
         transition: 'background 0.15s',
       }}
     >
@@ -289,7 +294,7 @@ function OtherRiverRowLg({ group, onClick, onHoverChange }: OtherRiverRowProps) 
         <div style={{ fontSize: 16.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {group.name}
         </div>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'rgba(255,255,255,0.6)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--fg-on-sky-2)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {group.region} · {group.sections.length} {group.sections.length === 1 ? 'section' : 'sections'}
         </div>
       </div>
@@ -298,12 +303,12 @@ function OtherRiverRowLg({ group, onClick, onHoverChange }: OtherRiverRowProps) 
       )}
       <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 70 }}>
         <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 16, fontWeight: 700 }}>
-          {cfs > 0 ? cfs.toLocaleString() : '—'}
+          {cfs > 0 ? flowValue(cfs, units.flow) : '—'}
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'rgba(255,255,255,0.5)' }}> cfs</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--fg-on-sky-3)' }}> {flowUnitLabel(units.flow)}</span>
         <div style={{ fontSize: 11.5, fontWeight: 700, color: sc, marginTop: 1 }}>{sl}</div>
       </div>
-      <Icon name="chevron-right" size={17} color="rgba(255,255,255,0.45)" style={{ flexShrink: 0 }} />
+      <Icon name="chevron-right" size={17} color="var(--fg-on-sky-3)" style={{ flexShrink: 0 }} />
     </button>
   );
 }
@@ -312,6 +317,7 @@ function OtherRiverRowLg({ group, onClick, onHoverChange }: OtherRiverRowProps) 
 function OtherRiverRowSm({ group, onClick }: OtherRiverRowProps) {
   const sc = statusColor(group.worstStatus);
   const cfs = group.maxCfs > 0 ? group.maxCfs : group.minCfs;
+  const { units } = usePreferences();
 
   return (
     <button
@@ -324,10 +330,10 @@ function OtherRiverRowSm({ group, onClick }: OtherRiverRowProps) {
         textAlign: 'left',
         border: 'none',
         cursor: 'pointer',
-        background: 'rgba(255,255,255,0.08)',
+        background: 'var(--module-fill)',
         borderRadius: 16,
         padding: '13px 14px',
-        color: '#fff',
+        color: 'var(--fg-on-sky-1)',
       }}
     >
       <span style={{ width: 8, height: 8, borderRadius: 99, background: sc, flexShrink: 0 }} />
@@ -335,20 +341,20 @@ function OtherRiverRowSm({ group, onClick }: OtherRiverRowProps) {
         <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {group.name}
         </div>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-2)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {group.region} · {group.sections.length} {group.sections.length === 1 ? 'section' : 'sections'}
         </div>
       </div>
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
         <span style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 15, fontWeight: 700 }}>
-          {cfs > 0 ? cfs.toLocaleString() : '—'}
+          {cfs > 0 ? flowValue(cfs, units.flow) : '—'}
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'rgba(255,255,255,0.5)' }}> cfs</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--fg-on-sky-3)' }}> {flowUnitLabel(units.flow)}</span>
       </div>
       {group.spark.length > 1 && (
         <Sparkline data={group.spark} width={50} height={26} color={sc} fill={false} dot />
       )}
-      <Icon name="chevron-right" size={16} color="rgba(255,255,255,0.5)" style={{ flexShrink: 0 }} />
+      <Icon name="chevron-right" size={16} color="var(--fg-on-sky-3)" style={{ flexShrink: 0 }} />
     </button>
   );
 }
@@ -376,7 +382,7 @@ function YourRiverCard({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSect
         cursor: 'pointer',
         borderRadius: 24,
         padding: 17,
-        color: '#fff',
+        color: 'var(--fg-on-sky-1)',
         position: 'relative',
         overflow: 'hidden',
         background:
@@ -384,18 +390,18 @@ function YourRiverCard({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSect
         backdropFilter: 'blur(22px) saturate(150%)',
         WebkitBackdropFilter: 'blur(22px) saturate(150%)',
         boxShadow: '0 12px 30px rgba(6,19,33,0.30), inset 0 1px 0 rgba(255,255,255,0.30)',
-        border: '1px solid rgba(255,255,255,0.18)',
+        border: '1px solid var(--module-stroke)',
       }}
     >
       <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: sc, opacity: 0.9 }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.015em' }}>{group.name}</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'rgba(255,255,255,0.66)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--fg-on-sky-2)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {group.region}
           </div>
         </div>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.72)', flexShrink: 0 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 600, color: 'var(--fg-on-sky-2)', flexShrink: 0 }}>
           Corridor <Icon name="chevron-right" size={14} />
         </span>
       </div>
@@ -421,22 +427,22 @@ function RiverMapOverlay({ onClose, corridorCount }: MapOverlayProps) {
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, zIndex: 600,
         padding: '52px 16px 22px',
-        display: 'flex', alignItems: 'center', gap: 12, color: '#fff',
+        display: 'flex', alignItems: 'center', gap: 12, color: 'var(--fg-on-sky-1)',
         background: 'linear-gradient(180deg, rgba(6,19,33,0.74) 0%, rgba(6,19,33,0.4) 54%, rgba(6,19,33,0) 100%)',
         pointerEvents: 'none',
       }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 20, fontWeight: 800, textShadow: '0 1px 6px rgba(6,19,33,0.55)' }}>All rivers</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'rgba(255,255,255,0.82)', marginTop: 2 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--fg-on-sky-2)', marginTop: 2 }}>
             {corridorCount} {corridorCount === 1 ? 'corridor' : 'corridors'} · tap a section for details
           </div>
         </div>
         <button
           onClick={onClose}
           style={{
-            background: 'rgba(255,255,255,0.16)', border: 'none', borderRadius: 99,
+            background: 'var(--module-fill)', border: 'none', borderRadius: 99,
             width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', cursor: 'pointer', backdropFilter: 'blur(8px)', flexShrink: 0,
+            color: 'var(--fg-on-sky-1)', cursor: 'pointer', backdropFilter: 'blur(8px)', flexShrink: 0,
             pointerEvents: 'auto',
           }}
         >
@@ -453,8 +459,8 @@ function SkeletonCard() {
     <div style={{
       borderRadius: 24,
       padding: 22,
-      background: 'rgba(255,255,255,0.08)',
-      border: '1px solid rgba(255,255,255,0.12)',
+      background: 'var(--module-fill)',
+      border: '1px solid var(--module-stroke)',
       height: 180,
       animation: 'pulse 1.5s ease-in-out infinite',
     }} />
@@ -531,7 +537,7 @@ export function RiversHome() {
               {/* Your rivers */}
               <div style={{ marginBottom: 4 }}>
                 <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.025em' }}>Your rivers</div>
-                <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.74)', marginTop: 3 }}>
+                <div style={{ fontSize: 15, color: 'var(--fg-on-sky-2)', marginTop: 3 }}>
                   {yourGroups.length} {yourGroups.length === 1 ? 'corridor' : 'corridors'} followed
                 </div>
               </div>
@@ -543,15 +549,15 @@ export function RiversHome() {
               )}
 
               {isError && (
-                <div style={{ marginTop: 22, color: 'rgba(255,255,255,0.7)', fontSize: 15 }}>
+                <div style={{ marginTop: 22, color: 'var(--fg-on-sky-2)', fontSize: 15 }}>
                   Unable to load river data. Please try again.
                 </div>
               )}
 
               {!isLoading && !isError && yourGroups.length === 0 && (
-                <div style={{ marginTop: 22, padding: '32px 24px', borderRadius: 20, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', textAlign: 'center', color: 'rgba(255,255,255,0.6)' }}>
-                  <Icon name="waves" size={36} color="rgba(255,255,255,0.35)" style={{ margin: '0 auto 12px' }} />
-                  <div style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>Follow a river to see it here</div>
+                <div style={{ marginTop: 22, padding: '32px 24px', borderRadius: 20, background: 'var(--module-fill)', border: '1px solid var(--module-stroke)', textAlign: 'center', color: 'var(--fg-on-sky-2)' }}>
+                  <Icon name="waves" size={36} color="var(--fg-on-sky-3)" style={{ margin: '0 auto 12px' }} />
+                  <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--fg-on-sky-1)' }}>Follow a river to see it here</div>
                   <div style={{ fontSize: 14, marginTop: 6 }}>Browse other rivers below and tap to explore.</div>
                 </div>
               )}
@@ -574,19 +580,19 @@ export function RiversHome() {
               {/* Other rivers */}
               <div style={{ marginTop: 40 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--fg-on-sky-2)' }}>
                     {ql ? `Search · ${filteredOthers.length} result${filteredOthers.length === 1 ? '' : 's'}` : 'Other rivers'}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 'var(--r-pill,99px)', padding: '0 16px', height: 44, color: '#fff', minWidth: 260 }}>
-                    <Icon name="search" size={18} color="rgba(255,255,255,0.65)" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--module-fill)', border: '1px solid var(--module-stroke)', borderRadius: 'var(--r-pill,99px)', padding: '0 16px', height: 44, color: 'var(--fg-on-sky-1)', minWidth: 260 }}>
+                    <Icon name="search" size={18} color="var(--fg-on-sky-2)" />
                     <input
                       value={q}
                       onChange={e => setQ(e.target.value)}
                       placeholder="Search rivers"
-                      style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: '#fff', fontFamily: 'var(--font-sans)', fontSize: 15 }}
+                      style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: 'var(--fg-on-sky-1)', fontFamily: 'var(--font-sans)', fontSize: 15 }}
                     />
                     {q && (
-                      <button onClick={() => setQ('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', display: 'flex', padding: 0 }}>
+                      <button onClick={() => setQ('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-on-sky-2)', display: 'flex', padding: 0 }}>
                         <Icon name="x" size={16} />
                       </button>
                     )}
@@ -608,14 +614,14 @@ export function RiversHome() {
                 </div>
 
                 {!isLoading && !isError && filteredOthers.length === 0 && ql && (
-                  <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 15, padding: '28px 0' }}>
+                  <div style={{ textAlign: 'center', color: 'var(--fg-on-sky-2)', fontSize: 15, padding: '28px 0' }}>
                     No rivers match "{q}".
                   </div>
                 )}
               </div>
 
               {/* Footer */}
-              <div style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'rgba(255,255,255,0.5)', marginTop: 30 }}>
+              <div style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--fg-on-sky-3)', marginTop: 30 }}>
                 Data via USGS, NRCS &amp; NOAA
               </div>
             </div>
@@ -639,16 +645,16 @@ export function RiversHome() {
           <div style={{
             margin: '0 -16px',
             padding: '64px 16px 18px',
-            color: '#fff',
+            color: 'var(--fg-on-sky-1)',
             borderBottomLeftRadius: 30,
             borderBottomRightRadius: 30,
             background: 'linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 100%)',
-            borderBottom: '1px solid rgba(255,255,255,0.16)',
+            borderBottom: '1px solid var(--module-stroke)',
             boxShadow: '0 18px 38px rgba(6,19,33,0.34)',
           }}>
             <div style={{ padding: '0 4px' }}>
               <div style={{ fontSize: 33, fontWeight: 800, letterSpacing: '-0.025em' }}>Your rivers</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.72)', marginTop: 2 }}>
+              <div style={{ fontSize: 14, color: 'var(--fg-on-sky-2)', marginTop: 2 }}>
                 {yourGroups.length} {yourGroups.length === 1 ? 'corridor' : 'corridors'} followed
               </div>
             </div>
@@ -660,9 +666,9 @@ export function RiversHome() {
             )}
 
             {!isLoading && !isError && yourGroups.length === 0 && (
-              <div style={{ marginTop: 14, padding: '20px 4px', textAlign: 'center', color: 'rgba(255,255,255,0.6)' }}>
-                <Icon name="waves" size={28} color="rgba(255,255,255,0.35)" style={{ margin: '0 auto 8px' }} />
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>Follow a river to see it here</div>
+              <div style={{ marginTop: 14, padding: '20px 4px', textAlign: 'center', color: 'var(--fg-on-sky-2)' }}>
+                <Icon name="waves" size={28} color="var(--fg-on-sky-3)" style={{ margin: '0 auto 8px' }} />
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--fg-on-sky-1)' }}>Follow a river to see it here</div>
                 <div style={{ fontSize: 13, marginTop: 4 }}>Browse below and tap a river to explore.</div>
               </div>
             )}
@@ -684,22 +690,22 @@ export function RiversHome() {
 
           {/* Other rivers */}
           <div style={{ marginTop: 26 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.62)', padding: '0 4px' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--fg-on-sky-2)', padding: '0 4px' }}>
               Other rivers
             </div>
 
             {/* Search + Map button */}
             <div style={{ display: 'flex', gap: 10, marginTop: 11 }}>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(255,255,255,0.12)', borderRadius: 'var(--r-pill,99px)', padding: '0 14px', border: '1px solid rgba(255,255,255,0.16)' }}>
-                <Icon name="search" size={17} color="rgba(255,255,255,0.6)" />
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 9, background: 'var(--module-fill)', borderRadius: 'var(--r-pill,99px)', padding: '0 14px', border: '1px solid var(--module-stroke)' }}>
+                <Icon name="search" size={17} color="var(--fg-on-sky-2)" />
                 <input
                   value={q}
                   onChange={e => setQ(e.target.value)}
                   placeholder="Search rivers"
-                  style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: '#fff', fontFamily: 'var(--font-sans)', fontSize: 15, padding: '12px 0' }}
+                  style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: 'var(--fg-on-sky-1)', fontFamily: 'var(--font-sans)', fontSize: 15, padding: '12px 0' }}
                 />
                 {q && (
-                  <button onClick={() => setQ('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', display: 'flex', padding: 0 }}>
+                  <button onClick={() => setQ('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-on-sky-2)', display: 'flex', padding: 0 }}>
                     <Icon name="x" size={16} />
                   </button>
                 )}
@@ -731,7 +737,7 @@ export function RiversHome() {
                 />
               ))}
               {!isLoading && !isError && filteredOthers.length === 0 && ql && (
-                <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: 14, padding: '24px 0' }}>
+                <div style={{ textAlign: 'center', color: 'var(--fg-on-sky-2)', fontSize: 14, padding: '24px 0' }}>
                   No rivers match "{q}".
                 </div>
               )}
@@ -739,7 +745,7 @@ export function RiversHome() {
           </div>
 
           {/* Footer */}
-          <div style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 20 }}>
+          <div style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-3)', marginTop: 20 }}>
             Data via USGS, NRCS &amp; NOAA
           </div>
         </div>

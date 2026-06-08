@@ -79,7 +79,7 @@ function Chip({ active, label, disabled = false, onClick }: ChipProps) {
         border: `1.5px solid ${active ? 'var(--flow-600)' : 'var(--border)'}`,
         cursor: disabled ? 'not-allowed' : 'pointer',
         background: active ? 'var(--flow-600)' : 'var(--bg-surface)',
-        color: active ? '#fff' : disabled ? 'var(--fg-4)' : 'var(--fg-2)',
+        color: active ? 'var(--fg-on-brand)' : disabled ? 'var(--fg-4)' : 'var(--fg-2)',
         opacity: disabled ? 0.5 : 1,
         borderRadius: 'var(--r-pill)',
         padding: '9px 14px',
@@ -290,7 +290,7 @@ function LogRunSheet({ groups, onClose, onSave, saving }: LogRunSheetProps) {
           disabled={saving || !section}
           style={{
             border: 'none', cursor: saving ? 'wait' : 'pointer',
-            background: 'var(--flow-600)', color: '#fff',
+            background: 'var(--flow-600)', color: 'var(--fg-on-brand)',
             fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: 16,
             padding: '15px', borderRadius: 'var(--r-pill)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -419,7 +419,7 @@ export function Log() {
             to="/login"
             style={{
               marginTop: 8, padding: '14px 28px', borderRadius: 'var(--r-pill)',
-              background: 'var(--flow-600)', color: '#fff',
+              background: 'var(--flow-600)', color: 'var(--fg-on-brand)',
               fontWeight: 700, fontSize: 16, textDecoration: 'none',
             }}
           >
@@ -444,7 +444,7 @@ export function Log() {
           style={{
             background: 'var(--flow-600)', border: 'none', borderRadius: 99,
             width: 38, height: 38, display: 'flex', alignItems: 'center',
-            justifyContent: 'center', color: '#fff', cursor: 'pointer',
+            justifyContent: 'center', color: 'var(--fg-on-brand)', cursor: 'pointer',
           }}
         >
           <Icon name="plus" size={20} />
@@ -476,7 +476,7 @@ export function Log() {
               onClick={() => setSheetOpen(true)}
               style={{
                 border: 'none', cursor: 'pointer', background: 'var(--flow-600)',
-                color: '#fff', fontFamily: 'var(--font-sans)', fontWeight: 700,
+                color: 'var(--fg-on-brand)', fontFamily: 'var(--font-sans)', fontWeight: 700,
                 fontSize: 14, padding: '10px 20px', borderRadius: 'var(--r-pill)',
               }}
             >

@@ -34,7 +34,7 @@ export function MapRail({ corridorCount, highlightedSectionIds }: MapRailProps) 
           borderRadius: 26,
           overflow: 'hidden',
           boxShadow: '0 16px 40px rgba(6,19,33,0.34), inset 0 1px 0 rgba(255,255,255,0.18)',
-          border: '1px solid rgba(255,255,255,0.16)',
+          border: '1px solid var(--module-stroke)',
         }}
       >
         <RiverMap style={{ width: '100%', height: '100%' }} highlightedSectionIds={highlightedSectionIds} />
@@ -50,15 +50,15 @@ export function MapRail({ corridorCount, highlightedSectionIds }: MapRailProps) 
             background: 'rgba(7,22,40,0.62)',
             WebkitBackdropFilter: 'blur(12px) saturate(140%)',
             backdropFilter: 'blur(12px) saturate(140%)',
-            border: '1px solid rgba(255,255,255,0.14)',
+            border: '1px solid var(--module-stroke)',
             borderRadius: 13,
             padding: '9px 13px',
-            color: '#fff',
+            color: 'var(--fg-on-sky-1)',
             boxShadow: '0 6px 18px rgba(6,19,33,0.4)',
           }}
         >
           <div style={{ fontSize: 15, fontWeight: 800 }}>All rivers</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'rgba(255,255,255,0.72)', marginTop: 2 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--fg-on-sky-2)', marginTop: 2 }}>
             {corridorCount} {corridorCount === 1 ? 'corridor' : 'corridors'} · tap a section
           </div>
         </div>

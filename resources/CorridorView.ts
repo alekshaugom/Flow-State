@@ -2,7 +2,7 @@ import { Resource, tables } from 'harper';
 import { getCorridorById } from '../lib/corridors.ts';
 import { getWatershedById } from '../lib/watersheds.ts';
 import { loadAllBands, resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
-import { getFlowStatus } from '../lib/utils.ts';
+import { getFlowStatus, daysAgo } from '../lib/utils.ts';
 import { getSnowpackData, getDamReleases, splitIds } from './RiverDetail.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -89,8 +89,18 @@ export class CorridorView extends Resource {
 					: 'unknown',
 			}));
 
-		const corridorGauges = allGauges
-			.filter((g: any) => g.corridorId === id)
+		// Include gauges referenced by this corridor's sections even when the gauge's
+		// own corridorId points elsewhere (e.g. the Gunnison gorge gauges are tagged to
+		// gunnison-headwaters but drive gunnison-gorge-corridor sections) — without this
+		// the corridor's flow tile has no gauge to chart.
+		const corridorSectionGaugeIds = new Set(
+			allSections
+				.filter((s: any) => s.corridorId === id)
+				.map((s: any) => s.primaryGaugeId)
+				.filter(Boolean),
+		);
+		const corridorGaugesBase = allGauges
+			.filter((g: any) => g.corridorId === id || corridorSectionGaugeIds.has(g.id))
 			.sort((a: any, b: any) => (a.sortIndex ?? 999) - (b.sortIndex ?? 999))
 			.map((g: any) => {
 				const snap = snapshotMap.get(g.id);
@@ -112,6 +122,35 @@ export class CorridorView extends Resource {
 					updatedAt: snap?.updatedAt ?? null,
 				};
 			});
+
+		// Fetch up to 365 days of daily discharge history for each corridor gauge.
+		// Uses GaugeReading with a single-attribute gaugeId search (L004-safe),
+		// mirroring RiverDetail's getFlowData() approach.
+		const historyCutoff = daysAgo(365).toISOString();
+		const gaugeHistories = await Promise.all(
+			corridorGaugesBase.map(async (g) => {
+				try {
+					const raw = await collect(
+						tables.GaugeReading.search({
+							conditions: [{ attribute: 'gaugeId', value: g.id, comparator: 'equals' as const }],
+						})
+					);
+					const history = raw
+						.filter((r: any) => (r.timestamp || '') >= historyCutoff && r.value != null)
+						.map((r: any) => ({ t: new Date(r.timestamp).getTime(), v: r.value as number }))
+						.sort((a, b) => a.t - b.t);
+					return { id: g.id, history };
+				} catch {
+					return { id: g.id, history: [] as { t: number; v: number }[] };
+				}
+			})
+		);
+		const historyByGaugeId = new Map(gaugeHistories.map((h) => [h.id, h.history]));
+
+		const corridorGauges = corridorGaugesBase.map((g) => ({
+			...g,
+			history: historyByGaugeId.get(g.id) ?? [],
+		}));
 
 		// Helper: filter entities by serviceCorridorIds JSON array containing this corridorId.
 		function servicesCorridor(entity: any): boolean {
@@ -224,6 +263,10 @@ export class CorridorView extends Resource {
 					putIn: section.putIn,
 					takeOut: section.takeOut,
 					notes: section.notes || '',
+					gradientFtPerMile: section.gradientFtPerMile ?? null,
+					velocityFps: section.velocityFps ?? null,
+					elevationDropFt: section.elevationDropFt ?? null,
+					reservoirIds: section.reservoirIds ?? null,
 				};
 			});
 
@@ -246,10 +289,20 @@ export class CorridorView extends Resource {
 
 		const corridorSectionRows = allSections.filter((s: any) => s.corridorId === id);
 		const basinIds = [...new Set(corridorSectionRows.flatMap((s: any) => splitIds(s.snowpackBasinIds)))];
-		const reservoirIds = [...new Set(corridorSectionRows.flatMap((s: any) => splitIds(s.reservoirIds)))];
-		const [snowpack, reservoirs] = await Promise.all([
+		// Prefer the corridor's curated governing reservoirs (the dams that
+		// actually control THIS corridor) over the union of every member section's
+		// reservoirs — otherwise a downstream dam listed on one section (e.g. the
+		// Aspinall unit on gunnison-lower) leaks into an upstream corridor like
+		// Gunnison Headwaters. Fall back to the section union when a corridor has
+		// no curated governing list.
+		const govReservoirIds = splitIds((corridor as any).governingReservoirIds);
+		const reservoirIds = govReservoirIds.length
+			? govReservoirIds
+			: [...new Set(corridorSectionRows.flatMap((s: any) => splitIds(s.reservoirIds)))];
+		const [snowpack, reservoirs, sectionReservoirs] = await Promise.all([
 			getSnowpackData(basinIds),
 			getDamReleases(reservoirIds),
+			getDamReleases([...new Set(corridorSectionRows.flatMap((s: any) => splitIds(s.reservoirIds)))]),
 		]);
 
 		// Water temperature: latest reading per corridor gauge
@@ -295,6 +348,7 @@ export class CorridorView extends Resource {
 			permits: corridorPermits,
 			snowpack,
 			reservoirs,
+			sectionReservoirs,
 			weatherSummary: null,
 			waterTemps,
 			weatherCurrent,

@@ -1,3 +1,5 @@
+import { usePreferences } from '../hooks/usePreferences';
+import { flowValue } from '../lib/units';
 import type { Thresholds } from '../types';
 
 /**
@@ -75,13 +77,16 @@ export function FlowGauge({ currentFlow, thresholds: t, size = 120, onMap = fals
 	const waterY = bottomY - f * (bottomY - topY);
 	const id = 'fg' + (++_n);
 	const sw = 2.6;
-	const numStr = Math.round(currentFlow).toLocaleString();
-	const numFS = currentFlow >= 10000 ? 7.4 : 9;
+
+	const { units } = usePreferences();
+	const numStr = flowValue(currentFlow, units.flow);
+	const unitLabel = units.flow === 'cms' ? 'm³/s' : 'CFS';
+	const numFS = numStr.length > 5 ? 7.4 : 9;
 
 	if (onMap) {
 		return (
 			<svg width={size} height={size} viewBox={`0 0 ${VB} ${VB}`} role="img"
-				aria-label={`Flow ${numStr} cfs — ${band}`}
+				aria-label={`Flow ${numStr} ${unitLabel} — ${band}`}
 				className={band === 'flood' ? 'fs-flood-pulse' : undefined}
 				style={{ display: 'block', overflow: 'visible', animation: band === 'flood' ? 'fs-flood-pulse 1.1s ease-in-out infinite' : undefined }}>
 				<path d={full} fill="none" stroke="#fff" strokeWidth={sw + 2} strokeLinecap="round" strokeLinejoin="round" />
@@ -92,7 +97,7 @@ export function FlowGauge({ currentFlow, thresholds: t, size = 120, onMap = fals
 
 	return (
 		<svg width={size} height={size} viewBox={`0 0 ${VB} ${VB}`} role="img"
-			aria-label={`Flow ${numStr} cfs — ${band}`}
+			aria-label={`Flow ${numStr} ${unitLabel} — ${band}`}
 			className={band === 'flood' ? 'fs-flood-pulse' : undefined}
 			style={{ display: 'block', overflow: 'visible', animation: band === 'flood' ? 'fs-flood-pulse 1.1s ease-in-out infinite' : undefined }}>
 			<defs>
@@ -107,7 +112,7 @@ export function FlowGauge({ currentFlow, thresholds: t, size = 120, onMap = fals
 			{withValue && (
 				<>
 					<text x={cx} y={cy + 1} textAnchor="middle" fontFamily="var(--font-num)" fontWeight={600} fontSize={numFS} fill={col}>{numStr}</text>
-					<text x={cx} y={cy + 6.6} textAnchor="middle" fontFamily="var(--font-sans)" fontWeight={600} fontSize={3.4} fill={col} letterSpacing="0.5" opacity={0.85}>CFS</text>
+					<text x={cx} y={cy + 6.6} textAnchor="middle" fontFamily="var(--font-sans)" fontWeight={600} fontSize={3.4} fill={col} letterSpacing="0.5" opacity={0.85}>{unitLabel}</text>
 				</>
 			)}
 		</svg>

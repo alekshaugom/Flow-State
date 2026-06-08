@@ -26,7 +26,7 @@ export function MobileTabBar({ active }: MobileTabBarProps) {
         zIndex: 40,
         display: 'flex',
         justifyContent: 'space-around',
-        background: 'rgba(255,255,255,0.72)',
+        background: 'var(--rail-surface-bg)',
         backdropFilter: 'saturate(180%) blur(20px)',
         WebkitBackdropFilter: 'saturate(180%) blur(20px)',
         border: '1px solid var(--border, rgba(0,0,0,0.10))',
