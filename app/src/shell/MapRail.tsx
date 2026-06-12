@@ -4,13 +4,15 @@ interface MapRailProps {
   corridorCount: number;
   /** Section ids to highlight on the map (desktop river-tile hover). */
   highlightedSectionIds?: Set<string> | null;
+  /** Fired as the cursor enters/leaves a section line on the map (glows the matching list tile). */
+  onSectionHover?: (sectionId: string | null) => void;
 }
 
 /**
  * Desktop sticky right rail embedding the existing RiverMap with frosted chrome.
  * The RiverMap fetches its own data via useDashboard internally.
  */
-export function MapRail({ corridorCount, highlightedSectionIds }: MapRailProps) {
+export function MapRail({ corridorCount, highlightedSectionIds, onSectionHover }: MapRailProps) {
   return (
     <aside
       style={{
@@ -37,7 +39,7 @@ export function MapRail({ corridorCount, highlightedSectionIds }: MapRailProps) 
           border: '1px solid var(--module-stroke)',
         }}
       >
-        <RiverMap style={{ width: '100%', height: '100%' }} highlightedSectionIds={highlightedSectionIds} />
+        <RiverMap style={{ width: '100%', height: '100%' }} highlightedSectionIds={highlightedSectionIds} onSectionHover={onSectionHover} />
 
         {/* Frosted label overlay */}
         <div

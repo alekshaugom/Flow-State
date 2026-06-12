@@ -6,6 +6,7 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { usePreferences } from '../hooks/usePreferences';
 import { flowValue, flowUnitLabel } from '../lib/units';
+import { isTributary, mainStemOf, shortRiverName, basinFor } from '../lib/riverSystems';
 import { RiverMap } from '../components/RiverMap';
 import { Shell } from '../shell/Shell';
 import { MapRail } from '../shell/MapRail';
@@ -27,6 +28,15 @@ interface CorridorGroup {
   worstStatus: DesignStatus;
   /** representative sparkline (longest among sections) */
   spark: number[];
+  // basin / river-system metadata
+  watershedSlug: string;
+  watershedName: string;
+  /** display basin (forks of one river roll up — e.g. N+S Platte → Platte Basin) */
+  basinKey: string;
+  basinName: string;
+  riverName: string;
+  isTributary: boolean;
+  mainStemName: string | null;
 }
 
 function worstStatus(statuses: DesignStatus[]): DesignStatus {
@@ -64,7 +74,8 @@ function groupSections(sections: DashboardSection[]): CorridorGroup[] {
     // Name and region from first section in group
     const first = secs[0];
     const corridorName = first.corridorName ?? first.river;
-    const region = first.watershedName ?? '';
+    const basin = basinFor(first.watershedSlug, first.watershedName);
+    const region = basin.name;
 
     // Sort sections by sortIndex
     const sorted = [...secs].sort((a, b) => (a.sortIndex ?? 0) - (b.sortIndex ?? 0));
@@ -78,6 +89,13 @@ function groupSections(sections: DashboardSection[]): CorridorGroup[] {
       maxCfs,
       worstStatus: worstStatus(statuses),
       spark,
+      watershedSlug: first.watershedSlug ?? first.watershedName ?? `river:${first.river}`,
+      watershedName: first.watershedName ?? '',
+      basinKey: basin.key,
+      basinName: basin.name,
+      riverName: first.river,
+      isTributary: isTributary(first.river),
+      mainStemName: mainStemOf(first.river),
     });
   }
 
@@ -88,6 +106,76 @@ function groupSections(sections: DashboardSection[]): CorridorGroup[] {
     if (ai !== bi) return ai - bi;
     return a.name.localeCompare(b.name);
   });
+}
+
+// ── basin grouping ────────────────────────────────────────────────────────────
+
+interface BasinGroup {
+  slug: string;          // basinKey
+  name: string;          // basin display name (the system label)
+  groups: CorridorGroup[]; // corridor groups in this basin, ordered main-stem-first
+  sectionCount: number;  // total sections across all groups
+}
+
+// Splits a list of corridor groups into { boxed, loose }.
+// A basin is "boxed" ONLY if this list contains corridor groups from >=2 DISTINCT rivers
+// of that basin. Otherwise its groups are "loose" (rendered exactly as today).
+// Basins are the display grouping (see basinFor) — forks of one river roll up together
+// (e.g. North + South Platte → Platte Basin).
+function splitIntoBasins(groups: CorridorGroup[]): { boxed: BasinGroup[]; loose: CorridorGroup[] } {
+  // Bucket groups by basinKey
+  const buckets = new Map<string, CorridorGroup[]>();
+  for (const g of groups) {
+    const arr = buckets.get(g.basinKey) ?? [];
+    arr.push(g);
+    buckets.set(g.basinKey, arr);
+  }
+
+  const boxed: BasinGroup[] = [];
+  const loose: CorridorGroup[] = [];
+
+  for (const [basinKey, bucket] of buckets.entries()) {
+    // Count distinct river names within this bucket
+    const distinctRivers = new Set(bucket.map(g => g.riverName));
+    if (distinctRivers.size >= 2) {
+      // Boxed basin: sort main-stem first, then by corridorSortIndex, then name
+      const sorted = [...bucket].sort((a, b) => {
+        const aTrib = a.isTributary ? 1 : 0;
+        const bTrib = b.isTributary ? 1 : 0;
+        if (aTrib !== bTrib) return aTrib - bTrib;
+        const ai = a.sections[0]?.corridorSortIndex ?? 999;
+        const bi = b.sections[0]?.corridorSortIndex ?? 999;
+        if (ai !== bi) return ai - bi;
+        // tiebreak (e.g. merged forks like N+S Platte): larger fork leads
+        if (a.sections.length !== b.sections.length) return b.sections.length - a.sections.length;
+        return a.name.localeCompare(b.name);
+      });
+      const sectionCount = sorted.reduce((sum, g) => sum + g.sections.length, 0);
+      boxed.push({
+        slug: basinKey,
+        name: bucket[0].basinName,
+        groups: sorted,
+        sectionCount,
+      });
+    } else {
+      // Loose: keep original incoming order (bucket preserves insertion order from groups)
+      for (const g of bucket) {
+        loose.push(g);
+      }
+    }
+  }
+
+  // Loose keeps the original incoming order; re-sort by original index in groups array
+  const groupOrder = new Map(groups.map((g, i) => [g.slug, i]));
+  loose.sort((a, b) => (groupOrder.get(a.slug) ?? 0) - (groupOrder.get(b.slug) ?? 0));
+
+  // Order boxed basins by sectionCount desc, then name
+  boxed.sort((a, b) => {
+    if (b.sectionCount !== a.sectionCount) return b.sectionCount - a.sectionCount;
+    return a.name.localeCompare(b.name);
+  });
+
+  return { boxed, loose };
 }
 
 // ── sub-components ───────────────────────────────────────────────────────────
@@ -141,15 +229,24 @@ function SectionRow({ section: s, onClick }: SectionRowProps) {
   );
 }
 
+// Basin context passed to cards/rows when rendering inside a BasinBox
+interface BasinContext {
+  isTributary: boolean;
+  mainStemShort: string | null;
+}
+
 interface CorridorCardLgProps {
   group: CorridorGroup;
   bookmarkedSectionIds: Set<string>;
   onOpenCorridor: () => void;
   onOpenSection: (sectionId: string) => void;
   onHoverChange?: (ids: Set<string> | null) => void;
+  basinContext?: BasinContext;
+  /** Glow this tile because its section is hovered on the map. */
+  mapHovered?: boolean;
 }
 
-function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSection, onHoverChange }: CorridorCardLgProps) {
+function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSection, onHoverChange, basinContext, mapHovered }: CorridorCardLgProps) {
   const sc = statusColor(group.worstStatus);
   const sl = statusLabel(group.worstStatus);
   const { units } = usePreferences();
@@ -165,9 +262,14 @@ function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSec
     ...group.sections.filter(s => !bookmarkedSectionIds.has(s.id)),
   ];
 
+  // Subtitle when inside a basin box
+  const basinSubtitle = basinContext
+    ? (basinContext.isTributary ? `${basinContext.mainStemShort} ↳ tributary` : null)
+    : null;
+
   return (
     <div
-      className="fs-river-tile"
+      className={`fs-river-tile${mapHovered ? ' fs-river-tile--active' : ''}`}
       onClick={onOpenCorridor}
       onMouseEnter={() => onHoverChange?.(new Set(group.sections.map(s => s.id)))}
       onMouseLeave={() => onHoverChange?.(null)}
@@ -193,10 +295,15 @@ function CorridorCardLg({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSec
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 27, fontWeight: 800, letterSpacing: '-0.02em' }}>{group.name}</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--fg-on-sky-2)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {group.region}
+          <div style={{ fontSize: 27, fontWeight: 800, letterSpacing: '-0.02em' }}>
+            {group.name}
           </div>
+          {basinContext
+            ? (basinSubtitle
+              ? <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--fg-on-sky-2)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{basinSubtitle}</div>
+              : null)
+            : <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--fg-on-sky-2)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.region}</div>
+          }
         </div>
         <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: 'var(--fg-on-sky-1)', background: 'var(--module-fill)', borderRadius: 'var(--r-pill, 99px)', padding: '6px 12px', whiteSpace: 'nowrap' }}>
           {group.sections.length} {group.sections.length === 1 ? 'section' : 'sections'}
@@ -260,17 +367,27 @@ interface OtherRiverRowProps {
   group: CorridorGroup;
   onClick: () => void;
   onHoverChange?: (ids: Set<string> | null) => void;
+  basinContext?: BasinContext;
+  /** Glow this row because its section is hovered on the map (OtherRiverRowLg only). */
+  mapHovered?: boolean;
 }
 
-function OtherRiverRowLg({ group, onClick, onHoverChange }: OtherRiverRowProps) {
+function OtherRiverRowLg({ group, onClick, onHoverChange, basinContext, mapHovered }: OtherRiverRowProps) {
   const sc = statusColor(group.worstStatus);
   const sl = statusLabel(group.worstStatus);
   const cfs = group.maxCfs > 0 ? group.maxCfs : group.minCfs;
   const { units } = usePreferences();
 
+  // Subtitle when inside a basin box
+  const subtitle = basinContext
+    ? (basinContext.isTributary
+      ? `${basinContext.mainStemShort} ↳ tributary · ${group.sections.length} ${group.sections.length === 1 ? 'section' : 'sections'}`
+      : `${group.sections.length} ${group.sections.length === 1 ? 'section' : 'sections'}`)
+    : `${group.region} · ${group.sections.length} ${group.sections.length === 1 ? 'section' : 'sections'}`;
+
   return (
     <button
-      className="fs-river-tile"
+      className={`fs-river-tile${mapHovered ? ' fs-river-tile--active' : ''}`}
       onClick={onClick}
       onMouseEnter={() => onHoverChange?.(new Set(group.sections.map(s => s.id)))}
       onMouseLeave={() => onHoverChange?.(null)}
@@ -289,13 +406,12 @@ function OtherRiverRowLg({ group, onClick, onHoverChange }: OtherRiverRowProps) 
         transition: 'background 0.15s',
       }}
     >
-      <span style={{ width: 9, height: 9, borderRadius: 99, background: sc, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 16.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {group.name}
         </div>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--fg-on-sky-2)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {group.region} · {group.sections.length} {group.sections.length === 1 ? 'section' : 'sections'}
+          {subtitle}
         </div>
       </div>
       {group.spark.length > 1 && (
@@ -314,10 +430,17 @@ function OtherRiverRowLg({ group, onClick, onHoverChange }: OtherRiverRowProps) 
 }
 
 // Mobile: compact other-river row
-function OtherRiverRowSm({ group, onClick }: OtherRiverRowProps) {
+function OtherRiverRowSm({ group, onClick, basinContext }: OtherRiverRowProps) {
   const sc = statusColor(group.worstStatus);
   const cfs = group.maxCfs > 0 ? group.maxCfs : group.minCfs;
   const { units } = usePreferences();
+
+  // Subtitle when inside a basin box
+  const subtitle = basinContext
+    ? (basinContext.isTributary
+      ? `${basinContext.mainStemShort} ↳ tributary · ${group.sections.length} ${group.sections.length === 1 ? 'section' : 'sections'}`
+      : `${group.sections.length} ${group.sections.length === 1 ? 'section' : 'sections'}`)
+    : `${group.region} · ${group.sections.length} ${group.sections.length === 1 ? 'section' : 'sections'}`;
 
   return (
     <button
@@ -336,13 +459,12 @@ function OtherRiverRowSm({ group, onClick }: OtherRiverRowProps) {
         color: 'var(--fg-on-sky-1)',
       }}
     >
-      <span style={{ width: 8, height: 8, borderRadius: 99, background: sc, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {group.name}
         </div>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-2)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {group.region} · {group.sections.length} {group.sections.length === 1 ? 'section' : 'sections'}
+          {subtitle}
         </div>
       </div>
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -365,15 +487,21 @@ interface YourRiverCardProps {
   bookmarkedSectionIds: Set<string>;
   onOpenCorridor: () => void;
   onOpenSection: (sectionId: string) => void;
+  basinContext?: BasinContext;
 }
 
-function YourRiverCard({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSection }: YourRiverCardProps) {
+function YourRiverCard({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSection, basinContext }: YourRiverCardProps) {
   const sc = statusColor(group.worstStatus);
   // Show bookmarked sections first
   const prioritized = [
     ...group.sections.filter(s => bookmarkedSectionIds.has(s.id)),
     ...group.sections.filter(s => !bookmarkedSectionIds.has(s.id)),
   ];
+
+  // Subtitle when inside a basin box
+  const basinSubtitle = basinContext
+    ? (basinContext.isTributary ? `${basinContext.mainStemShort} ↳ tributary` : null)
+    : null;
 
   return (
     <div
@@ -396,10 +524,15 @@ function YourRiverCard({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSect
       <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: sc, opacity: 0.9 }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.015em' }}>{group.name}</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--fg-on-sky-2)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {group.region}
+          <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.015em' }}>
+            {group.name}
           </div>
+          {basinContext
+            ? (basinSubtitle
+              ? <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--fg-on-sky-2)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{basinSubtitle}</div>
+              : null)
+            : <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--fg-on-sky-2)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.region}</div>
+          }
         </div>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 600, color: 'var(--fg-on-sky-2)', flexShrink: 0 }}>
           Corridor <Icon name="chevron-right" size={14} />
@@ -410,6 +543,39 @@ function YourRiverCard({ group, bookmarkedSectionIds, onOpenCorridor, onOpenSect
           <SectionRow key={s.id} section={s} onClick={() => onOpenSection(s.id)} />
         ))}
       </div>
+    </div>
+  );
+}
+
+// Basin box wrapper — groups corridors from the same watershed
+interface BasinBoxProps {
+  name: string;
+  sectionCount: number;
+  mobile?: boolean;
+  /** All section ids in this basin — highlighted on the map while the box is hovered (desktop). */
+  sectionIds?: Set<string>;
+  onHoverChange?: (ids: Set<string> | null) => void;
+  children: React.ReactNode;
+}
+
+function BasinBox({ name, sectionCount, mobile, sectionIds, onHoverChange, children }: BasinBoxProps) {
+  return (
+    <div
+      onMouseEnter={onHoverChange ? () => onHoverChange(sectionIds ?? null) : undefined}
+      onMouseLeave={onHoverChange ? () => onHoverChange(null) : undefined}
+      style={{
+        background: 'var(--module-fill-dark)',
+        border: '1px solid var(--module-stroke)',
+        borderRadius: mobile ? 22 : 28,
+        padding: mobile ? 14 : 16,
+      }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12, padding: '0 2px' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg-on-sky-2)' }}>{name}</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-3)' }}>
+          · {sectionCount} {sectionCount === 1 ? 'section' : 'sections'}
+        </span>
+      </div>
+      {children}
     </div>
   );
 }
@@ -477,6 +643,8 @@ export function RiversHome() {
   const [q, setQ] = useState('');
   const [mapOpen, setMapOpen] = useState(false);
   const [hoveredSectionIds, setHoveredSectionIds] = useState<Set<string> | null>(null);
+  // Reverse direction: a section line hovered on the map glows its list tile.
+  const [mapHoveredSectionId, setMapHoveredSectionId] = useState<string | null>(null);
   const debouncedQ = useDebouncedValue(q, 180);
 
   const { yourGroups, otherGroups } = useMemo(() => {
@@ -506,6 +674,10 @@ export function RiversHome() {
 
   const totalCorridorCount = yourGroups.length + otherGroups.length;
 
+  // True when the section currently hovered on the map belongs to this corridor tile.
+  const isMapHovered = (g: CorridorGroup) =>
+    mapHoveredSectionId != null && g.sections.some(s => s.id === mapHoveredSectionId);
+
   const handleOpenCorridor = (slug: string) => {
     navigate(`/corridor/${slug}`);
   };
@@ -516,13 +688,16 @@ export function RiversHome() {
 
   // ── DESKTOP layout ──────────────────────────────────────────────────────────
   if (isDesktop) {
+    const yourBasins = splitIntoBasins(yourGroups);
+    const otherBasins = splitIntoBasins(filteredOthers);
+
     return (
       <Shell active="rivers" light={false}>
         {/* pulse keyframes + river-tile hover glow */}
         <style>{`
           @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
           .fs-river-tile { transition: box-shadow .18s ease; }
-          .fs-river-tile:hover {
+          .fs-river-tile:hover, .fs-river-tile--active {
             box-shadow:
               0 0 0 1.5px rgba(130,200,255,0.95),
               0 0 22px 1px rgba(120,190,255,0.55),
@@ -563,17 +738,45 @@ export function RiversHome() {
               )}
 
               {!isLoading && !isError && yourGroups.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px,1fr))', gap: 20, marginTop: 22, alignItems: 'start' }}>
-                  {yourGroups.map(g => (
-                    <CorridorCardLg
-                      key={g.slug}
-                      group={g}
-                      bookmarkedSectionIds={follows.sectionIds}
-                      onOpenCorridor={() => handleOpenCorridor(g.slug)}
-                      onOpenSection={handleOpenSection}
-                      onHoverChange={setHoveredSectionIds}
-                    />
-                  ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 22 }}>
+                  {/* Boxed basins first */}
+                  {yourBasins.boxed.map(basin => {
+                    const basinSet = new Set(basin.groups.flatMap(g => g.sections.map(s => s.id)));
+                    return (
+                    <BasinBox key={basin.slug} name={basin.name} sectionCount={basin.sectionCount} sectionIds={basinSet} onHoverChange={setHoveredSectionIds}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px,1fr))', gap: 20, alignItems: 'start' }}>
+                        {basin.groups.map(g => (
+                          <CorridorCardLg
+                            key={g.slug}
+                            group={g}
+                            bookmarkedSectionIds={follows.sectionIds}
+                            onOpenCorridor={() => handleOpenCorridor(g.slug)}
+                            onOpenSection={handleOpenSection}
+                            onHoverChange={(ids) => setHoveredSectionIds(ids ?? basinSet)}
+                            basinContext={{ isTributary: g.isTributary, mainStemShort: shortRiverName(g.mainStemName) }}
+                            mapHovered={isMapHovered(g)}
+                          />
+                        ))}
+                      </div>
+                    </BasinBox>
+                    );
+                  })}
+                  {/* Loose groups */}
+                  {yourBasins.loose.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px,1fr))', gap: 20, alignItems: 'start' }}>
+                      {yourBasins.loose.map(g => (
+                        <CorridorCardLg
+                          key={g.slug}
+                          group={g}
+                          bookmarkedSectionIds={follows.sectionIds}
+                          onOpenCorridor={() => handleOpenCorridor(g.slug)}
+                          onOpenSection={handleOpenSection}
+                          onHoverChange={setHoveredSectionIds}
+                          mapHovered={isMapHovered(g)}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -599,19 +802,50 @@ export function RiversHome() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px,1fr))', gap: 12, marginTop: 16 }}>
-                  {isLoading && (
-                    <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
-                  )}
-                  {!isLoading && filteredOthers.map(g => (
-                    <OtherRiverRowLg
-                      key={g.slug}
-                      group={g}
-                      onClick={() => handleOpenCorridor(g.slug)}
-                      onHoverChange={setHoveredSectionIds}
-                    />
-                  ))}
-                </div>
+                {!isLoading && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
+                    {/* Boxed basins first */}
+                    {otherBasins.boxed.map(basin => {
+                      const basinSet = new Set(basin.groups.flatMap(g => g.sections.map(s => s.id)));
+                      return (
+                      <BasinBox key={basin.slug} name={basin.name} sectionCount={basin.sectionCount} sectionIds={basinSet} onHoverChange={setHoveredSectionIds}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px,1fr))', gap: 12 }}>
+                          {basin.groups.map(g => (
+                            <OtherRiverRowLg
+                              key={g.slug}
+                              group={g}
+                              onClick={() => handleOpenCorridor(g.slug)}
+                              onHoverChange={(ids) => setHoveredSectionIds(ids ?? basinSet)}
+                              basinContext={{ isTributary: g.isTributary, mainStemShort: shortRiverName(g.mainStemName) }}
+                              mapHovered={isMapHovered(g)}
+                            />
+                          ))}
+                        </div>
+                      </BasinBox>
+                      );
+                    })}
+                    {/* Loose groups */}
+                    {otherBasins.loose.length > 0 && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px,1fr))', gap: 12 }}>
+                        {otherBasins.loose.map(g => (
+                          <OtherRiverRowLg
+                            key={g.slug}
+                            group={g}
+                            onClick={() => handleOpenCorridor(g.slug)}
+                            onHoverChange={setHoveredSectionIds}
+                            mapHovered={isMapHovered(g)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {isLoading && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px,1fr))', gap: 12, marginTop: 16 }}>
+                    <SkeletonCard /><SkeletonCard /><SkeletonCard />
+                  </div>
+                )}
 
                 {!isLoading && !isError && filteredOthers.length === 0 && ql && (
                   <div style={{ textAlign: 'center', color: 'var(--fg-on-sky-2)', fontSize: 15, padding: '28px 0' }}>
@@ -628,13 +862,16 @@ export function RiversHome() {
           </div>
 
           {/* Right: persistent map rail */}
-          <MapRail corridorCount={totalCorridorCount} highlightedSectionIds={hoveredSectionIds} />
+          <MapRail corridorCount={totalCorridorCount} highlightedSectionIds={hoveredSectionIds} onSectionHover={setMapHoveredSectionId} />
         </div>
       </Shell>
     );
   }
 
   // ── MOBILE layout ───────────────────────────────────────────────────────────
+  const yourBasins = splitIntoBasins(yourGroups);
+  const otherBasins = splitIntoBasins(filteredOthers);
+
   return (
     <Shell active="rivers" light={false}>
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }`}</style>
@@ -674,8 +911,26 @@ export function RiversHome() {
             )}
 
             {!isLoading && !isError && yourGroups.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
-                {yourGroups.map(g => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
+                {/* Boxed basins first */}
+                {yourBasins.boxed.map(basin => (
+                  <BasinBox key={basin.slug} name={basin.name} sectionCount={basin.sectionCount} mobile>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {basin.groups.map(g => (
+                        <YourRiverCard
+                          key={g.slug}
+                          group={g}
+                          bookmarkedSectionIds={follows.sectionIds}
+                          onOpenCorridor={() => handleOpenCorridor(g.slug)}
+                          onOpenSection={handleOpenSection}
+                          basinContext={{ isTributary: g.isTributary, mainStemShort: shortRiverName(g.mainStemName) }}
+                        />
+                      ))}
+                    </div>
+                  </BasinBox>
+                ))}
+                {/* Loose groups */}
+                {yourBasins.loose.map(g => (
                   <YourRiverCard
                     key={g.slug}
                     group={g}
@@ -725,17 +980,37 @@ export function RiversHome() {
             </div>
 
             {/* Browse list */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 13 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 13 }}>
               {isLoading && (
                 <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
               )}
-              {!isLoading && filteredOthers.map(g => (
-                <OtherRiverRowSm
-                  key={g.slug}
-                  group={g}
-                  onClick={() => handleOpenCorridor(g.slug)}
-                />
-              ))}
+              {!isLoading && (
+                <>
+                  {/* Boxed basins first */}
+                  {otherBasins.boxed.map(basin => (
+                    <BasinBox key={basin.slug} name={basin.name} sectionCount={basin.sectionCount} mobile>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {basin.groups.map(g => (
+                          <OtherRiverRowSm
+                            key={g.slug}
+                            group={g}
+                            onClick={() => handleOpenCorridor(g.slug)}
+                            basinContext={{ isTributary: g.isTributary, mainStemShort: shortRiverName(g.mainStemName) }}
+                          />
+                        ))}
+                      </div>
+                    </BasinBox>
+                  ))}
+                  {/* Loose groups */}
+                  {otherBasins.loose.map(g => (
+                    <OtherRiverRowSm
+                      key={g.slug}
+                      group={g}
+                      onClick={() => handleOpenCorridor(g.slug)}
+                    />
+                  ))}
+                </>
+              )}
               {!isLoading && !isError && filteredOthers.length === 0 && ql && (
                 <div style={{ textAlign: 'center', color: 'var(--fg-on-sky-2)', fontSize: 14, padding: '24px 0' }}>
                   No rivers match "{q}".

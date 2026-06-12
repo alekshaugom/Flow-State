@@ -394,6 +394,13 @@ export const api = {
 			headers: JSON_HEADERS,
 			body: JSON.stringify({ targetType, targetId, ...(action ? { action } : {}) }),
 		}).then(json<{ ok: true; following: boolean; targetType: string; targetId: string }>),
+
+	// --- Map overlays ---
+	reservoirs: () =>
+		fetch('/Reservoir/?select(id,name,latitude,longitude)').then(json<any>),
+
+	riverCorridorsMeta: () =>
+		fetch('/RiverCorridor/?select(id,governingReservoirIds)').then(json<any>),
 };
 
 export interface SearchHit {

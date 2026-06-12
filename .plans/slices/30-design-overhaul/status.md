@@ -106,3 +106,43 @@ specifies. Filled them in — completing items this slice's plan had deferred:
   temp 49/65°F; weather 64° UV 8.9; historic context 104% of median; gradient 55 ft/mi; alternative
   access "Frog Rock"; populated guides + shuttle), zero console errors.
 - **Caveat**: Historic context reads "1-yr" median/record until deeper gauge history is backfilled.
+
+## 2026-06-11
+- Added subtle per-basin clustering on RiversHome (`app/src/screens/RiversHome.tsx` + new
+  `app/src/lib/riverSystems.ts`). Corridors sharing a watershed render in a translucent dark box
+  (`--module-fill-dark`) with a quiet header; main-stem runs first, tributaries marked `↳ {MainStem}
+  tributary`. Boxed only when a list has ≥2 distinct rivers of a watershed; single-river basins
+  (Arkansas/Gunnison/Yampa/North Platte) unchanged. Applies to both Your/Other rivers (shared
+  `BasinBox` + `splitIntoBasins`). Tributary map is frontend-only — see decisions.md.
+- Verify: tsc clean for both files; live screenshot ("Other rivers") shows 4 boxed basins, exactly 8
+  `↳` tributaries, 4 loose basins untouched, zero console errors.
+- Basin hover → map highlight: hovering a basin box lights up every section in the basin on the map
+  rail (whole-basin halo); individual corridor rows still highlight just their corridor, and leaving a
+  row restores the basin highlight (`onHoverChange={(ids) => setHoveredSectionIds(ids ?? basinSet)}`
+  + box-level enter/leave). Verified: Colorado box → 17 halos, Platte → 14, row → corridor, restore OK.
+- Basin naming/grouping: display basins now use the "{major river} Basin" formula via new
+  `basinFor()`/`WATERSHED_TO_BASIN` in riverSystems.ts (Colorado/Gunnison/Arkansas/Platte/Yampa/San
+  Juan/Dolores Basin). South Platte + North Platte watersheds merge into one **Platte Basin**;
+  grouping/boxing keys off basinKey (not watershedSlug). Loose-row subtitles show the new basin name.
+  Frontend-only — Watershed records unchanged.
+- Bidirectional highlight: added map → list direction. RiverMap now emits `onSectionHover(id|null)`
+  from each section line's mouseover/mouseout, threaded MapRail → RiversHome (`mapHoveredSectionId`).
+  The corridor tile containing that section gets the existing blue glow via a new `fs-river-tile--active`
+  class (shares the `.fs-river-tile:hover` box-shadow) — desktop CorridorCardLg + OtherRiverRowLg only.
+  Verified live: hovering a map line glows exactly one matching tile (e.g. Upper Colorado), clears on out.
+- River-tile design tweak: removed the leading status dot from the corridor rows (OtherRiverRowLg/Sm);
+  status now reads from the colored flow label + sparkline. Moved the tributary "↳" off the name line
+  onto the metadata line next to the word "tributary" ("Piedra Corridor" / "San Juan ↳ tributary · 3
+  sections"). Applied across all 4 tile components. Verified live: 0 tiles with a leading dot, 0 name
+  lines with the glyph.
+- Map legend reordered top→bottom by flow severity: Dangerous, High, Good, Runnable, Low (was Good-first).
+- Dam markers on the map: little black line-marks (divIcon) for reservoirs, shown only while a basin or
+  corridor is hovered. Frontend-only — RiverMap fetches `/Reservoir/` (coords) + `/RiverCorridor/`
+  (governingReservoirIds) via new api methods (`api.reservoirs`, `api.riverCorridorsMeta`), derives the
+  visible dam set from the existing `highlightedSectionIds` (section→corridorSlug→governingReservoirIds).
+  Basin hover = union of the basin's corridors' dams; corridor hover = that corridor's governing dams.
+  Added a "Dam" row to the legend. Verified live: Colorado Basin → 7 dams, Upper Colorado → 4, rest → 0.
+- Dam tick refinements: each dam mark now draws perpendicular to the river at its location (nearest
+  RIVER_GEOMETRIES segment → on-screen bearing via map.latLngToLayerPoint, +90°; Mercator-conformal so
+  it holds across zoom) and is half the previous size (8×2px). Verified live by zooming: ticks cross
+  their river segments at 90° (vertical on the E–W Colorado main stem, angled on diagonal reaches).

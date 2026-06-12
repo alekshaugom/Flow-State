@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './river-map.css';
 import { useDashboard } from '../hooks/useDashboard';
+import { api } from '../api';
 import { RIVER_GEOMETRIES } from '../lib/river-geometries';
 import type { DashboardSection } from '../types';
 import type { DesignStatus } from '../constants';
@@ -56,6 +58,35 @@ function buildGeoJSON(sections: DashboardSection[]) {
 		});
 	}
 	return { type: 'FeatureCollection' as const, features };
+}
+
+// Nearest river polyline segment to a point, so a dam tick can be drawn
+// perpendicular to the river where it sits. Coords in RIVER_GEOMETRIES are
+// [lon, lat]; returns the segment endpoints as [lat, lng] (for L.latLng).
+function nearestRiverSegment(lat: number, lng: number): { a: [number, number]; b: [number, number] } | null {
+	const cosLat = Math.cos((lat * Math.PI) / 180);
+	const px = lng * cosLat;
+	const py = lat;
+	let best: { a: [number, number]; b: [number, number] } | null = null;
+	let bestD = Infinity;
+	for (const id in RIVER_GEOMETRIES) {
+		const coords = RIVER_GEOMETRIES[id];
+		for (let i = 0; i < coords.length - 1; i++) {
+			const ax = coords[i][0] * cosLat, ay = coords[i][1];
+			const bx = coords[i + 1][0] * cosLat, by = coords[i + 1][1];
+			const dx = bx - ax, dy = by - ay;
+			const len2 = dx * dx + dy * dy;
+			let t = len2 > 0 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0;
+			t = Math.max(0, Math.min(1, t));
+			const cx = ax + t * dx, cy = ay + t * dy;
+			const d = (px - cx) ** 2 + (py - cy) ** 2;
+			if (d < bestD) {
+				bestD = d;
+				best = { a: [coords[i][1], coords[i][0]], b: [coords[i + 1][1], coords[i + 1][0]] };
+			}
+		}
+	}
+	return best;
 }
 
 function timeAgo(ts: string | null): string {
@@ -112,19 +143,83 @@ function HaloPane() {
 	return null;
 }
 
+function DamMarkers({ reservoirs, visibleIds, damSegments }: { reservoirs: any[]; visibleIds: Set<any>; damSegments: Map<string, { a: [number, number]; b: [number, number] }> }) {
+	const map = useMap();
+	useEffect(() => {
+		const markers: L.Marker[] = [];
+		for (const r of reservoirs) {
+			if (!visibleIds.has(r.id) || r.latitude == null || r.longitude == null) continue;
+			// Orient the tick perpendicular to the river: take the nearest river
+			// segment's on-screen angle (Mercator is conformal, so this holds at any
+			// zoom) and add 90°.
+			let angle = 0;
+			const seg = damSegments.get(r.id);
+			if (seg) {
+				const pa = map.latLngToLayerPoint(L.latLng(seg.a[0], seg.a[1]));
+				const pb = map.latLngToLayerPoint(L.latLng(seg.b[0], seg.b[1]));
+				angle = (Math.atan2(pb.y - pa.y, pb.x - pa.x) * 180) / Math.PI + 90;
+			}
+			const icon = L.divIcon({
+				className: 'fs-dam-marker',
+				html: `<span style="display:block;width:8px;height:2px;background:#111;border-radius:1px;box-shadow:0 0 0 1px rgba(255,255,255,0.85);transform:rotate(${angle}deg);"></span>`,
+				iconSize: [8, 2],
+				iconAnchor: [4, 1],
+			});
+			const m = L.marker([r.latitude, r.longitude], { icon, interactive: false, keyboard: false, zIndexOffset: 1000 });
+			m.addTo(map);
+			markers.push(m);
+		}
+		return () => { markers.forEach(m => m.remove()); };
+	}, [reservoirs, visibleIds, damSegments, map]);
+	return null;
+}
+
 interface RiverMapProps {
 	style?: React.CSSProperties;
 	/** Section ids to "light up" with a wide halo under the thin line (desktop tile hover). */
 	highlightedSectionIds?: Set<string> | null;
+	/** Fired as the cursor enters/leaves a section line — lets the list glow the matching tile. */
+	onSectionHover?: (sectionId: string | null) => void;
 }
 
-export function RiverMap({ style, highlightedSectionIds }: RiverMapProps) {
+export function RiverMap({ style, highlightedSectionIds, onSectionHover }: RiverMapProps) {
 	const navigate = useNavigate();
 	const { data, isLoading } = useDashboard();
 	const sections = data?.sections || [];
 	const geoRef = useRef<L.GeoJSON | null>(null);
 	const haloRef = useRef<L.GeoJSON | null>(null);
 	const [hoveredId, setHoveredId] = useState<string | null>(null);
+
+	const { data: reservoirs = [] } = useQuery({ queryKey: ['reservoirs'], queryFn: api.reservoirs, staleTime: 30 * 60_000 });
+	const { data: corridorsMeta = [] } = useQuery({ queryKey: ['riverCorridorsMeta'], queryFn: api.riverCorridorsMeta, staleTime: 30 * 60_000 });
+
+	const splitIds = (s: any) => (s || '').split(',').map((x: string) => x.trim()).filter(Boolean);
+
+	const corridorReservoirs = useMemo(() => {
+		const m = new Map<string, string[]>();
+		for (const c of corridorsMeta) m.set(c.id, splitIds(c.governingReservoirIds));
+		return m;
+	}, [corridorsMeta]);
+
+	const highlightedReservoirIds = useMemo(() => {
+		const out = new Set<string>();
+		if (!highlightedSectionIds || highlightedSectionIds.size === 0) return out;
+		const slugs = new Set<string>();
+		for (const s of sections) if (highlightedSectionIds.has(s.id) && s.corridorSlug) slugs.add(s.corridorSlug);
+		for (const slug of slugs) for (const rid of (corridorReservoirs.get(slug) || [])) out.add(rid);
+		return out;
+	}, [highlightedSectionIds, sections, corridorReservoirs]);
+
+	// Nearest river segment per reservoir — used to draw the dam tick perpendicular.
+	const damSegments = useMemo(() => {
+		const m = new Map<string, { a: [number, number]; b: [number, number] }>();
+		for (const r of reservoirs) {
+			if (r.latitude == null || r.longitude == null) continue;
+			const seg = nearestRiverSegment(r.latitude, r.longitude);
+			if (seg) m.set(r.id, seg);
+		}
+		return m;
+	}, [reservoirs]);
 
 	const geojson = useMemo(() => buildGeoJSON(sections), [sections]);
 
@@ -199,11 +294,13 @@ export function RiverMap({ style, highlightedSectionIds }: RiverMapProps) {
 		(layer as any).on({
 			mouseover: (e: any) => {
 				setHoveredId(p.id);
+				onSectionHover?.(p.id);
 				e.target.setStyle({ weight: 6, opacity: 1 });
 				e.target.bringToFront();
 			},
 			mouseout: (e: any) => {
 				setHoveredId(null);
+				onSectionHover?.(null);
 				e.target.setStyle({
 					weight: 4,
 					opacity: 0.85,
@@ -249,6 +346,7 @@ export function RiverMap({ style, highlightedSectionIds }: RiverMapProps) {
 				/>
 				<InvalidateSize />
 				<HaloPane />
+				<DamMarkers reservoirs={reservoirs} visibleIds={highlightedReservoirIds} damSegments={damSegments} />
 				{geojson.features.length > 0 && (
 					<>
 						{/* Wide halo layer — under the thin lines (riverHalo pane), lights up on tile hover */}
@@ -284,12 +382,16 @@ export function RiverMap({ style, highlightedSectionIds }: RiverMapProps) {
 				<div style={{ fontSize: 11, fontWeight: 700, color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
 					Flow Status
 				</div>
-				{(['ideal', 'runnable', 'high', 'low', 'dangerous'] as DesignStatus[]).map(s => (
+				{(['dangerous', 'high', 'ideal', 'runnable', 'low'] as DesignStatus[]).map(s => (
 					<div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0' }}>
 						<div style={{ width: 20, height: 3, borderRadius: 2, background: STATUS_HEX[s] }} />
 						<span style={{ fontSize: 12, color: 'var(--fg-2)' }}>{STATUS_LABEL[s]}</span>
 					</div>
 				))}
+				<div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', marginTop: 6, borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: 8 }}>
+					<div style={{ width: 20, height: 4, borderRadius: 1, background: '#111' }} />
+					<span style={{ fontSize: 12, color: 'var(--fg-2)' }}>Dam</span>
+				</div>
 			</div>
 		</div>
 	);
