@@ -161,9 +161,9 @@ function DamMarkers({ reservoirs, visibleIds, damSegments }: { reservoirs: any[]
 			}
 			const icon = L.divIcon({
 				className: 'fs-dam-marker',
-				html: `<span style="display:block;width:8px;height:2px;background:#111;border-radius:1px;box-shadow:0 0 0 1px rgba(255,255,255,0.85);transform:rotate(${angle}deg);"></span>`,
-				iconSize: [8, 2],
-				iconAnchor: [4, 1],
+				html: `<span style="display:block;width:13px;height:3px;background:#111;border-radius:1px;box-shadow:0 0 0 1.5px rgba(255,255,255,0.9);transform:rotate(${angle}deg);"></span>`,
+				iconSize: [13, 3],
+				iconAnchor: [6.5, 1.5],
 			});
 			const m = L.marker([r.latitude, r.longitude], { icon, interactive: false, keyboard: false, zIndexOffset: 1000 });
 			m.addTo(map);
@@ -203,12 +203,19 @@ export function RiverMap({ style, highlightedSectionIds, onSectionHover }: River
 
 	const highlightedReservoirIds = useMemo(() => {
 		const out = new Set<string>();
-		if (!highlightedSectionIds || highlightedSectionIds.size === 0) return out;
 		const slugs = new Set<string>();
-		for (const s of sections) if (highlightedSectionIds.has(s.id) && s.corridorSlug) slugs.add(s.corridorSlug);
+		// list hover: a basin box / corridor tile sets highlightedSectionIds
+		if (highlightedSectionIds) {
+			for (const s of sections) if (highlightedSectionIds.has(s.id) && s.corridorSlug) slugs.add(s.corridorSlug);
+		}
+		// map hover: a section line hovered directly on the map
+		if (hoveredId) {
+			const hs = sections.find(s => s.id === hoveredId);
+			if (hs && hs.corridorSlug) slugs.add(hs.corridorSlug);
+		}
 		for (const slug of slugs) for (const rid of (corridorReservoirs.get(slug) || [])) out.add(rid);
 		return out;
-	}, [highlightedSectionIds, sections, corridorReservoirs]);
+	}, [highlightedSectionIds, hoveredId, sections, corridorReservoirs]);
 
 	// Nearest river segment per reservoir — used to draw the dam tick perpendicular.
 	const damSegments = useMemo(() => {

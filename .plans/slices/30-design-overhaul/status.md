@@ -146,3 +146,9 @@ specifies. Filled them in — completing items this slice's plan had deferred:
   RIVER_GEOMETRIES segment → on-screen bearing via map.latLngToLayerPoint, +90°; Mercator-conformal so
   it holds across zoom) and is half the previous size (8×2px). Verified live by zooming: ticks cross
   their river segments at 90° (vertical on the E–W Colorado main stem, angled on diagonal reaches).
+- Dam fixes (follow-up): (1) hovering a section river-line ON THE MAP now also shows that corridor's
+  dams — previously dams only triggered from list (basin box / corridor tile) hover, which is why the
+  user (hovering map lines) saw none; derived from RiverMap's internal `hoveredId` ∪ highlightedSectionIds.
+  (2) Bumped dam tick from 8×2 to 13×3px for visibility (half-size was too easy to miss at CO zoom).
+  NOTE: dams render at the reservoir's real location (often UPSTREAM of the run), so they can appear far
+  from the hovered section — hover the basin box to see the whole cluster. Verified live on :9926.
