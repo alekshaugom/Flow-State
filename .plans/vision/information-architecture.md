@@ -56,6 +56,15 @@ The IA decisions here constrain what `ux-direction.md` puts on each page. If the
 
 ## What we will NOT do
 
-- **No hub-and-spoke "category pages"** for access point types, outfitter directories, etc. Those lists live on section and corridor pages, not on their own routable stubs.
+- **No hub-and-spoke "category pages"** for access point types, outfitter directories, etc. Those lists live on section and corridor pages, not on their own routable stubs. (See the Guides-tab clarification below — the *people* layer is a deliberate exception.)
 - **No separate "trip planning" IA.** Planning information (permits, shuttle, access) surfaces in context on section and corridor pages, not in a planner flow.
 - **No domain expansion before the domain-switcher primitive exists.** Adding snowpack content without the switcher frame means bolting data onto a rivers-only IA that wasn't built for it.
+
+## The Guides tab — a people layer, not a data category (2026-06-11)
+
+The 4-tab design overhaul (slice 30) added a top-level **Trips** tab, evolving into **Guides** (slice 31). This is a deliberate exception to the "no directory pages" rule above, and the boundary is worth stating precisely:
+
+- The rule forbids turning **river data** (access-point types, rapids, per-river outfitter sub-pages) into routable category stubs. That still holds: outfitter and guide *intel relevant to a run* surfaces **in context** on the section/corridor page, not behind navigation.
+- **Guides** is a different axis — a **people and commerce** home (outfitter + individual-guide profiles, affiliations, claim-ownership, booking). People are not a river-data hierarchy, so a directory of them is not the hub-and-spoke anti-pattern the rule guards against.
+
+In short: you still don't traverse a tree to learn about *a river*; the Guides tab is how you navigate the *people* who run it.

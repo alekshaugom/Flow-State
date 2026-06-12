@@ -4,6 +4,10 @@ Flow-State is **AllTrails for rivers**: a platform that consolidates freely-avai
 
 The thesis is simple. Governments collect extraordinary amounts of river data — gauges, dam operations, snowpack, flow forecasts — and publish it through interfaces that demand fluency to use. Meanwhile, the human knowledge that makes rivers navigable (access points, campsites, shuttle services, rapid documentation, outfitter intel) exists in scattered forum posts and personal memory. Flow-State consolidates both into one structured, interpretive, spatial experience. Where government data runs out, bounties bring community knowledge in.
 
+## North star: why this exists
+
+Beneath the product, the goal goes well past data. Flow-State exists to grow **love for river systems** — because water is life, and we protect what we love. Degradation and pollution get solved *downstream* of that love, not before it: first attachment to these living systems, then the collective will to bring them back to a healthy, balanced state. The data, the forecasts, the guides, the community — all of it is in service of turning information into attachment, and attachment into care. A guide directory and a flow chart are the same project: helping people fall for rivers enough to look after them.
+
 ## Three challenges
 
 The platform is built around three hard problems:

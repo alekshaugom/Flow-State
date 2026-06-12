@@ -2,9 +2,10 @@
 
 Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies and explicit user priority. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
-**Last updated:** 2026-06-07
+**Last updated:** 2026-06-11
 **Active slice:** **30-design-overhaul** — full 4-tab IA redesign on the new design system; corridor/section tile-completion delivered 2026-06-07 (permits, water temp, weather, snowpack, dam, gradient/velocity, historic context, access alternatives + section nav).
 **Next up:** **24-trust-reputation-governance** (paused mid-flight — governance backend already landed; resume from the frontend/UX phase), then **25-zero-layers-deep-ia**.
+**New direction (2026-06-11):** evolve the **Trips** tab into **Guides** (slice 31) — see *Guides evolution* below.
 
 ---
 
@@ -21,6 +22,18 @@ The v2 foundation is documented in three new vision files:
 - `.plans/vision/information-architecture.md` — the zero-layers IA, domain-switcher scaffold, and page-anatomy principles
 
 The slices below reflect this pivot. The v2 strategic spine (20 → 21 → 22 → 23 → 24 → 25) is the top priority. The still-valid river-depth slices (03b → 03d → 04 → 05 → 06 → 07 → 08 → 09) follow — they deepen the quantitative backbone that makes the platform worth using. The far-horizon v2 slices (26 → 28 → 27) close the queue.
+
+---
+
+## Guides evolution (2026-06-11)
+
+The design overhaul (slice 30) shipped a **Trips** tab as a thin outfitter listing + mock booking. The next directional shift renames and deepens it into **Guides** — the app's people-and-commerce layer. The 4-tab IA becomes **Rivers · Guides · Log · Profile**.
+
+Guides holds the full spectrum of river people: commercial **outfitters** lead the directory, but **individual guides** get profiles too — including private boaters affiliated with an outfit (named or anonymous) and *former* guides whose company affiliations are **time-bounded** (start/end dates on both sides). Everyone who wishes to contribute is, in some sense, a guide; the line between guide, contributor, and private boater is a continuum a person moves along over time. For those who opt in, the app keeps a rich longitudinal history of a life on the water. Profiles seed as open stubs; a **claim-ownership** flow lets a real operator or person take control of theirs. This is the app's **commercialization surface** — and the governing principle is that the **river data stays free and open**; only the people/commerce layer monetizes.
+
+This is also the most natural **bridge** for the named-and-deferred private-vs-public tension in `vision/product-vision.md`: the guide spectrum is how a private boater opts *into* a public history on their own terms, without coercing any private log open.
+
+Captured as slice **31-guides-section** (intent). The deeper "why" — that Flow-State exists to grow **love for river systems** (water is life; care follows love; pollution is solved downstream of it) — is now recorded as the **North star** in `vision/product-vision.md`.
 
 ---
 
@@ -85,6 +98,7 @@ These slices require the full v2 spine to be live before they are actionable. In
 | 26 | [global-coverage-bounties](slices/26-global-coverage-bounties/intent.md) | 7 | 5 | M | 22, 23 | Use existing `WorldRiver` table → fundable bounties to seed brand-new rivers anywhere (incl. outside US); pre-seed where gov data exists. |
 | 28 | [sponsor-admin-governance-console](slices/28-sponsor-admin-governance-console/intent.md) | 7 | 5 | L | 22, 23, 24 | Funder/sponsor dashboard, bounty advertising, payment management, role/admin management, moderation tools. Absorbs old slice 10. |
 | 27 | [multi-domain-abstraction](slices/27-multi-domain-abstraction/intent.md) | 6 | 3 | XL | 21, 25 | Generalize entities + IA to additional domains (dams/snow/avalanche). Lowest priority, design-influencing only. Most under-specified slice by design. |
+| 31 | [guides-section](slices/31-guides-section/intent.md) | 9 | 5 | L | 30 · soft 23/24 | Evolve the **Trips** tab into **Guides**: outfitter + individual-guide profiles, time-bounded affiliations & guide history, claim-ownership flow. The app's commercialization surface — river data stays free; only the people/commerce layer monetizes. Bridges the private-vs-public tension. |
 
 ---
 
