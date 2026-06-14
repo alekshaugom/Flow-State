@@ -4,6 +4,7 @@ import { getWatershedById } from '../lib/watersheds.ts';
 import { loadAllBands, resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
 import { getFlowStatus, daysAgo } from '../lib/utils.ts';
 import { getSnowpackData, getDamReleases, splitIds } from './RiverDetail.ts';
+import { buildDamFlow, leafReservoirIds } from '../lib/dam-flow.ts';
 
 async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
 	const out: T[] = [];
@@ -267,6 +268,7 @@ export class CorridorView extends Resource {
 					velocityFps: section.velocityFps ?? null,
 					elevationDropFt: section.elevationDropFt ?? null,
 					reservoirIds: section.reservoirIds ?? null,
+					controllingReservoirId: section.controllingReservoirId ?? null,
 				};
 			});
 
@@ -304,6 +306,24 @@ export class CorridorView extends Resource {
 			getDamReleases(reservoirIds),
 			getDamReleases([...new Set(corridorSectionRows.flatMap((s: any) => splitIds(s.reservoirIds)))]),
 		]);
+		const corridorLeaves = leafReservoirIds(reservoirs);
+		const corridorControllingId =
+			((corridor as any).driver === 'reservoir-release' && corridorLeaves.length === 1)
+				? corridorLeaves[0]
+				: null;
+		const damFlow = buildDamFlow({ entries: reservoirs, controllingReservoirId: corridorControllingId, reachFlowCfs: null });
+
+		// Per-section dam-flow so the desktop hero's section-following dam tile can
+		// apply the same controlling/contributing logic as the full module.
+		const sectionResById = new Map((sectionReservoirs as any[]).map((e: any) => [e?.reservoir?.id, e]));
+		for (const s of sections as any[]) {
+			const entries = splitIds(s.reservoirIds).map((rid) => sectionResById.get(rid)).filter(Boolean);
+			s.damFlow = buildDamFlow({
+				entries,
+				controllingReservoirId: s.controllingReservoirId ?? null,
+				reachFlowCfs: s.currentFlow ?? null,
+			});
+		}
 
 		// Water temperature: latest reading per corridor gauge
 		const waterTemps = corridorGauges
@@ -348,6 +368,7 @@ export class CorridorView extends Resource {
 			permits: corridorPermits,
 			snowpack,
 			reservoirs,
+			damFlow,
 			sectionReservoirs,
 			weatherSummary: null,
 			waterTemps,

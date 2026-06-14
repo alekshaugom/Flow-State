@@ -1205,6 +1205,7 @@ function MobileCorridorContent({ data, corridorSlug }: CorridorContentProps) {
       {/* Dam release — only when we have real reservoir data */}
       {(data.reservoirs?.length ?? 0) > 0 && (
         <DamReleaseModule
+          damFlow={data.damFlow}
           reservoirs={data.reservoirs}
           damControlled={true}
           riverName={corridor?.name ?? 'this river'}
@@ -1267,12 +1268,27 @@ const heroMiniLabel: React.CSSProperties = {
   color: 'var(--fg-on-sky-3)',
 };
 
-function SectionDamMini({ dams }: { dams: any[] }) {
+function damMiniView(entry: any) {
+  const r = entry?.reservoir ?? null;
+  const name = typeof r === 'string' ? r : (r?.name ?? null);
+  const plannedUrl = typeof r === 'string' ? null : (r?.plannedReleaseUrl ?? null);
+  const outflow = entry?.latest?.outflowCfs ?? null;
+  const diversion = entry?.diversion ?? null;
+  const cfs = diversion?.damControlledCfs ?? outflow ?? null;
+  return { name, plannedUrl, outflow, diversion, cfs };
+}
+
+const shortDamName = (n: string | null) => (n ? n.replace(/\s+Reservoir$/, '') : '');
+
+// Compact hero tile mirroring DamReleaseModule's controlling/contributing logic:
+// a single controlling dam (≈100% of flow), one upstream release, or the combined
+// release from multiple upstream dams — whichever fits the active section.
+function SectionDamMini({ damFlow }: { damFlow: any }) {
   const [hover, setHover] = useState(false);
-  const res = dams?.[0];
+  const mode = damFlow?.mode ?? 'none';
 
   // No dam on this reach → this tile becomes the flow-character note.
-  if (!res) {
+  if (!damFlow || mode === 'none') {
     return (
       <div style={heroMiniTile}>
         <div style={heroMiniLabel}><Icon name="waves" size={13} /> Flow character</div>
@@ -1283,12 +1299,45 @@ function SectionDamMini({ dams }: { dams: any[] }) {
     );
   }
 
-  const resName = typeof res.reservoir === 'string' ? res.reservoir : (res.reservoir?.name ?? null);
-  const cfs = res.diversion?.damControlledCfs ?? res.latest?.outflowCfs ?? null;
-  const grossCfs = res.diversion?.grossCfs ?? null;
-  const divertedCfs = res.diversion?.divertedCfs ?? null;
+  // Multiple contributing dams → combined headline + largest contributor.
+  const contributors: any[] = damFlow.contributors ?? [];
+  if (mode === 'contributing' && contributors.length >= 2) {
+    const combined = damFlow.combinedCfs;
+    // Largest release first; list every contributing dam (don't hide any).
+    const rows = contributors
+      .map(damMiniView)
+      .sort((a, b) => (b.outflow ?? -1) - (a.outflow ?? -1));
+    return (
+      <div style={heroMiniTile}>
+        <div style={heroMiniLabel}><Icon name="droplet" size={13} /> Dam releases</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginTop: 7 }}>
+          <span style={{ fontWeight: 300, fontSize: 26, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+            {combined != null ? Math.round(combined).toLocaleString() : '—'}
+          </span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-2)' }}>cfs</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-3)' }}>combined</span>
+        </div>
+        <div style={{ marginTop: 9, paddingTop: 9, borderTop: '1px solid var(--module-stroke)', display: 'flex', flexDirection: 'column', gap: 5 }}>
+          {rows.map((r, i) => (
+            <div key={r.name ?? i} style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontFamily: 'var(--font-mono)', fontSize: 11.5, lineHeight: 1.2 }}>
+              <span style={{ color: 'var(--fg-on-sky-1)', fontVariantNumeric: 'tabular-nums', minWidth: 46, textAlign: 'right' }}>
+                {r.outflow != null ? Math.round(r.outflow).toLocaleString() : '—'}
+              </span>
+              <span style={{ color: 'var(--fg-on-sky-3)' }}>cfs</span>
+              <span style={{ color: 'var(--fg-on-sky-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{shortDamName(r.name)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Controlling dam (≈100%) or a single upstream release → one-dam headline.
+  const entry = mode === 'controlling' ? damFlow.controlling : contributors[0];
+  const v = damMiniView(entry);
+  const grossCfs = v.diversion?.grossCfs ?? null;
+  const divertedCfs = v.diversion?.divertedCfs ?? null;
   const hasDiversion = divertedCfs != null && divertedCfs > 0;
-  const newsUrl = typeof res.reservoir === 'string' ? null : (res.reservoir?.plannedReleaseUrl ?? null);
   // show the dam-news link on hover; when there's no diversion note to swap, show it always
   const showLink = hover || !hasDiversion;
 
@@ -1297,24 +1346,27 @@ function SectionDamMini({ dams }: { dams: any[] }) {
       <div style={heroMiniLabel}><Icon name="droplet" size={13} /> Dam release</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginTop: 7 }}>
         <span style={{ fontWeight: 300, fontSize: 26, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-          {cfs != null ? Math.round(cfs).toLocaleString() : '—'}
+          {v.cfs != null ? Math.round(v.cfs).toLocaleString() : '—'}
         </span>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-2)' }}>cfs</span>
         {hasDiversion && (
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-3)' }}>in-river</span>
         )}
+        {mode === 'controlling' && !hasDiversion && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-3)' }}>· 100%</span>
+        )}
       </div>
-      {resName && (
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--fg-on-sky-3)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{resName}</div>
+      {v.name && (
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--fg-on-sky-3)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
       )}
       <div style={{ marginTop: 6, fontSize: 10.5, lineHeight: 1.3, minHeight: 14, fontFamily: 'var(--font-mono)' }}>
         {showLink
-          ? (newsUrl ? (
-              <a href={newsUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--fg-on-sky-2)', textDecoration: 'none' }}>
+          ? (v.plannedUrl ? (
+              <a href={v.plannedUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--fg-on-sky-2)', textDecoration: 'none' }}>
                 See dam news →
               </a>
             ) : null)
-          : <span style={{ color: 'var(--fg-on-sky-3)' }}>{grossCfs != null ? grossCfs.toLocaleString() : '—'} released − {divertedCfs.toLocaleString()} diverted</span>}
+          : <span style={{ color: 'var(--fg-on-sky-3)' }}>{grossCfs != null ? Math.round(grossCfs).toLocaleString() : '—'} released − {Math.round(divertedCfs).toLocaleString()} diverted</span>}
       </div>
     </div>
   );
@@ -1388,18 +1440,7 @@ function DesktopCorridorContent({ data, corridorSlug }: CorridorContentProps) {
   const toggleGauges = gauges.filter((g: any) => sectionGaugeIds.has(g.id));
 
   // section-aware dam + stats tiles in the hero follow the active (glowing) section
-  const reservoirsById = new Map(
-    ((data as any).sectionReservoirs ?? []).map((r: any) => [r.reservoir?.id, r]),
-  );
   const activeSection = sections.find((s: any) => s.id === activeSectionId) ?? null;
-  const activeSectionDams = activeSection
-    ? (activeSection.reservoirIds || '')
-        .split(',')
-        .map((x: string) => x.trim())
-        .filter(Boolean)
-        .map((rid: string) => reservoirsById.get(rid))
-        .filter(Boolean)
-    : [];
 
   const mapWrapRef = useRef<HTMLDivElement | null>(null);
   const cardsRef = useRef<HTMLDivElement | null>(null);
@@ -1592,7 +1633,7 @@ function DesktopCorridorContent({ data, corridorSlug }: CorridorContentProps) {
                     <span style={{ fontSize: 14.5, fontWeight: 700, letterSpacing: '-0.01em' }}>{activeSection.name}</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <SectionDamMini dams={activeSectionDams} />
+                    <SectionDamMini damFlow={activeSection?.damFlow} />
                     <SectionStatsMini section={activeSection} />
                   </div>
                 </div>

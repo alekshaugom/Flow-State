@@ -67,7 +67,7 @@ export function transformDetail(
 ): DetailViewModel {
 	const craft: CraftType = 'raft';
 	const skill: SkillLevel = 'intermediate';
-	const { section, river, corridor, flow, charts, gauges, reservoirs, snowpack, weatherForecast, forecast, flowBands, resolvedBand: serverBand, breadcrumb, myLogs, myLogTotalCount, rapids, bounties, outfitters, shuttleBusinesses, sectionAccess, siblingSections, weatherCurrent, weatherHourly, historicContext } = data;
+	const { section, river, corridor, flow, charts, gauges, reservoirs, damFlow, snowpack, weatherForecast, forecast, flowBands, resolvedBand: serverBand, breadcrumb, myLogs, myLogTotalCount, rapids, bounties, outfitters, shuttleBusinesses, sectionAccess, siblingSections, weatherCurrent, weatherHourly, historicContext } = data;
 
 	// Re-resolve the band client-side based on the global craft/skill context.
 	// Falls back to the server-resolved band (default raft+intermediate or legacy).
@@ -159,6 +159,7 @@ export function transformDetail(
 		damControlled: (reservoirs?.length || 0) > 0,
 		gauges: gauges || [],
 		reservoirs: reservoirs || [],
+		damFlow: damFlow ?? null,
 		snowpack: snowpack || [],
 		weatherForecast: weatherForecast || [],
 		forecast: forecast || null,

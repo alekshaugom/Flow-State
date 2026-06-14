@@ -478,6 +478,11 @@ export class Seed extends Resource {
 			return { ok: true, action, permits: PERMITS.length };
 		}
 
+		if (action === 'reservoirs') {
+			for (const r of RESERVOIRS) await tables.Reservoir.put(r.id, r);
+			return { ok: true, action, reservoirs: RESERVOIRS.length };
+		}
+
 		if (action === 'section-geometry') {
 			// Idempotent patch of gradient/elevation/velocity onto existing RiverSection rows.
 			const n = await patchSectionGeometry();
@@ -519,6 +524,7 @@ export class Seed extends Resource {
 			for (const r of RIVERS) await tables.River.put(r.id, r);
 			for (const s of SECTIONS) await tables.RiverSection.put(s.id, s);
 			for (const g of GAUGES) await tables.Gauge.put(g.id, g);
+			for (const r of RESERVOIRS) await tables.Reservoir.put(r.id, r);
 			invalidateWatershedsCache();
 			invalidateCorridorsCache();
 			invalidateDashboardCache();
@@ -531,6 +537,7 @@ export class Seed extends Resource {
 				rivers: RIVERS.length,
 				sections: SECTIONS.length,
 				gauges: GAUGES.length,
+				reservoirs: RESERVOIRS.length,
 				accessPoints: ACCESS_POINTS.length,
 				impassablePoints: IMPASSABLE_POINTS.length,
 			};

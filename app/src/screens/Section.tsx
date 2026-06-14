@@ -1208,6 +1208,7 @@ function MobileSectionContent({ sectionId }: SectionContentProps) {
       {/* ── dam release ── */}
       {hasDamData && (
         <DamReleaseModule
+          damFlow={detail.damFlow}
           reservoirs={detail.reservoirs}
           damControlled={detail.damControlled}
           riverName={detail.river}
@@ -1695,6 +1696,7 @@ function DesktopSectionContent({ sectionId }: SectionContentProps) {
             {hasSnowpack && <SnowpackModule snowpack={detail.snowpack} />}
             {hasDamData && (
               <DamReleaseModule
+                damFlow={detail.damFlow}
                 reservoirs={detail.reservoirs}
                 damControlled={detail.damControlled}
                 riverName={detail.river}

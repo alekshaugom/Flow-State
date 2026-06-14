@@ -40,6 +40,7 @@ type RiverSection @table @export {
 	fromAccessPointId: ID @indexed
 	toAccessPointId: ID @indexed
 	reservoirIds: String
+	controllingReservoirId: String
 	snowpackBasinIds: String
 	notes: String
 	latitude: Float

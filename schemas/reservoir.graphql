@@ -12,6 +12,7 @@ type Reservoir @table @export {
 	source: String
 	url: String
 	notes: String
+	feedsReservoirId: String @indexed
 	diversionName: String
 	diversionGaugeId: String
 	plannedReleaseUrl: String

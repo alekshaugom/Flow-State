@@ -7,6 +7,7 @@
  * Exports: WeatherModule, SnowpackModule, DamReleaseModule
  */
 
+import type { CSSProperties, Key } from 'react';
 import { Module } from './Module';
 import { Icon } from './Icon';
 
@@ -282,128 +283,269 @@ export function SnowpackModule({ snowpack }: { snowpack: any[] }) {
 }
 
 // ── DamReleaseModule ──────────────────────────────────────────────────────────
+//
+// Renders the dam picture for a reach. Prefers the structured `damFlow` model
+// (lib/dam-flow.ts) which distinguishes a single *controlling* dam (releases
+// ~100% of flow — show one big number) from *multiple contributing* dams on
+// different tributaries (show each release + a combined subtotal). Falls back to
+// the legacy single-reservoir rendering when `damFlow` is absent.
+
+interface DamView {
+  name: string | null;
+  outflow: number | null;
+  plannedUrl: string | null;
+  plannedNote: string | null;
+  diversion: any;
+}
+
+function damView(entry: any): DamView {
+  const resRaw = entry?.reservoir ?? null;
+  return {
+    name: typeof resRaw === 'string' ? resRaw : (resRaw?.name ?? null),
+    outflow: entry?.latest?.outflowCfs ?? null,
+    plannedUrl: typeof resRaw === 'string' ? null : (resRaw?.plannedReleaseUrl ?? null),
+    plannedNote: typeof resRaw === 'string' ? null : (resRaw?.plannedReleaseNote ?? null),
+    diversion: entry?.diversion ?? null,
+  };
+}
+
+const damBigNumberStyle: CSSProperties = {
+  fontWeight: 300,
+  fontSize: 40,
+  lineHeight: 1,
+  fontVariantNumeric: 'tabular-nums',
+};
+
+function ControlChip({ label }: { label: string }) {
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 9.5,
+        fontWeight: 700,
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        color: 'var(--fg-on-sky-2)',
+        background: 'var(--module-fill)',
+        border: '1px solid var(--module-stroke)',
+        borderRadius: 'var(--r-sm, 6px)',
+        padding: '3px 7px',
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function PlannedLink({ url, note }: { url: string; note: string | null }) {
+  return (
+    <div style={{ fontSize: 11.5, color: 'var(--fg-on-sky-3)', marginTop: 8, lineHeight: 1.4 }}>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={note || undefined}
+        style={{ color: 'var(--fg-on-sky-2)', textDecoration: 'none' }}
+      >
+        Planned releases: announced by operator →
+      </a>
+    </div>
+  );
+}
+
+// The release → diverted → dam-controlled (+ tributary = reach) chain for dams
+// with a major diversion between the dam and the reach (e.g. the Gunnison Tunnel).
+function DiversionChain({ outflow, diversion }: { outflow: number; diversion: any }) {
+  const reachFlow = diversion?.reachFlowCfs ?? null;
+  const tributaryGain = diversion?.tributaryGainCfs ?? null;
+  const hasTributary = reachFlow != null && tributaryGain != null && tributaryGain > Math.max(5, reachFlow * 0.03);
+  return (
+    <div
+      style={{
+        marginTop: 10,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3,
+        fontFamily: 'var(--font-mono)',
+        fontSize: 11.5,
+        lineHeight: 1.5,
+        color: 'var(--fg-on-sky-3)',
+      }}
+    >
+      <span>Releases {Math.round(outflow).toLocaleString()} cfs</span>
+      <span>− {diversion.name} diverts ~{Math.round(diversion.divertedCfs).toLocaleString()} cfs</span>
+      {hasTributary && (
+        <>
+          <span>+ ~{Math.round(tributaryGain).toLocaleString()} cfs tributary gains</span>
+          <span style={{ color: 'var(--fg-on-sky-2)' }}>= {Math.round(reachFlow).toLocaleString()} cfs total in this reach</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+function FeederNote({ feeders }: { feeders: any[] }) {
+  const names = feeders.map(f => damView(f).name).filter(Boolean);
+  if (!names.length) return null;
+  return (
+    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-3)', marginTop: 8, lineHeight: 1.45 }}>
+      Fed upstream by {names.join(' · ')}
+    </div>
+  );
+}
+
+// A single headline dam (used by both controlling mode and single-contributor mode).
+function SingleDam({ entry, label, feeders }: { entry: any; label: string; feeders: any[] }) {
+  const v = damView(entry);
+  const div = v.diversion;
+  const hasDiversion = div != null && div.damControlledCfs != null && v.outflow != null;
+  const bigValue = hasDiversion ? div.damControlledCfs : v.outflow;
+  const bigLabel = hasDiversion ? 'cfs dam-controlled' : label;
+  return (
+    <>
+      {bigValue != null && (
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={damBigNumberStyle}>{Math.round(bigValue).toLocaleString()}</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--fg-on-sky-2)' }}>{bigLabel}</span>
+        </div>
+      )}
+      {v.name && (
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-3)', marginTop: 8 }}>{v.name}</div>
+      )}
+      {hasDiversion && <DiversionChain outflow={v.outflow!} diversion={div} />}
+      <FeederNote feeders={feeders} />
+      {bigValue == null && v.name && (
+        <div style={{ fontSize: 13, color: 'var(--fg-on-sky-3)', marginTop: 8 }}>Release data updating.</div>
+      )}
+      {v.plannedUrl && <PlannedLink url={v.plannedUrl} note={v.plannedNote} />}
+    </>
+  );
+}
+
+// Multiple contributing dams: combined headline + a per-dam breakdown list.
+function ContributingDams({ damFlow }: { damFlow: any }) {
+  const contributors: any[] = damFlow.contributors ?? [];
+  const combined: number | null = damFlow.combinedCfs ?? null;
+  const reachFlow: number | null = damFlow.reachFlowCfs ?? null;
+  const n = contributors.length;
+
+  // Share-of-reach context, only when it's sane (dam release ≤ ~the reach flow).
+  let pct: number | null = null;
+  if (combined != null && reachFlow != null && reachFlow > 0 && combined <= reachFlow * 1.15) {
+    pct = Math.max(0, Math.min(100, Math.round((combined / reachFlow) * 100)));
+  }
+
+  return (
+    <>
+      {combined != null && (
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={damBigNumberStyle}>{Math.round(combined).toLocaleString()}</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--fg-on-sky-2)' }}>cfs combined release</span>
+        </div>
+      )}
+
+      {/* per-dam breakdown */}
+      <div
+        style={{
+          marginTop: combined != null ? 12 : 0,
+          paddingTop: combined != null ? 12 : 0,
+          borderTop: combined != null ? '1px solid var(--module-stroke)' : 'none',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {contributors.map((c, i) => {
+          const v = damView(c);
+          return (
+            <div
+              key={(c?.reservoir?.id ?? v.name ?? i) as Key}
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                justifyContent: 'space-between',
+                gap: 10,
+                padding: '6px 0',
+                borderTop: i ? '1px solid var(--module-stroke)' : 'none',
+              }}
+            >
+              <span style={{ fontSize: 13, color: 'var(--fg-on-sky-1)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {v.name ?? 'Unknown dam'}
+              </span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--fg-on-sky-2)', fontVariantNumeric: 'tabular-nums', flex: '0 0 auto' }}>
+                {v.outflow != null ? `${Math.round(v.outflow).toLocaleString()} cfs` : '—'}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-on-sky-3)', marginTop: 10, lineHeight: 1.45 }}>
+        {pct != null
+          ? `~${pct}% of this reach's ${Math.round(reachFlow!).toLocaleString()} cfs is dam release`
+          : `Combined release from ${n} upstream dams · the reach also carries snowmelt and tributary inflow`}
+      </div>
+      <FeederNote feeders={damFlow.feeders ?? []} />
+    </>
+  );
+}
 
 export function DamReleaseModule({
+  damFlow,
   reservoirs,
   damControlled,
   riverName,
 }: {
-  reservoirs: any[];
-  damControlled: boolean;
-  riverName: string;
+  damFlow?: any;
+  reservoirs?: any[];
+  damControlled?: boolean;
+  riverName?: string;
 }) {
+  const df = damFlow && damFlow.mode && damFlow.mode !== 'none' ? damFlow : null;
+
+  // ── structured path ──
+  if (df) {
+    if (df.mode === 'controlling' && df.controlling) {
+      return (
+        <Module label="Dam release" icon="droplet" style={{ marginTop: 14 }}>
+          <SingleDam entry={df.controlling} label="cfs released" feeders={df.feeders ?? []} />
+          <div style={{ marginTop: 10 }}>
+            <ControlChip label="Controls ~100% of flow" />
+          </div>
+        </Module>
+      );
+    }
+    if (df.mode === 'contributing') {
+      const contributors: any[] = df.contributors ?? [];
+      return (
+        <Module label={contributors.length >= 2 ? 'Upstream dam releases' : 'Dam release'} icon="droplet" style={{ marginTop: 14 }}>
+          {contributors.length >= 2
+            ? <ContributingDams damFlow={df} />
+            : <SingleDam entry={contributors[0]} label="cfs upstream release" feeders={df.feeders ?? []} />}
+        </Module>
+      );
+    }
+  }
+
+  // ── legacy fallback (no structured damFlow) ──
   const res = reservoirs?.[0];
-  const outflow = res?.latest?.outflowCfs ?? null;
-  const resRaw = res?.reservoir ?? null;
-  const resName = typeof resRaw === 'string' ? resRaw : (resRaw?.name ?? null);
-  const plannedUrl = typeof resRaw === 'string' ? null : (resRaw?.plannedReleaseUrl ?? null);
-  const plannedNote = typeof resRaw === 'string' ? null : (resRaw?.plannedReleaseNote ?? null);
-  const diversion = res?.diversion ?? null;
-  const damCtlCfs = diversion?.damControlledCfs ?? null;
-  const reachFlow = diversion?.reachFlowCfs ?? null;        // section context only
-  const tributaryGain = diversion?.tributaryGainCfs ?? null;
-  const hasDiversion = diversion != null && damCtlCfs != null && outflow != null;
-  const hasTributary = hasDiversion && reachFlow != null && tributaryGain != null && tributaryGain > Math.max(5, reachFlow * 0.03);
-  // Headline the dam-controlled portion (what the dam actually contributes to the
-  // reach), not the reach total — the reach total already shows as the page's
-  // main flow number, so echoing it here would be a redundant rehash.
-  const bigValue = hasDiversion ? damCtlCfs : outflow;
-  const bigLabel = hasDiversion ? 'cfs dam-controlled' : 'cfs outflow';
-
   if (!res && !damControlled) return null;
-
   if (!res) {
-    // damControlled but no reservoir data yet
     return (
       <Module label="Dam release" icon="droplet" style={{ marginTop: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, color: 'var(--fg-on-sky-1)' }}>
           <Icon name="triangle-alert" size={22} color="var(--status-high, var(--high-fg))" />
-          <div style={{ fontSize: 14.5, lineHeight: 1.4 }}>
-            Dam-controlled — release data unavailable.
-          </div>
+          <div style={{ fontSize: 14.5, lineHeight: 1.4 }}>Dam-controlled — release data unavailable.</div>
         </div>
       </Module>
     );
   }
-
+  const v = damView(res);
   return (
     <Module label="Dam release" icon="droplet" style={{ marginTop: 14 }}>
-      {bigValue != null && (
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span
-            style={{
-              fontWeight: 300,
-              fontSize: 40,
-              lineHeight: 1,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {Math.round(bigValue).toLocaleString()}
-          </span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--fg-on-sky-2)' }}>
-            {bigLabel}
-          </span>
-        </div>
-      )}
-      {resName && (
-        <div
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11,
-            color: 'var(--fg-on-sky-3)',
-            marginTop: 8,
-          }}
-        >
-          {resName}
-        </div>
-      )}
-      {hasDiversion && (
-        <div
-          style={{
-            marginTop: 10,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 3,
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11.5,
-            lineHeight: 1.5,
-            color: 'var(--fg-on-sky-3)',
-          }}
-        >
-          <span>Releases {Math.round(outflow).toLocaleString()} cfs</span>
-          <span>− {diversion.name} diverts ~{diversion.divertedCfs.toLocaleString()} cfs</span>
-          {hasTributary && (
-            <>
-              <span>+ ~{tributaryGain.toLocaleString()} cfs tributary gains</span>
-              <span style={{ color: 'var(--fg-on-sky-2)' }}>= {reachFlow.toLocaleString()} cfs total in this reach</span>
-            </>
-          )}
-        </div>
-      )}
-      {plannedUrl && (
-        <div
-          style={{
-            fontSize: 11.5,
-            color: 'var(--fg-on-sky-3)',
-            marginTop: 8,
-            lineHeight: 1.4,
-          }}
-        >
-          <a
-            href={plannedUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={plannedNote || undefined}
-            style={{ color: 'var(--fg-on-sky-2)', textDecoration: 'none' }}
-          >
-            Planned releases: announced by operator →
-          </a>
-        </div>
-      )}
-      {bigValue == null && !resName && (
-        <div style={{ fontSize: 14.5, color: 'var(--fg-on-sky-1)' }}>
-          Release data unavailable for {riverName}.
-        </div>
+      <SingleDam entry={res} label="cfs outflow" feeders={[]} />
+      {v.outflow == null && !v.name && (
+        <div style={{ fontSize: 14.5, color: 'var(--fg-on-sky-1)' }}>Release data unavailable for {riverName}.</div>
       )}
     </Module>
   );

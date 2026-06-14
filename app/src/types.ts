@@ -105,6 +105,7 @@ export interface DetailViewModel {
 
 	gauges: any[];
 	reservoirs: any[];
+	damFlow?: any;
 	snowpack: any[];
 	weatherForecast: any[];
 	forecast: any;

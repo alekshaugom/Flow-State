@@ -1,4 +1,5 @@
 import { Resource, tables } from 'harper';
+import { buildDamFlow } from '../lib/dam-flow.ts';
 import { getFlowStatus, daysAgo, isoNow, compositeId } from '../lib/utils.ts';
 import { dayOfYearUTC, classifyVsMedian } from '../lib/gauge-rollup-pure.ts';
 import { loadBandsForSection, resolveFromCache, bandToDesignStatus, bandToLabel } from '../lib/flow-bands.ts';
@@ -446,6 +447,12 @@ export class RiverDetail extends Resource {
 			}
 		}
 
+		const damFlow = buildDamFlow({
+			entries: damReleases,
+			controllingReservoirId: (section as any).controllingReservoirId ?? null,
+			reachFlowCfs: roundedFlow,
+		});
+
 		// Resolve current band for the default selection (raft + intermediate).
 		// The frontend has all bands and re-resolves locally when the user toggles.
 		const resolvedBand = resolveFromCache(flowBands, section, 'raft', 'intermediate', roundedFlow);
@@ -529,6 +536,7 @@ export class RiverDetail extends Resource {
 			charts: flowData.series,
 			gauges: flowData.gaugeList,
 			reservoirs: damReleases,
+			damFlow,
 			snowpack,
 			weatherForecast,
 			forecast,
