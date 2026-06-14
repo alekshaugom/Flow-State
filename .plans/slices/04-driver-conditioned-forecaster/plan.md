@@ -13,6 +13,13 @@ closed: null
 # Slice 04 — Driver-conditioned forecaster
 
 > **Note (2026-05-14):** The NWS weather pipeline portion of this slice was promoted into slice 03a after the data-integrity audit revealed weather was never wired up. Slice 04 now focuses purely on the driver-conditioned heuristic forecaster, which assumes `WeatherForecast` rows already exist (from 03a) and snapshot infrastructure is in place (from 03b).
+>
+> **Update (2026-06-14) — gauge-keyed + research-backed (forecasting initiative pulled forward; see 03b + ROADMAP "Flow forecasting"):** Forecast **per gauge**, not per section (3-gauge corridor → 3 forecasts; sections derive from `primaryGaugeId`). The `driver` branches stay, refined:
+> - **snowmelt** = elevation-zoned temperature-index regression on SWE + melt-energy + precip + antecedent flow (CBRFC runs SNOW-17 over up to 3 elevation zones — band the bigger basins).
+> - **reservoir-release** = release schedule + persistence (snowpack informs seasonal release *volume* only, not daily timing).
+> - **hybrid** = unregulated natural-flow forecast − diversions ± reservoir ops.
+> Blend **free federal OUTPUTS** as priors/features: NOAA National Water Model medium-range (AWS Open Data, public domain), CBRFC (west slope) / MBRFC (east slope) / NRCS *unregulated* water-supply forecasts; long-lead seasonal adds a random forest on the **ESP-mean** (Woodson 2024, Colorado River Basin). Regonda 2006 validated PCA+SWE on 6 Gunnison sites — local precedent.
+> **Licensing (hard):** do NOT run/embed **WRF-Hydro** (UCAR license forbids embedding) or **airGR** (GPL-2); algorithms (SNOW-17/SAC-SMA/GR4J) are public-domain math — reimplement if wanted. Avoid **PRISM** commercially. **Numbers = statistical/ML; LLM only for the plain-language `assumptions`/`safetyNotes`.** Sources/detail in memories `flow_state_forecast_research` + `flow_state_forecast_architecture`.
 
 ## Goal
 

@@ -1,6 +1,6 @@
 ---
 slice: 30-design-overhaul
-status: active
+status: in-review
 value: 13
 depends_on: []
 opened: 2026-06-06

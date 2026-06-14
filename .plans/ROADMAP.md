@@ -2,10 +2,11 @@
 
 Single source of truth for what ships next. Sorted by value × confidence ÷ effort, respecting dependencies and explicit user priority. Frontmatter in each slice's `plan.md` / `intent.md` is the authoritative metadata — this file is a rendered view.
 
-**Last updated:** 2026-06-11
-**Active slice:** **30-design-overhaul** — full 4-tab IA redesign on the new design system; corridor/section tile-completion delivered 2026-06-07 (permits, water temp, weather, snowpack, dam, gradient/velocity, historic context, access alternatives + section nav).
-**Next up:** **24-trust-reputation-governance** (paused mid-flight — governance backend already landed; resume from the frontend/UX phase), then **25-zero-layers-deep-ia**.
-**New direction (2026-06-11):** evolve the **Trips** tab into **Guides** (slice 31) — see *Guides evolution* below.
+**Last updated:** 2026-06-14
+**Active slice:** **03b-forecast-snapshot-infra** — flow forecasting pulled forward (see *Flow forecasting* below); forecasts keyed **per gauge**. Build NOT yet started — handoff to next session. 30-design-overhaul moved to in-review (major design overhaul shipped; resume remaining polish later).
+**Next up:** **04-driver-conditioned-forecaster** → **05-history-forecast-chart** (the forecasting build); then resume 30 polish, **24-trust-reputation-governance**, **25-zero-layers-deep-ia**.
+**New direction (2026-06-14):** flow forecasting on all corridor + section pages, predicted **per gauge** — see *Flow forecasting* below.
+**Prior direction (2026-06-11):** evolve the **Trips** tab into **Guides** (slice 31) — see *Guides evolution* below.
 
 ---
 
@@ -37,9 +38,23 @@ Captured as slice **31-guides-section** (intent). The deeper "why" — that Flow
 
 ---
 
+## Flow forecasting (2026-06-14)
+
+The user pulled the **river-flow forecasting** initiative forward, ahead of the queue: forecasts on all corridor + section pages. It was already queued as **03b** (snapshot/reconciliation infra) → **04** (driver-conditioned forecaster) → **05** (history+forecast chart); these are now the priority and **03b is active**. The existing `ForecastPipeline` is a stub (`model: 'stub-v1'`, linear projection) to be replaced.
+
+**The one architecture decision: predict per GAUGE, not per section.** A corridor with 3 gauges → 3 forecasts; each section reads its `primaryGaugeId`'s forecast; the corridor hero extends its existing gauge-toggle chart forward (history → dashed forecast + widening confidence band). Re-key ForecastRun/ForecastInput/ForecastAccuracy around `gaugeId` (DailyGaugeRollup is already gauge-keyed). Regime-routed by `RiverSection.driver`, so mixed-regime corridors (a gauge above vs below a dam) get the right method each.
+
+**Phasing:** v1 = per-gauge **nowcast** (1–7d) = persistence + Open-Meteo melt/precip + observed releases (BOR/USGS/CDSS) + diversion telemetry — no new data sources. Phase 2 = seasonal: ingest free federal OUTPUTS (NOAA National Water Model on AWS; CBRFC west-slope / MBRFC east-slope / NRCS *unregulated* water-supply forecasts) as priors/features + elevation-zoned SWE regression + a random-forest-on-ESP-mean layer (Woodson 2024). Phase 3 = LSTM (NeuralHydrology) once history is accumulated.
+
+**Hard constraints (deep-research, 2026-06-14 — memories `flow_state_forecast_research` + `flow_state_forecast_architecture`):** use federal model **outputs** (public domain, free, redistributable); do NOT run/embed **WRF-Hydro** (UCAR license forbids embedding) or **airGR** (GPL-2) — the algorithms (SNOW-17/SAC-SMA/GR4J) are public-domain math, reimplement if needed; avoid **PRISM** commercially (use Daymet/gridMET); the app spans **two RFCs** — CBRFC (west slope) + MBRFC (Arkansas/South Platte/Poudre east slope). **LLM for the narrative only, not the CFS numbers.**
+
+---
+
 ## In-review
 
-*(none)*
+| # | Slice | Value | Goal |
+|---|---|---|---|
+| 30 | [design-overhaul](slices/30-design-overhaul/plan.md) | 13 | Major 4-tab IA redesign + corridor/section tile-completion + map dam ticks/basin clustering shipped. Paused 2026-06-14 to pull forward flow forecasting; resume remaining design polish after the forecast v1. |
 
 ---
 
@@ -47,7 +62,7 @@ Captured as slice **31-guides-section** (intent). The deeper "why" — that Flow
 
 | # | Slice | Value | Effort | Goal |
 |---|---|---|---|---|
-| 30 | [design-overhaul](slices/30-design-overhaul/plan.md) | 13 | XL | Full 4-tab IA redesign on the new design system; corridor/section tiles completed (permits, water temp, weather, snowpack, dam, gradient/velocity, historic context, access alternatives + section nav). |
+| 03b | [forecast-snapshot-infra](slices/03b-forecast-snapshot-infra/plan.md) | 8 | M | **Per-gauge** forecast substrate — gauge-keyed ForecastRun/Input/Accuracy + DailyGaugeRollup + reconciliation. First slice of the pulled-forward forecasting initiative (see *Flow forecasting* above). Build not yet started; handoff to next session. |
 
 > **Partial overlap note (2026-06-07):** the tile-completion work in slice 30 delivered partial coverage of two queued slices — `DailyGaugeRollup` (gauge percentile/historic-context infra) overlaps **03b** (forecast-snapshot-infra), and corridor-level snowpack surfacing overlaps **03d** (snowpack-confidence-and-audit). Those slices are NOT done — they have broader scope — but a future session should check what work can be skipped.
 

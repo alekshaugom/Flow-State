@@ -1,6 +1,6 @@
 ---
 slice: 03b-forecast-snapshot-infra
-status: queued
+status: active
 value: 8
 confidence: 9
 effort: M
@@ -11,6 +11,14 @@ closed: null
 ---
 
 # Slice 03b — Forecast input snapshots + reconciliation infrastructure
+
+> **Update (2026-06-14) — promoted to active; flow-forecasting initiative pulled forward by user (ahead of queue). NOT YET STARTED — code is the next window's Execute phase.**
+>
+> **The one architecture change to this plan: forecasts are keyed by GAUGE, not section.** A corridor with 3 gauges → 3 forecasts; each section derives from its `primaryGaugeId`; the corridor hero extends its existing gauge-toggle chart forward. Re-key `ForecastRun` / `ForecastInput` / `ForecastAccuracy` around `gaugeId` (the reconciliation below already resolves the section's `primaryGaugeId` — make the gauge the primary key instead of a per-section lookup). `DailyGaugeRollup` is already gauge-keyed (good — it stays). Regime is routed by `RiverSection.driver`, assigned per gauge so mixed-regime corridors (gauge above vs below a dam) get the right method each.
+>
+> **Build order:** 03b (this — substrate) → 04 (driver-conditioned, gauge-keyed) → 05 (history+forecast chart on corridor hero). **v1 = per-gauge nowcast** (1–7d): persistence + Open-Meteo melt/precip + observed releases (BOR/USGS/CDSS) + diversion telemetry, no new data sources; seasonal (CBRFC/MBRFC/NRCS/NWM ingestion) is phase 2. **Numbers = statistical/ML; LLM only for the narrative** (`assumptions`/`safetyNotes`) — drop the LLM-for-numbers TODO in `ForecastPipeline.ts`.
+>
+> Full architecture + research (methods, licensing, data, two-RFC split) live in memories **`flow_state_forecast_architecture`** + **`flow_state_forecast_research`**.
 
 ## Goal
 

@@ -1,10 +1,12 @@
 ---
 slice: 30-design-overhaul
-status: active
+status: in-review
 value: 13
 depends_on: []
 opened: 2026-06-06
 ---
+
+> **Paused → in-review (2026-06-14):** the major 4-tab IA redesign, corridor/section tile-completion, and map dam ticks/basin clustering shipped. Moved out of `active` to keep exactly one active slice while the user pulls the **flow-forecasting** initiative forward (03b → 04 → 05; see ROADMAP "Flow forecasting"). Remaining design polish can resume after the forecast v1.
 
 # 30 — Plan
 
